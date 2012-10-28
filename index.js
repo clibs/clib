@@ -75,7 +75,7 @@ function fetch(name, file) {
     if (res.error) return error(name, res);
     fs.writeFile(dst, res.text, function(err){
       if (err) throw err;
-      log('write', dst + ' (' + bytes(res.text.length) + ')');
+      log('write', dst + ' - ' + bytes(res.text.length));
     });
   });
 }
