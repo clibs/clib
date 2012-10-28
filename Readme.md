@@ -1,5 +1,5 @@
 
-# cpm(1)
+# cpm
 
   C package manager.
 
