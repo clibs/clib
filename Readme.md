@@ -1,7 +1,9 @@
 
 # cpm
 
-  C package manager
+  C package manager.
+
+  ![c package manager screenshot](http://f.cl.ly/items/3D3G0G2P3I3I0O0H1W16/cpm.png)
 
 ## License 
 
