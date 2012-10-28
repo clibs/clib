@@ -1,0 +1,19 @@
+{
+  "name": "cpm",
+  "version": "0.0.1",
+  "description": "C package manager",
+  "keywords": [],
+  "author": "TJ Holowaychuk <tj@vision-media.ca>",
+  "dependencies": {
+    "commander": "~1.0.5",
+    "superagent": "~0.9.7",
+    "printf": "0.0.4",
+    "bytes": "~0.2.0",
+    "mkdirp": "~0.3.4"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "main": "index"
+}
