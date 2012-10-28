@@ -13,7 +13,7 @@ var program = require('commander')
 
 program
   .version(pkg.version)
-  .usage('cpm [options] [repo ...]')
+  .usage('[options] [repo ...]')
   .parse(process.argv);
 
 // args

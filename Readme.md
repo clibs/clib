@@ -9,7 +9,7 @@
 
 ```
 
-Usage: cpm cpm [options] [repo ...]
+Usage: cpm [options] [repo ...]
 
 Options:
 
