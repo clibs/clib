@@ -17,6 +17,6 @@
   },
   "bin": {
     "cpm": "./bin/cpm"
-  }
+  },
   "main": "index"
 }
