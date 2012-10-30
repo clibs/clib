@@ -1,8 +1,8 @@
 {
   "name": "cpm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "C package manager",
-  "keywords": [],
+  "keywords": ["c", "package", "manager"],
   "author": "TJ Holowaychuk <tj@vision-media.ca>",
   "dependencies": {
     "commander": "~1.0.5",
@@ -15,5 +15,8 @@
     "mocha": "*",
     "should": "*"
   },
+  "bin": {
+    "cpm": "./bin/cpm"
+  }
   "main": "index"
 }
