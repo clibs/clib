@@ -1,5 +1,5 @@
 {
-  "name": "cpm",
+  "name": "c-pm",
   "version": "0.0.2",
   "description": "C package manager",
   "keywords": ["c", "package", "manager"],
