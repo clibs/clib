@@ -14,7 +14,7 @@ var program = require('commander')
 program
   .version(pkg.version)
   .usage('[options] [repo ...]')
-  .option('-o, --out <dir>', 'change the output directory [src]', 'src')
+  .option('-o, --out <dir>', 'change the output directory [deps]', 'deps')
   .parse(process.argv);
 
 // args
