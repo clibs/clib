@@ -14,6 +14,7 @@ var program = require('commander')
 program
   .version(pkg.version)
   .usage('[options] [repo ...]')
+  .option('-o, --out <dir>', 'change the output directory [src]', 'src')
   .parse(process.argv);
 
 // args
@@ -27,9 +28,9 @@ if (!args.length) program.help();
 // install
 
 console.log();
-mkdir('src');
+mkdir(program.out);
 args.forEach(function(name){
-  cpm.install(name);
+  cpm.install(name, { to: program.out });
 });
 
 // exit

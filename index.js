@@ -39,10 +39,11 @@ function error(name, res) {
  * Install `name`.
  *
  * @param {String} name
+ * @param {Object} options
  * @api private
  */
 
-exports.install = function(name){
+exports.install = function(name, options){
   var url = 'https://raw.github.com/' + name + '/master/package.json';
 
   log('install', name);
@@ -52,7 +53,9 @@ exports.install = function(name){
     if (res.error) return error(name, res);
     var obj = JSON.parse(res.text);
     if (!obj.src) return log('error', '.src missing', 31);
-    obj.src.forEach(fetch.bind(null, name));
+    obj.src.forEach(function(file){
+      fetch(name, file, options);
+    });
   });
 };
 
@@ -61,12 +64,13 @@ exports.install = function(name){
  *
  * @param {String} name
  * @param {String} file
+ * @param {Object} options
  * @api private
  */
 
-function fetch(name, file) {
+function fetch(name, file, options) {
   var url = 'https://raw.github.com/' + name + '/master/' + file;
-  var dst = 'src/' + path.basename(file);
+  var dst = options.to + '/' + path.basename(file);
 
   log('fetch', file);
   request
