@@ -30,8 +30,8 @@ function log(type, msg, color) {
  * Error helper.
  */
 
-function error(name, res) {
-  log('error', 'got ' + res.status + ' response', 31);
+function error(name, res, url) {
+  log('error', res.status + ' response (' + url + ')', 31);
   process.exit(1);
 }
 
@@ -50,7 +50,7 @@ exports.install = function(name, options){
   request
   .get(url)
   .end(function(res){
-    if (res.error) return error(name, res);
+    if (res.error) return error(name, res, url);
     var obj = JSON.parse(res.text);
     if (!obj.src) return log('error', '.src missing', 31);
     obj.src.forEach(function(file){
@@ -76,7 +76,7 @@ function fetch(name, file, options) {
   request
   .get(url)
   .end(function(res){
-    if (res.error) return error(name, res);
+    if (res.error) return error(name, res, url);
     fs.writeFile(dst, res.text, function(err){
       if (err) throw err;
       log('write', dst + ' - ' + bytes(res.text.length));
