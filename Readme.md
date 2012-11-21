@@ -19,6 +19,10 @@ $ npm install -g c-pm
   serving as a nice way to discover these sort of libraries, from my experience
   they are scattered all over the web and discovery is relatively poor. The wiki [listing of packages](https://github.com/visionmedia/cpm/wiki/Packages) acts as the "registry" and populates the `cpm-search(1)` results.
 
+  `cpm(1)` is not a package manager for an end-user experience, for example it currently
+  has no concept of dependencies etc, you should use `cpm(1)` to fetch these files for you
+  and check them into your repository, the end-user and contributors will not require `cpm(1)`.
+
 ## Usage
 
 ```
