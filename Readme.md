@@ -13,6 +13,12 @@
 $ npm install -g c-pm
 ```
 
+## About
+
+  Basically the lazy-man's copy / paste, promoting smaller C utilities, also
+  serving as a nice way to discover these sort of libraries, from my experience
+  they are scattered all over the web and discovery is relatively poor. The wiki [listing of packages](https://github.com/visionmedia/cpm/wiki/Packages) acts as the "registry" and populates the `cpm-search(1)` results.
+
 ## Usage
 
 ```
