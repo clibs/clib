@@ -1,9 +1,9 @@
 
 # cpm
 
-  C package manager.
+  Package manager for the C programming language.
 
-  ![c package manager screenshot](http://f.cl.ly/items/3D3G0G2P3I3I0O0H1W16/cpm.png)
+  ![c package manager screenshot](http://f.cl.ly/items/0u1k3G0e1U0f1Q411e3N/cpm.png)
 
 ## Installation
 
@@ -17,13 +17,17 @@ $ npm install -g c-pm
 
 ```
 
-Usage: cpm [options] [repo ...]
+Usage: cpm [options] [command]
+
+Commands:
+
+  install <pkg>          install the given package(s)
+  help [cmd]             display help for [cmd]
 
 Options:
 
-  -h, --help       output usage information
-  -V, --version    output the version number
-  -o, --out <dir>  change the output directory [deps]
+  -h, --help     output usage information
+  -V, --version  output the version number
 
 ```
 
