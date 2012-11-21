@@ -6,35 +6,13 @@
 
 var program = require('commander')
   , mkdir = require('mkdirp').sync
-  , pkg = require('../package')
-  , cpm = require('..')
+  , pkg = require('../package');
 
 // options
 
 program
   .version(pkg.version)
-  .usage('[options] [repo ...]')
-  .option('-o, --out <dir>', 'change the output directory [deps]', 'deps')
+  .usage('[options] [command]')
+  .command('install <pkg>', 'install the given package(s)')
   .parse(process.argv);
 
-// args
-
-var args = program.args;
-
-// zero args
-
-if (!args.length) program.help();
-
-// install
-
-console.log();
-mkdir(program.out);
-args.forEach(function(name){
-  cpm.install(name, { to: program.out });
-});
-
-// exit
-
-process.on('exit', function(){
-  console.log();
-});

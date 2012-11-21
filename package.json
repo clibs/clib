@@ -2,14 +2,19 @@
   "name": "c-pm",
   "version": "0.0.2",
   "description": "C package manager",
-  "keywords": ["c", "package", "manager"],
+  "keywords": [
+    "c",
+    "package",
+    "manager"
+  ],
   "author": "TJ Holowaychuk <tj@vision-media.ca>",
   "dependencies": {
-    "commander": "~1.0.5",
+    "commander": "~1.1.1",
     "superagent": "~0.9.7",
     "printf": "0.0.4",
     "bytes": "~0.2.0",
-    "mkdirp": "~0.3.4"
+    "mkdirp": "~0.3.4",
+    "shelly": "0.0.3"
   },
   "devDependencies": {
     "mocha": "*",

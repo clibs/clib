@@ -4,6 +4,8 @@
  */
 
 var request = require('superagent')
+  , exec = require('child_process').exec
+  , command = require('shelly')
   , sprintf = require('printf')
   , bytes = require('bytes')
   , path = require('path')
@@ -51,13 +53,53 @@ exports.install = function(name, options){
   .get(url)
   .end(function(res){
     if (res.error) return error(name, res, url);
-    var obj = JSON.parse(res.text);
-    if (!obj.src) return log('error', '.src missing', 31);
-    obj.src.forEach(function(file){
-      fetch(name, file, options);
-    });
+    var conf = JSON.parse(res.text);
+
+    // bins
+    if (conf.install) executable(conf);
+
+    // scripts
+    if (conf.src) {
+      conf.src.forEach(function(file){
+        fetch(name, file, options);
+      });
+    }
   });
 };
+
+/**
+ * Fetch tarball, unpack, and install.
+ *
+ * @param {Object} conf
+ * @api public
+ */
+
+function executable(conf) {
+  var url = 'https://github.com/' + conf.repo + '/archive/' + conf.version + '.tar.gz';
+  var name = conf.repo.replace(/\//g, '-');
+  var tarball = fs.createWriteStream('/tmp/' + name);
+
+  log('fetch', url);
+  request
+  .get(url)
+  .buffer(false)
+  .end(function(res){
+    if (res.error) return error(conf.repo, res, url);
+    res.pipe(tarball);
+    res.on('end', function(){
+      log('unpack', tarball.path);
+      var cmd = command('cd /tmp && tar -zxf ?', name);
+      exec(cmd, function(err){
+        if (err) return log('error', err.message, 31);
+        var cmd = command('cd /tmp/?-? && ' + conf.install, conf.name, conf.version);
+        log('exec', conf.install);
+        exec(cmd, function(err){
+          if (err) return log('error', err.message, 31);
+        });
+      });
+    });
+  });
+}
 
 /**
  * Fetch `name`'s `file` and write to ./src.

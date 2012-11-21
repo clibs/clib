@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var program = require('commander')
+  , mkdir = require('mkdirp').sync
+  , cpm = require('..');
+
+// options
+
+program
+  .usage('[options] <pkg ...>')
+  .option('-o, --out <dir>', 'change the output directory [deps]', 'deps')
+  .parse(process.argv);
+
+// args
+
+var args = program.args;
+
+// zero args
+
+if (!args.length) {
+  console.error('\n  package(s) required\n');
+  process.exit(1);
+}
+
+// install
+
+console.log();
+mkdir(program.out);
+args.forEach(function(name){
+  cpm.install(name, { to: program.out });
+});
+
+// exit
+
+process.on('exit', function(){
+  console.log();
+});
