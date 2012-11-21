@@ -21,7 +21,8 @@
     "should": "*"
   },
   "bin": {
-    "cpm": "./bin/cpm"
+    "cpm": "./bin/cpm",
+    "cpm-search": "./bin/cpm-search"
   },
   "main": "index"
 }
