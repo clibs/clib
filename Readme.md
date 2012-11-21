@@ -31,6 +31,32 @@ Options:
 
 ```
 
+## Examples
+
+ Install a few dependencies to `./deps`:
+
+```
+$ cpm install visionmedia/ms.c visionmedia/commander.c
+```
+
+ Install them to `./src` instead:
+
+```
+$ cpm install visionmedia/ms.c visionmedia/commander.c -o src
+```
+
+ Install some executables:
+
+```
+$ cpm install visionmedia/mon visionmedia/every visionmedia/watch
+```
+
+  Once again with brace expansion, you do love brace expansion right? ;)
+
+```
+$ cpm install visionmedia/{mon,every,watch}
+```
+
 ## License 
 
   MIT
