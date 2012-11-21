@@ -57,6 +57,36 @@ $ cpm install visionmedia/mon visionmedia/every visionmedia/watch
 $ cpm install visionmedia/{mon,every,watch}
 ```
 
+## package.json
+
+ Example of a package.json explicitly listing the source:
+
+```json
+{
+  "name": "term",
+  "version": "0.0.1",
+  "repo": "visionmedia/term.c",
+  "description": "Terminal ansi escape goodies",
+  "keywords": ["terminal", "term", "tty", "ansi", "escape", "colors", "console"],
+  "license": "MIT",
+  "src": ["src/term.c", "src/term.h"]
+}
+```
+
+ Example of a package.json for an executable:
+
+```json
+{
+  "name": "mon",
+  "version": "1.1.1",
+  "repo": "visionmedia/mon",
+  "description": "Simple process monitoring",
+  "keywords": ["process", "monitoring", "monitor", "availability"],
+  "license": "MIT",
+  "install": "make install"
+}
+```
+
 ## License 
 
   MIT
