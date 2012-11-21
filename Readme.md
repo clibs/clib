@@ -7,10 +7,8 @@
 
 ## Installation
 
-  Using "c-pm" as "cpm" is taken in npm...
-
 ```
-$ npm install -g c-pm
+$ npm install -g visionmedia/cpm
 ```
 
 ## About
