@@ -22,7 +22,7 @@
   },
   "bin": {
     "cpm": "./bin/cpm",
-    "cpm-search": "./bin/cpm-search"
+    "cpm-install": "./bin/cpm-install"
   },
   "main": "index"
 }
