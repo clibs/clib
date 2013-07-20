@@ -56,7 +56,7 @@ exports.install = function(name, options){
     var conf = JSON.parse(res.text);
 
     // bins
-    if (conf.install) executable(conf);
+    if (conf.install || conf.gyp) executable(conf);
 
     // scripts
     if (conf.src) {
@@ -91,7 +91,8 @@ function executable(conf) {
       var cmd = command('cd /tmp && tar -zxf ?', name);
       exec(cmd, function(err){
         if (err) return log('error', err.message, 31);
-        var cmd = command('cd /tmp/?-? && ' + conf.install, conf.name, conf.version);
+        var installCommand = conf.install || "notnode-gyp configure " + conf.gyp + " && notnode-gyp build";
+        var cmd = command('cd /tmp/?-? && ' + installCommand, conf.name, conf.version);
         log('exec', conf.install);
         exec(cmd, function(err){
           if (err) return log('error', err.message, 31);
