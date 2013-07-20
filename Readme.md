@@ -107,6 +107,7 @@ $ cpm install visionmedia/{mon,every,watch}
   "license": "MIT",
   "gyp": "myProject.gyp"
 }
+```
 
 ## License 
 
