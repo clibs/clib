@@ -95,6 +95,20 @@ $ cpm install visionmedia/{mon,every,watch}
 }
 ```
 
+ Example of a package.json using gyp:
+
+```json
+{
+  "name": "mon",
+  "version": "1.1.1",
+  "repo": "visionmedia/mon",
+  "description": "Simple process monitoring",
+  "keywords": ["process", "monitoring", "monitor", "availability"],
+  "license": "MIT",
+  "gyp": "myProject.gyp"
+}
+```
+
 ## License 
 
   MIT
