@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var program = require('commander');
+var mkdir = require('mkdirp').sync;
+var clib = require('..');
+
+// options
+
+program
+  .usage('[options] <keyword ...>')
+  .parse(process.argv);
+
+// args
+
+var query = program.args.join(' ');
+
+// search
+  
+clib.search(query, function(err, pkgs){
+  if (err) throw err;
+  pkgs.forEach(function(pkg){
+    console.log('  \033[36m%s\033[m', pkg.name.toLowerCase());
+    console.log('  url: \033[90mhttps://github.com/%s\033[m', pkg.name);
+    console.log('  desc: \033[90m%s\033[m', pkg.description);
+    console.log();
+  });
+});
+console.log();

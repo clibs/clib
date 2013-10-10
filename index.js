@@ -5,6 +5,7 @@
 
 var exec = require('child_process').exec;
 var request = require('superagent');
+var wiki = require('wiki-registry');
 var command = require('shelly');
 var sprintf = require('printf');
 var bytes = require('bytes');
@@ -36,6 +37,32 @@ function error(name, res, url) {
   log('error', res.status + ' response (' + url + ')', 31);
   process.exit(1);
 }
+
+/**
+ * Search via `query`.
+ *
+ * TODO: local cache or server like component
+ * TODO: disply categories
+ *
+ * @param {String} query
+ * @param {Function} fn
+ * @api public
+ */
+
+exports.search = function(query, fn){
+  var url = 'https://github.com/clibs/clib/wiki/Packages';
+  wiki(url, function(err, cats){
+    if (err) return fn(err);
+
+    var pkgs = [];
+
+    for (var cat in cats) {
+      pkgs = pkgs.concat(cats[cat].filter(matches(query)));
+    }
+
+    fn(null, pkgs);
+  });
+};
 
 /**
  * Install `name`.
@@ -124,4 +151,23 @@ function fetch(name, file, options) {
       log('write', dst + ' - ' + bytes(res.text.length));
     });
   });
+}
+
+/**
+ * Package filter based on `query`.
+ *
+ * @param {String} query
+ * @return {Function}
+ * @api private
+ */
+
+function matches(query) {
+  var words = query.split(/\s+/g);
+  return function(pkg){
+    return words.every(function(word){
+      word = word.toLowerCase();
+      return ~pkg.description.toLowerCase().indexOf(word)
+        || ~pkg.name.indexOf(word);
+    });
+  }
 }
