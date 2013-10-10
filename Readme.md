@@ -8,24 +8,22 @@
 ## Installation
 
 ```
-$ npm install -g visionmedia/cpm
+$ npm install -g clib
 ```
 
 ## About
 
   Basically the lazy-man's copy / paste, promoting smaller C utilities, also
-  serving as a nice way to discover these sort of libraries, from my experience
-  they are scattered all over the web and discovery is relatively poor. The wiki [listing of packages](https://github.com/visionmedia/cpm/wiki/Packages) acts as the "registry" and populates the `cpm-search(1)` results.
+  serving as a nice way to discover these sort of libraries. From my experience
+  they are scattered all over the web and discovery is relatively poor. The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `cpm-search(1)` results.
 
-  `cpm(1)` is not a package manager for an end-user experience, for example it currently
-  has no concept of dependencies etc, you should use `cpm(1)` to fetch these files for you
-  and check them into your repository, the end-user and contributors will not require `cpm(1)`.
+  You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed.
 
 ## Usage
 
 ```
 
-Usage: cpm [options] [command]
+Usage: clib [options] [command]
 
 Commands:
 
@@ -44,25 +42,25 @@ Options:
  Install a few dependencies to `./deps`:
 
 ```
-$ cpm install visionmedia/ms.c visionmedia/commander.c
+$ clib install visionmedia/ms.c visionmedia/commander.c
 ```
 
  Install them to `./src` instead:
 
 ```
-$ cpm install visionmedia/ms.c visionmedia/commander.c -o src
+$ clib install visionmedia/ms.c visionmedia/commander.c -o src
 ```
 
  Install some executables:
 
 ```
-$ cpm install visionmedia/mon visionmedia/every visionmedia/watch
+$ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ```
 
   Once again with brace expansion, you do love brace expansion right? ;)
 
 ```
-$ cpm install visionmedia/{mon,every,watch}
+$ clib install visionmedia/{mon,every,watch}
 ```
 
 ## package.json
@@ -73,7 +71,7 @@ $ cpm install visionmedia/{mon,every,watch}
 {
   "name": "term",
   "version": "0.0.1",
-  "repo": "visionmedia/term.c",
+  "repo": "clibs/term",
   "description": "Terminal ansi escape goodies",
   "keywords": ["terminal", "term", "tty", "ansi", "escape", "colors", "console"],
   "license": "MIT",
