@@ -11,7 +11,7 @@ var clib = require('..');
 // options
 
 program
-  .usage('[options] <keyword ...>')
+  .usage('[options] [keyword ...]')
   .parse(process.argv);
 
 // args

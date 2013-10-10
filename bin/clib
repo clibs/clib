@@ -14,5 +14,6 @@ program
   .version(pkg.version)
   .usage('[options] [command]')
   .command('install <pkg>', 'install the given package(s)')
+  .command('search [query]', 'search available packages')
   .parse(process.argv);
 

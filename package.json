@@ -24,7 +24,8 @@
   },
   "bin": {
     "clib": "./bin/clib",
-    "clib-install": "./bin/clib-install"
+    "clib-install": "./bin/clib-install",
+    "clib-search": "./bin/clib-search"
   },
   "main": "index"
 }
