@@ -1,9 +1,10 @@
 {
-  "name": "c-pm",
+  "name": "clib",
   "version": "0.0.3",
   "description": "C package manager",
   "keywords": [
     "c",
+    "clib",
     "package",
     "manager"
   ],
@@ -21,8 +22,8 @@
     "should": "*"
   },
   "bin": {
-    "cpm": "./bin/cpm",
-    "cpm-install": "./bin/cpm-install"
+    "clib": "./bin/clib",
+    "clib-install": "./bin/clib-install"
   },
   "main": "index"
 }

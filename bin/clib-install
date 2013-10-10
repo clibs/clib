@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-var program = require('commander')
-  , mkdir = require('mkdirp').sync
-  , cpm = require('..');
+var program = require('commander');
+var mkdir = require('mkdirp').sync;
+var clib = require('..');
 
 // options
 
@@ -31,7 +31,7 @@ if (!args.length) {
 console.log();
 mkdir(program.out);
 args.forEach(function(name){
-  cpm.install(name, { to: program.out });
+  clib.install(name, { to: program.out });
 });
 
 // exit

@@ -3,13 +3,13 @@
  * Module dependencies.
  */
 
-var request = require('superagent')
-  , exec = require('child_process').exec
-  , command = require('shelly')
-  , sprintf = require('printf')
-  , bytes = require('bytes')
-  , path = require('path')
-  , fs = require('fs')
+var exec = require('child_process').exec;
+var request = require('superagent');
+var command = require('shelly');
+var sprintf = require('printf');
+var bytes = require('bytes');
+var path = require('path');
+var fs = require('fs');
 
 /**
  * printf helper.

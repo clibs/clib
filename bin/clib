@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-var program = require('commander')
-  , mkdir = require('mkdirp').sync
-  , pkg = require('../package');
+var program = require('commander');
+var mkdir = require('mkdirp').sync;
+var pkg = require('../package');
 
 // options
 
