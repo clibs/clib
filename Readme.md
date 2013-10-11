@@ -3,7 +3,7 @@
 
   Package manager for the C programming language.
 
-  ![c package manager screenshot](http://f.cl.ly/items/0u1k3G0e1U0f1Q411e3N/cpm.png)
+  ![c package manager screenshot](https://i.cloudup.com/GwqOU2hh9Y.png)
 
 ## Installation
 
