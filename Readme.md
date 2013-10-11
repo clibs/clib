@@ -27,17 +27,18 @@ $ npm install -g clib
 
 ```
 
-Usage: clib [options] [command]
+  Usage: clib [options] [command]
 
-Commands:
+  Commands:
 
-  install <pkg>          install the given package(s)
-  help [cmd]             display help for [cmd]
+    install <pkg>          install the given package(s)
+    search [query]         search available packages
+    help [cmd]             display help for [cmd]
 
-Options:
+  Options:
 
-  -h, --help     output usage information
-  -V, --version  output the version number
+    -h, --help     output usage information
+    -V, --version  output the version number
 
 ```
 
