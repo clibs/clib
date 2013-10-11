@@ -26,7 +26,6 @@ $ npm install -g clib
 ## Usage
 
 ```
-
   Usage: clib [options] [command]
 
   Commands:
@@ -39,7 +38,6 @@ $ npm install -g clib
 
     -h, --help     output usage information
     -V, --version  output the version number
-
 ```
 
 ## Examples
