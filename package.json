@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "C package manager",
   "keywords": [
     "c",
