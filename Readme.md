@@ -96,6 +96,10 @@ $ clib install visionmedia/{mon,every,watch}
 }
 ```
 
+## Contributing
+
+ If you're interested in being part of this initiative let me know and I'll add you to the `clibs` organization so you can create repos here and contribute to existing ones.
+
 ## License 
 
   MIT
