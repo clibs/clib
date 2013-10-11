@@ -10,7 +10,10 @@ var command = require('shelly');
 var sprintf = require('printf');
 var bytes = require('bytes');
 var path = require('path');
+var join = path.join;
+var os = require('os');
 var fs = require('fs');
+var ms = require('ms');
 
 /**
  * printf helper.
@@ -41,7 +44,7 @@ function error(name, res, url) {
 /**
  * Search via `query`.
  *
- * TODO: local cache or server like component
+ * TODO: server like component
  * TODO: disply categories
  *
  * @param {String} query
@@ -51,7 +54,7 @@ function error(name, res, url) {
 
 exports.search = function(query, fn){
   var url = 'https://github.com/clibs/clib/wiki/Packages';
-  wiki(url, function(err, cats){
+  wikicached(url, function(err, cats){
     if (err) return fn(err);
 
     var pkgs = [];
@@ -168,6 +171,37 @@ function matches(query) {
       word = word.toLowerCase();
       return ~pkg.description.toLowerCase().indexOf(word)
         || ~pkg.name.indexOf(word);
+    });
+  }
+}
+
+/**
+ * Fetch wiki `url` and cache to TMPDOR/clib.json.
+ *
+ * @param {String} url
+ * @param {Function} fn
+ * @api public
+ */
+
+function wikicached(url, fn) {
+  var file = join(os.tmpDir(), 'clib.json');
+
+  try {
+    var stat = fs.statSync(file);
+    var now = Date.now();
+    var delta = Date.now() - stat.mtime;
+    var fresh = delta < ms('5h');
+    if (fresh) return fn(null, JSON.parse(fs.readFileSync(file, 'utf8')));
+    fetch();
+  } catch (err) {
+    fetch();
+  }
+
+  function fetch() {
+    wiki(url, function(err, data){
+      if (err) return fn(err);
+      fs.writeFileSync(file, JSON.stringify(data));
+      fn(null, data);
     });
   }
 }
