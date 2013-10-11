@@ -19,9 +19,9 @@ $ npm install -g clib
   stand-alone "micro" C libraries for developers to quickly install without coupling
   to large frameworks.
 
-  The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `clib-search(1)` results.
+  You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed. This allows clib(1) to fit into any new or existing C workflow without friction.
 
-  You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed.
+  The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `clib-search(1)` results.
 
 ## Usage
 
@@ -105,6 +105,10 @@ $ clib install visionmedia/{mon,every,watch}
 ## Contributing
 
  If you're interested in being part of this initiative let me know and I'll add you to the `clibs` organization so you can create repos here and contribute to existing ones.
+
+## Articles
+
+  - [Introducing Clib](https://medium.com/code-adventures/b32e6e769cb3) - introduction to clib
 
 ## License 
 
