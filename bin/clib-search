@@ -22,6 +22,8 @@ var query = program.args.join(' ');
   
 clib.search(query, function(err, pkgs){
   if (err) throw err;
+  console.log();
+
   pkgs.forEach(function(pkg){
     console.log('  \033[36m%s\033[m', pkg.name.toLowerCase());
     console.log('  url: \033[90mhttps://github.com/%s\033[m', pkg.name);
@@ -29,4 +31,3 @@ clib.search(query, function(err, pkgs){
     console.log();
   });
 });
-console.log();
