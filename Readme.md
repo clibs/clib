@@ -1,5 +1,5 @@
 
-# cpm
+# clib(1)
 
   Package manager for the C programming language.
 
@@ -19,7 +19,7 @@ $ npm install -g clib
   stand-alone "micro" C libraries for developers to quickly install without coupling
   to large frameworks.
 
-  The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `cpm-search(1)` results.
+  The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `clib-search(1)` results.
 
   You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed.
 
