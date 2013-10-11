@@ -45,13 +45,19 @@ $ npm install -g clib
  Install a few dependencies to `./deps`:
 
 ```
-$ clib install visionmedia/ms.c visionmedia/commander.c
+$ clib install clibs/ms clibs/commander
 ```
 
  Install them to `./src` instead:
 
 ```
-$ clib install visionmedia/ms.c visionmedia/commander.c -o src
+$ clib install clibs/ms clibs/commander -o src
+```
+
+ When installing libraries from the `clibs` org you can omit the name:
+
+```
+$ clib install ms file hash
 ```
 
  Install some executables:

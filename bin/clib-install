@@ -26,6 +26,16 @@ if (!args.length) {
   process.exit(1);
 }
 
+// normalize
+
+args = args.map(function(arg){
+  if (~arg.indexOf('/')) {
+    return arg;
+  } else {
+    return 'clibs/' + arg;
+  }
+});
+
 // install
 
 console.log();
