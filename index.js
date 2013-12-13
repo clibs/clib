@@ -10,10 +10,12 @@ var command = require('shelly');
 var sprintf = require('printf');
 var bytes = require('bytes');
 var path = require('path');
+var basename = path.basename;
 var join = path.join;
 var os = require('os');
 var fs = require('fs');
 var ms = require('ms');
+var mkdir = require('mkdirp');
 
 /**
  * printf helper.
@@ -142,16 +144,21 @@ function executable(conf) {
 
 function fetch(name, file, options) {
   var url = 'https://raw.github.com/' + name + '/master/' + file;
-  var dst = options.to + '/' + path.basename(file);
+  var dir = options.to + '/' + basename(name);
+  var dst = dir + '/' + basename(file);
 
-  log('fetch', file);
-  request
-  .get(url)
-  .end(function(res){
-    if (res.error) return error(name, res, url);
-    fs.writeFile(dst, res.text, function(err){
-      if (err) throw err;
-      log('write', dst + ' - ' + bytes(res.text.length));
+  mkdir(dir, function (err) {
+    if (err) throw err;
+
+    log('fetch', file);
+    request
+    .get(url)
+    .end(function(res){
+      if (res.error) return error(name, res, url);
+      fs.writeFile(dst, res.text, function(err){
+        if (err) throw err;
+        log('write', dst + ' - ' + bytes(res.text.length));
+      });
     });
   });
 }
