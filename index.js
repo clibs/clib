@@ -87,15 +87,25 @@ exports.install = function(name, options){
     if (res.error) return error(name, res, url);
     var conf = JSON.parse(res.text);
 
-    // bins
-    if (conf.install) executable(conf);
+    if (conf.install) return executable(conf);
 
-    // scripts
-    if (conf.src) {
-      conf.src.forEach(function(file){
-        fetch(name, file, options);
+    var dir = path.join(options.to, conf.name || basename(name));
+    mkdir(dir, function (err) {
+      if (err) throw err;
+
+      var file = path.join(dir, 'package.json');
+      fs.writeFile(file, res.text, function (err) {
+        if (err) throw err;
+        log('write', file + ' - ' + bytes(res.text.length));
+
+        // scripts
+        if (conf.src) {
+          conf.src.forEach(function(file){
+            fetch(name, file, { to: dir });
+          });
+        }
       });
-    }
+    });
   });
 };
 
@@ -144,21 +154,16 @@ function executable(conf) {
 
 function fetch(name, file, options) {
   var url = 'https://raw.github.com/' + name + '/master/' + file;
-  var dir = options.to + '/' + basename(name);
-  var dst = dir + '/' + basename(file);
+  var dst = options.to + '/' + basename(file);
 
-  mkdir(dir, function (err) {
-    if (err) throw err;
-
-    log('fetch', file);
-    request
-    .get(url)
-    .end(function(res){
-      if (res.error) return error(name, res, url);
-      fs.writeFile(dst, res.text, function(err){
-        if (err) throw err;
-        log('write', dst + ' - ' + bytes(res.text.length));
-      });
+  log('fetch', file);
+  request
+  .get(url)
+  .end(function(res){
+    if (res.error) return error(name, res, url);
+    fs.writeFile(dst, res.text, function(err){
+      if (err) throw err;
+      log('write', dst + ' - ' + bytes(res.text.length));
     });
   });
 }
