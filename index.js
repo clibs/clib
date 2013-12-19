@@ -10,10 +10,12 @@ var command = require('shelly');
 var sprintf = require('printf');
 var bytes = require('bytes');
 var path = require('path');
+var basename = path.basename;
 var join = path.join;
 var os = require('os');
 var fs = require('fs');
 var ms = require('ms');
+var mkdir = require('mkdirp');
 
 /**
  * printf helper.
@@ -85,15 +87,25 @@ exports.install = function(name, options){
     if (res.error) return error(name, res, url);
     var conf = JSON.parse(res.text);
 
-    // bins
-    if (conf.install) executable(conf);
+    if (conf.install) return executable(conf);
 
-    // scripts
-    if (conf.src) {
-      conf.src.forEach(function(file){
-        fetch(name, file, options);
+    var dir = path.join(options.to, conf.name || basename(name));
+    mkdir(dir, function (err) {
+      if (err) throw err;
+
+      var file = path.join(dir, 'package.json');
+      fs.writeFile(file, res.text, function (err) {
+        if (err) throw err;
+        log('write', file + ' - ' + bytes(res.text.length));
+
+        // scripts
+        if (conf.src) {
+          conf.src.forEach(function(file){
+            fetch(name, file, { to: dir });
+          });
+        }
       });
-    }
+    });
   });
 };
 
@@ -142,7 +154,7 @@ function executable(conf) {
 
 function fetch(name, file, options) {
   var url = 'https://raw.github.com/' + name + '/master/' + file;
-  var dst = options.to + '/' + path.basename(file);
+  var dst = options.to + '/' + basename(file);
 
   log('fetch', file);
   request

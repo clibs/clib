@@ -14,7 +14,7 @@
     "superagent": "0.15.5",
     "printf": "0.0.4",
     "bytes": "0.2.1",
-    "mkdirp": "~0.3.4",
+    "mkdirp": "~0.3.5",
     "shelly": "0.0.3",
     "wiki-registry": "0.0.1",
     "ms": "~0.6.1"
