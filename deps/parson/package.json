@@ -1,0 +1,12 @@
+{
+  "name": "parson",
+  "version": "0.0.0",
+  "repo": "kgabis/parson",
+  "description": "Small json parser and reader",
+  "keywords": [ "json", "parser" ],
+  "license": "MIT",
+  "src": [
+    "parson.c",
+    "parson.h"
+  ]
+}
