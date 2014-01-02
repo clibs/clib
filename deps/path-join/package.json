@@ -1,0 +1,22 @@
+{
+  "name": "path-join",
+  "version": "0.0.3",
+  "repo": "stephenmathieson/path-join.c",
+  "description": "Join a path",
+  "keywords": [
+    "path",
+    "join",
+    "directory",
+    "file"
+  ],
+  "license": "MIT",
+  "src": [
+    "src/path-join.c",
+    "src/path-join.h"
+  ],
+  "dependencies": {
+    "stephenmathieson/str-starts-with.c": "master",
+    "stephenmathieson/str-ends-with.c": "master",
+    "stephenmathieson/str-copy.c": "0.0.3"
+  }
+}

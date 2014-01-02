@@ -1,32 +1,13 @@
 {
   "name": "clib",
-  "version": "0.2.0",
-  "description": "C package manager",
-  "keywords": [
-    "c",
-    "clib",
-    "package",
-    "manager"
-  ],
-  "author": "TJ Holowaychuk <tj@vision-media.ca>",
+  "version": "rewrite-in-c",
+  "repo": "clibs/clib",
   "dependencies": {
-    "commander": "2.0.0",
-    "superagent": "0.15.5",
-    "printf": "0.0.4",
-    "bytes": "0.2.1",
-    "mkdirp": "~0.3.5",
-    "shelly": "0.0.3",
-    "wiki-registry": "0.0.1",
-    "ms": "~0.6.1"
-  },
-  "devDependencies": {
-    "mocha": "*",
-    "should": "*"
-  },
-  "bin": {
-    "clib": "./bin/clib",
-    "clib-install": "./bin/clib-install",
-    "clib-search": "./bin/clib-search"
-  },
-  "main": "index"
+    "stephenmathieson/trim.c": "*",
+    "which": "*",
+    "stephenmathieson/str-flatten.c": "*",
+    "stephenmathieson/clib-package": "*",
+    "commander": "*",
+    "stephenmathieson/http-get.c": "*"
+  }
 }

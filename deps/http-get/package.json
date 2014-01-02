@@ -1,0 +1,12 @@
+{
+  "name": "http-get",
+  "version": "0.1.0",
+  "repo": "stephenmathieson/http-get.c",
+  "description": "Simple HTTP GET requests backed by libcurl",
+  "keywords": [ "http", "curl", "get", "download" ],
+  "license": "MIT",
+  "src": [
+    "src/http-get.c",
+    "src/http-get.h"
+  ]
+}

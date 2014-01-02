@@ -1,0 +1,12 @@
+{
+  "name": "str-flatten",
+  "version": "0.0.2",
+  "repo": "stephenmathieson/str-flatten.c",
+  "description": "Flatten a char array, ripped out of sphia(1)",
+  "keywords": [ "string", "flatten", "join" ],
+  "license": "MIT",
+  "src": [
+    "src/str-flatten.c",
+    "src/str-flatten.h"
+  ]
+}

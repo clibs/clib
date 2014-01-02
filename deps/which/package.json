@@ -1,0 +1,9 @@
+{
+  "name": "which",
+  "version": "0.1.0",
+  "repo": "clibs/which",
+  "description": "Locate executable via PATH or given string",
+  "keywords": ["lookup", "which", "locate", "find", "path", "bin", "executable"],
+  "license": "MIT",
+  "src": ["src/which.c", "src/which.h"]
+}

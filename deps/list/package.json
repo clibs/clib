@@ -1,0 +1,9 @@
+{
+  "name": "list",
+  "version": "0.0.5",
+  "repo": "clibs/list",
+  "description": "Simple linked list",
+  "keywords": ["list", "structure"],
+  "license": "MIT",
+  "src": ["src/list_iterator.c", "src/list.c", "src/list_node.c", "src/list.h"]
+}

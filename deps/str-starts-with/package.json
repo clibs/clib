@@ -1,0 +1,12 @@
+{
+  "name": "str-starts-with",
+  "version": "0.0.2",
+  "repo": "stephenmathieson/str-starts-with.c",
+  "description": "Check if a string starts with another string",
+  "keywords": [ "string" ],
+  "license": "MIT",
+  "src": [
+    "src/str-starts-with.c",
+    "src/str-starts-with.h"
+  ]
+}
