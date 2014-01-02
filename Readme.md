@@ -8,7 +8,9 @@
 ## Installation
 
 ```
-$ npm install -g clib
+$ git clone https://github.com/clibs/clib.git /tmp/clib
+$ cd /tmp/clib
+$ make install
 ```
 
 ## About
