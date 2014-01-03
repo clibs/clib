@@ -106,6 +106,7 @@ main(int argc, char *argv[]) {
       printf("  desc: \033[90m%s\033[m\n", pkg->description);
       printf("\n");
     }
+    wiki_package_free(pkg);
   }
   list_iterator_destroy(it);
   list_destroy(pkgs);
