@@ -1,0 +1,16 @@
+{
+  "name": "case",
+  "version": "0.1.0",
+  "repo": "stephenmathieson/case.c",
+  "description": "String case conversion utility",
+  "keywords": [
+    "string",
+    "uppercase",
+    "lowercase"
+  ],
+  "license": "MIT",
+  "src": [
+    "src/case.c",
+    "src/case.h"
+  ]
+}

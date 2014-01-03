@@ -1,0 +1,18 @@
+{
+  "name": "wiki-registry",
+  "version": "0.0.0",
+  "repo": "stephenmathieson/wiki-registry.c",
+  "description": "Turn a GitHub Wiki page into a package registry",
+  "keywords": [ "registry", "github", "wiki" ],
+  "license": "MIT",
+  "src": [
+    "src/wiki-registry.c",
+    "src/wiki-registry.h"
+  ],
+  "dependencies": {
+    "thlorenz/gumbo-parser.c": "*",
+    "stephenmathieson/substr.c": "*",
+    "stephenmathieson/http-get.c": "*",
+    "clibs/list": "*"
+  }
+}

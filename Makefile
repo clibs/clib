@@ -1,12 +1,10 @@
 
 CC     ?= cc
-BINS    = clib clib-install
+BINS    = clib clib-install clib-search
 PREFIX ?= /usr/local
 SRC     = $(wildcard src/*.c)
 DEPS    = $(wildcard deps/*/*.c)
-CFLAGS  = -std=c99
-CFLAGS += -Wall -Wextra
-CFLAGS += -Ideps
+CFLAGS  = -std=c99 -Ideps -Wall
 LDFLAGS = -lcurl
 
 all: $(BINS)

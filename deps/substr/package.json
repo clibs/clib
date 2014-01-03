@@ -10,6 +10,9 @@
     "src/substr.h"
   ],
   "dependencies": {
-    "stephenmathieson/str-copy.c": "0.0.3"
+    "stephenmathieson/str-copy.c": "*"
+  },
+  "development": {
+    "stephenmathieson/describe.h": "*"
   }
 }
