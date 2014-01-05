@@ -9,5 +9,6 @@
     "stephenmathieson/clib-package": "*",
     "commander": "*",
     "stephenmathieson/http-get.c": "*"
-  }
+  },
+  "install": "make install"
 }
