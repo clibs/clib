@@ -11,6 +11,8 @@
     "stephenmathieson/http-get.c": "*",
     "stephenmathieson/wiki-registry.c": "*",
     "stephenmathieson/case.c": "*",
-    "jwerle/fs.c": "*"
-  }
+    "jwerle/fs.c": "*",
+    "stephenmathieson/http-get.c": "*"
+  },
+  "install": "make install"
 }
