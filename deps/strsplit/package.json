@@ -1,0 +1,9 @@
+{
+  "name": "strsplit",
+  "version": "0.0.1",
+  "repo": "jwerle/strsplit.c",
+  "description": "Split a string into a char array by a given delimiter",
+  "keywords": ["string", "split"],
+  "license": "MIT",
+  "src": ["strsplit.h", "strsplit.c"]
+}

@@ -15,7 +15,8 @@
  * Get a substring of `str` from `start` to `end`
  */
 
-char *substr(const char *str, int start, int end) {
+char *
+substr(const char *str, int start, int end) {
   if (0 > start) return NULL;
   int len = strlen(str);
   // -1 == length of string
