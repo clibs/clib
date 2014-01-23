@@ -7,6 +7,8 @@
 
 ## Installation
 
+  Expects [libcurl](http://curl.haxx.se/libcurl/) to be installed and linkable.
+
 ```
 $ git clone https://github.com/clibs/clib.git /tmp/clib
 $ cd /tmp/clib
