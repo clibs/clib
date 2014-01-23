@@ -4,7 +4,7 @@ BINS    = clib clib-install clib-search
 PREFIX ?= /usr/local
 SRC     = $(wildcard src/*.c)
 DEPS    = $(wildcard deps/*/*.c)
-CFLAGS  = -std=c99 -Ideps -Wall
+CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function
 LDFLAGS = -lcurl
 
 all: $(BINS)
