@@ -98,6 +98,7 @@ main(int argc, char *argv[]) {
 
   list_node_t *node;
   list_iterator_t *it = list_iterator_new(pkgs, LIST_HEAD);
+  printf("\n");
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
     if (matches(program.argc, program.argv, pkg)) {
