@@ -67,7 +67,11 @@ clib_package_file_url(const char *url, const char *file) {
 
 static inline void
 clib_package_debug(const char *type, const char *msg, int color) {
+#ifdef _WIN32
+  printf("  %10s : %s\n", type, msg);
+#else
   printf("  \033[%dm%10s\033[0m : \033[90m%s\033[m\n", color, type, msg);
+#endif
 }
 
 static inline void
