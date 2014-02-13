@@ -15,9 +15,10 @@ char *str_flatten(char *array[], int start, int end) {
   for (int i = start; i < end; i++) size += strlen(array[i]);
   size += end - start - 1; // number of spaces
 
-  char *str = malloc(sizeof(char) * size);
+  char *str = malloc(sizeof(char) * size + 1);
   if (NULL == str) return NULL;
   int pos = 0;
+  *str = 0;
 
   for (int i = start; i < end; i++) {
     char *word = array[i];
