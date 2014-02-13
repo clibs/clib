@@ -102,9 +102,15 @@ main(int argc, char *argv[]) {
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
     if (matches(program.argc, program.argv, pkg)) {
+#ifdef _WIN32
+      printf("  %s\n", pkg->repo);
+      printf("  url: %s\n", pkg->href);
+      printf("  desc: %s\n", pkg->description);
+#else
       printf("  \033[36m%s\033[m\n", pkg->repo);
       printf("  url: \033[90m%s\033[m\n", pkg->href);
       printf("  desc: \033[90m%s\033[m\n", pkg->description);
+#endif
       printf("\n");
     }
     wiki_package_free(pkg);
