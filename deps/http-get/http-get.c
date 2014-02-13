@@ -43,6 +43,8 @@ http_get_response_t *http_get(const char *url) {
   res.data = malloc(1);
   res.size = 0;
 
+  if (getenv("HTTP_PROXY") != NULL)
+    curl_easy_setopt(req, CURLOPT_SSL_VERIFYPEER, 0);
   curl_easy_setopt(req, CURLOPT_URL, url);
   curl_easy_setopt(req, CURLOPT_HTTPGET, 1);
   curl_easy_setopt(req, CURLOPT_FOLLOWLOCATION, 1);
@@ -77,6 +79,8 @@ int http_get_file(const char *url, const char *file) {
   FILE *fp = fopen(file, "wb");
   if (!fp) return -1;
 
+  if (getenv("HTTP_PROXY") != NULL)
+    curl_easy_setopt(req, CURLOPT_SSL_VERIFYPEER, 0);
   curl_easy_setopt(req, CURLOPT_URL, url);
   curl_easy_setopt(req, CURLOPT_HTTPGET, 1);
   curl_easy_setopt(req, CURLOPT_FOLLOWLOCATION, 1);
