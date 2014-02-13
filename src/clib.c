@@ -49,12 +49,12 @@ main(int argc, char **argv) {
     return 1;
   }
 
-  char *cmd = strdup(argv[1]);
-  if (NULL == cmd) {
+  char *pcmd = strdup(argv[1]);
+  if (NULL == pcmd) {
     fprintf(stderr, "Memory allocation failure\n");
     return 1;
   }
-  cmd = trim(cmd);
+  char *cmd = trim(pcmd);
 
   // additional arguments to pass to subcommand
   char *args = NULL;
@@ -65,7 +65,11 @@ main(int argc, char **argv) {
 
   char *command = malloc(1024);
   if (NULL == command) goto e2;
+#ifdef _WIN32
+  sprintf(command, "clib-%s.exe", cmd);
+#else
   sprintf(command, "clib-%s", cmd);
+#endif
 
   char *bin = which(command);
   if (NULL == bin) {
@@ -81,7 +85,7 @@ main(int argc, char **argv) {
 
   int code = system(command);
 
-  free(cmd);
+  free(pcmd);
   if (args) free(args);
   free(command);
   free(bin);
@@ -94,7 +98,7 @@ e2:
   if (args) free(args);
   free(command);
 e1:
-  free(cmd);
+  free(pcmd);
 
   return 1;
 }

@@ -6,6 +6,7 @@
 // MIT licensed
 //
 
+#include <unistd.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,9 +42,15 @@ int mkdirp(const char *path, mode_t mode) {
   }
 
   // make this one if parent has been made
+#ifdef _WIN32
+  if (0 == mkdir(pathname) || EEXIST == errno) {
+    return 0;
+  }
+#else
   if (0 == mkdir(pathname, mode) || EEXIST == errno) {
     return 0;
   }
+#endif
 
   return -1;
 }
