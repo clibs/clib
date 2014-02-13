@@ -165,9 +165,9 @@ fs_fread (FILE *file) {
 
 char *
 fs_fnread (FILE *file, int len) {
-  char *buffer = malloc(sizeof(char) * len);
+  char *buffer = malloc(sizeof(char) * (len+1));
   fread(buffer, 1, len, file);
-  buffer[len -1] = '\0';
+  buffer[len] = '\0';
   return buffer;
 }
 
