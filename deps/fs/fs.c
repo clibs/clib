@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -71,7 +72,11 @@ fs_fstat (FILE *file) {
 fs_stats *
 fs_lstat (const char *path) {
   fs_stats *stats = malloc(sizeof(fs_stats));
+#ifdef _WIN32
+  int e = stat(path, stats);
+#else
   int e = lstat(path, stats);
+#endif
   if (-1 == e) {
     free(stats);
     return NULL;
@@ -89,26 +94,46 @@ fs_ftruncate (FILE *file, int len) {
 
 int
 fs_truncate (const char *path, int len) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   return truncate(path, (off_t) len);
+#endif
 }
 
 
 int
 fs_chown (const char *path, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   return chown(path, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
 int
 fs_fchown (FILE *file, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   int fd = fileno(file);
   return fchown(fd, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
 int
 fs_lchown (const char *path, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   return lchown(path, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
@@ -202,7 +227,11 @@ fs_fnwrite (FILE *file, const char *buffer, int len) {
 
 int
 fs_mkdir (const char *path, int mode) {
+#ifdef _WIN32
+  return mkdir(path);
+#else
   return mkdir(path, (mode_t) mode);
+#endif
 }
 
 
@@ -217,4 +246,3 @@ fs_exists (const char *path) {
   struct stat b;
   return stat(path, &b);
 }
-
