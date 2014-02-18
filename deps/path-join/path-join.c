@@ -23,7 +23,8 @@
  * Join `dir` with `file`
  */
 
-char *path_join(const char *dir, const char *file) {
+char *
+path_join(const char *dir, const char *file) {
   int size = strlen(dir) + strlen(file) + 2;
   char *buf = malloc(size * sizeof(char));
   if (NULL == buf) return NULL;

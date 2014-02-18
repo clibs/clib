@@ -1,6 +1,6 @@
 {
   "name": "path-join",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "repo": "stephenmathieson/path-join.c",
   "description": "Join a path",
   "keywords": [
@@ -15,8 +15,8 @@
     "src/path-join.h"
   ],
   "dependencies": {
-    "stephenmathieson/str-starts-with.c": "master",
-    "stephenmathieson/str-ends-with.c": "master",
-    "stephenmathieson/str-copy.c": "0.0.3"
+    "stephenmathieson/str-starts-with.c": "*",
+    "stephenmathieson/str-ends-with.c": "*",
+    "stephenmathieson/str-copy.c": "*"
   }
 }

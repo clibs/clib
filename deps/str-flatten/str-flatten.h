@@ -2,14 +2,15 @@
 //
 // str-flatten.h
 //
-// Copyright (c) 2013 Stephen Mathieson
+// Copyright (c) 2014 Stephen Mathieson
 // MIT licensed
 //
 
 
-#ifndef __STR_FLATTEN_H_
-#define __STR_FLATTEN_H_ 1
+#ifndef STR_FLATTEN_H
+#define STR_FLATTEN_H 1
 
-char *str_flatten (char *array[], int start, int end);
+char *
+str_flatten(const char *[], int, int);
 
 #endif

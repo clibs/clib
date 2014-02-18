@@ -12,6 +12,16 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#ifdef _WIN32
+#define FS_OPEN_READ "rb"
+#define FS_OPEN_WRITE "wb"
+#define FS_OPEN_READWRITE "rwb"
+#else
+#define FS_OPEN_READ "r"
+#define FS_OPEN_WRITE "w"
+#define FS_OPEN_READWRITE "rw"
+#endif
+
 typedef struct stat fs_stats;
 
 

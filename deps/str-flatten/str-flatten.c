@@ -2,7 +2,7 @@
 //
 // str-flatten.c
 //
-// Copyright (c) 2013 Stephen Mathieson
+// Copyright (c) 2014 Stephen Mathieson
 // MIT licensed
 //
 
@@ -10,7 +10,8 @@
 #include <string.h>
 #include "str-flatten.h"
 
-char *str_flatten(char *array[], int start, int end) {
+char *
+str_flatten(const char *array[], int start, int end) {
   int size = 0;
   for (int i = start; i < end; i++) size += strlen(array[i]);
   size += end - start - 1; // number of spaces
@@ -20,7 +21,7 @@ char *str_flatten(char *array[], int start, int end) {
   int pos = 0;
 
   for (int i = start; i < end; i++) {
-    char *word = array[i];
+    const char *word = array[i];
     int len = strlen(word);
     strncat(&str[pos], word, len);
     pos += len;

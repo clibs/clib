@@ -10,6 +10,7 @@
 #ifndef PATH_JOIN_H
 #define PATH_JOIN_H 1
 
-char *path_join(const char *, const char *);
+char *
+path_join(const char *, const char *);
 
 #endif
