@@ -71,6 +71,7 @@ set_cache:;
   if (!res->ok) return NULL;
 
   char *html = str_copy(res->data);
+  if (NULL == html) return NULL;
   http_get_free(res);
 
   if (NULL == html) return html;
