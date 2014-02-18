@@ -12,6 +12,7 @@
 #include "trim/trim.h"
 #include "which/which.h"
 #include "str-flatten/str-flatten.h"
+#include "str-copy/str-copy.h"
 #include "version.h"
 
 static const char *usage =
@@ -49,7 +50,7 @@ main(int argc, char **argv) {
     return 1;
   }
 
-  char *cmd = strdup(argv[1]);
+  char *cmd = str_copy(argv[1]);
   if (NULL == cmd) {
     fprintf(stderr, "Memory allocation failure\n");
     return 1;
