@@ -16,6 +16,7 @@
 #include "http-get/http-get.h"
 #include "wiki-registry/wiki-registry.h"
 #include "clib-package/clib-package.h"
+#include "str-copy/str-copy.h"
 #include "version.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
@@ -37,7 +38,7 @@ matches(int count, char *args[], wiki_package_t *pkg) {
     if (strstr(name, args[i])) return 1;
   }
 
-  description = strdup(pkg->description);
+  description = str_copy(pkg->description);
   if (NULL == description) goto fail;
   case_lower(description);
   for (int i = 0; i < count; i++) {
@@ -69,7 +70,7 @@ set_cache:;
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
   if (!res->ok) return NULL;
 
-  char *html = strdup(res->data);
+  char *html = str_copy(res->data);
   http_get_free(res);
 
   if (NULL == html) return html;
