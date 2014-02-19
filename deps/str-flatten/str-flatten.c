@@ -12,13 +12,14 @@
 
 char *
 str_flatten(const char *array[], int start, int end) {
-  int size = 0;
+  int size = 1; // terminator
   for (int i = start; i < end; i++) size += strlen(array[i]);
   size += end - start - 1; // number of spaces
 
   char *str = malloc(sizeof(char) * size);
   if (NULL == str) return NULL;
   int pos = 0;
+  *str = '\0';
 
   for (int i = start; i < end; i++) {
     const char *word = array[i];
