@@ -1,12 +1,11 @@
-
 //
 // list.h
 //
 // Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
 //
 
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef LIST_H
+#define LIST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,4 +119,4 @@ list_iterator_destroy(list_iterator_t *self);
 }
 #endif
 
-#endif /* __LIST_H__ */
+#endif /* LIST_H */

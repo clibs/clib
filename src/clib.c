@@ -31,7 +31,7 @@ static const char *usage =
   "";
 
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
   if (NULL == argv[1]
    || 0 == strncmp(argv[1], "-h", 2)
    || 0 == strncmp(argv[1], "--help", 6)) {

@@ -10,12 +10,16 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "fs.h"
 
+#ifdef _WIN32
+extern int fileno(FILE*);
+#endif
 
 void
 fs_error (const char *prefix) {
@@ -57,6 +61,7 @@ fs_stat (const char *path) {
 
 fs_stats *
 fs_fstat (FILE *file) {
+  if (NULL == file) return NULL;
   fs_stats *stats = malloc(sizeof(fs_stats));
   int fd = fileno(file);
   int e = fstat(fd, stats);
@@ -71,7 +76,11 @@ fs_fstat (FILE *file) {
 fs_stats *
 fs_lstat (const char *path) {
   fs_stats *stats = malloc(sizeof(fs_stats));
+#ifdef _WIN32
+  int e = stat(path, stats);
+#else
   int e = lstat(path, stats);
+#endif
   if (-1 == e) {
     free(stats);
     return NULL;
@@ -89,33 +98,58 @@ fs_ftruncate (FILE *file, int len) {
 
 int
 fs_truncate (const char *path, int len) {
+#ifdef _WIN32
+  int ret = -1;
+  int fd = open(path, O_RDWR | O_CREAT, S_IREAD | S_IWRITE);
+  if (fd != -1) {
+    ret = ftruncate(fd, (off_t) len);
+    close(fd);
+  }
+  return ret;
+#else
   return truncate(path, (off_t) len);
+#endif
 }
 
 
 int
 fs_chown (const char *path, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   return chown(path, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
 int
 fs_fchown (FILE *file, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   int fd = fileno(file);
   return fchown(fd, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
 int
 fs_lchown (const char *path, int uid, int gid) {
+#ifdef _WIN32
+  errno = ENOSYS;
+  return -1;
+#else
   return lchown(path, (uid_t) uid, (gid_t) gid);
+#endif
 }
 
 
 size_t
 fs_size (const char *path) {
   size_t size;
-  FILE *file = fs_open(path, "r");
+  FILE *file = fs_open(path, FS_OPEN_READ);
   if (NULL == file) return -1;
   fseek(file, 0, SEEK_END);
   size = ftell(file);
@@ -138,7 +172,7 @@ fs_fsize (FILE *file) {
 
 char *
 fs_read (const char *path) {
-  FILE *file = fs_open(path, "r");
+  FILE *file = fs_open(path, FS_OPEN_READ);
   if (NULL == file) return NULL;
   char *data = fs_fread(file);
   fclose(file);
@@ -148,7 +182,7 @@ fs_read (const char *path) {
 
 char *
 fs_nread (const char *path, int len) {
-  FILE *file = fs_open(path, "r");
+  FILE *file = fs_open(path, FS_OPEN_READ);
   if (NULL == file) return NULL;
   char *buffer = fs_fnread(file, len);
   fs_close(file);
@@ -165,7 +199,7 @@ fs_fread (FILE *file) {
 
 char *
 fs_fnread (FILE *file, int len) {
-  char *buffer = malloc(sizeof(char) * (len+1));
+  char *buffer = malloc(sizeof(char) * (len + 1));
   fread(buffer, 1, len, file);
   buffer[len] = '\0';
   return buffer;
@@ -180,7 +214,7 @@ fs_write (const char *path, const char *buffer) {
 
 int
 fs_nwrite (const char *path, const char *buffer, int len) {
-  FILE *file = fs_open(path, "w");
+  FILE *file = fs_open(path, FS_OPEN_WRITE);
   if (NULL == file) return -1;
   int result = fs_fnwrite(file, buffer, len);
   fclose(file);
@@ -202,7 +236,11 @@ fs_fnwrite (FILE *file, const char *buffer, int len) {
 
 int
 fs_mkdir (const char *path, int mode) {
+#ifdef _WIN32
+  return mkdir(path);
+#else
   return mkdir(path, (mode_t) mode);
+#endif
 }
 
 
@@ -217,4 +255,3 @@ fs_exists (const char *path) {
   struct stat b;
   return stat(path, &b);
 }
-
