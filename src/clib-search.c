@@ -16,6 +16,7 @@
 #include "http-get/http-get.h"
 #include "wiki-registry/wiki-registry.h"
 #include "clib-package/clib-package.h"
+#include "console-colors/console-colors.h"
 #include "str-copy/str-copy.h"
 #include "version.h"
 
@@ -104,9 +105,11 @@ main(int argc, char *argv[]) {
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
     if (matches(program.argc, program.argv, pkg)) {
-      printf("  \033[36m%s\033[m\n", pkg->repo);
-      printf("  url: \033[90m%s\033[m\n", pkg->href);
-      printf("  desc: \033[90m%s\033[m\n", pkg->description);
+      cc_fprintf(CC_FG_DARK_CYAN, stdout, "  %s\n", pkg->repo);
+      printf("  url: ");
+      cc_fprintf(CC_FG_DARK_GRAY, stdout, "%s\n", pkg->href);
+      printf("  desc: ");
+      cc_fprintf(CC_FG_DARK_GRAY, stdout, "%s\n", pkg->description);
       printf("\n");
     }
     wiki_package_free(pkg);

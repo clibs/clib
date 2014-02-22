@@ -11,7 +11,8 @@
     "stephenmathieson/wiki-registry.c": "*",
     "stephenmathieson/case.c": "*",
     "jwerle/fs.c": "*",
-    "stephenmathieson/http-get.c": "*"
+    "stephenmathieson/http-get.c": "*",
+    "Constellation/console-colors.c": "*"
   },
   "install": "make install"
 }
