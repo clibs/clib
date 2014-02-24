@@ -3,16 +3,16 @@
   "version": "rewrite-in-c",
   "repo": "clibs/clib",
   "dependencies": {
-    "stephenmathieson/trim.c": "*",
-    "which": "*",
-    "stephenmathieson/str-flatten.c": "*",
-    "stephenmathieson/clib-package": "*",
-    "commander": "*",
-    "stephenmathieson/wiki-registry.c": "*",
-    "stephenmathieson/case.c": "*",
-    "jwerle/fs.c": "*",
-    "stephenmathieson/http-get.c": "*",
-    "Constellation/console-colors.c": "*"
+    "stephenmathieson/trim.c": "0.0.2",
+    "which": "0.1.1",
+    "stephenmathieson/str-flatten.c": "0.0.3",
+    "stephenmathieson/clib-package": "0.1.0",
+    "commander": "1.3.2",
+    "stephenmathieson/wiki-registry.c": "0.0.1",
+    "stephenmathieson/case.c": "0.1.0",
+    "jwerle/fs.c": "0.1.0",
+    "stephenmathieson/http-get.c": "0.1.0",
+    "Constellation/console-colors.c": "1.0.0"
   },
   "install": "make install"
 }
