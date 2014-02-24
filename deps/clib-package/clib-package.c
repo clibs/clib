@@ -1,4 +1,11 @@
 
+//
+// clib-package.c
+//
+// Copyright (c) 2014 Stephen Mathieson
+// MIT license
+//
+
 #include <stdlib.h>
 #include <libgen.h>
 #include <stdarg.h>

@@ -14,7 +14,8 @@
  * Normalize the given `path`
  */
 
-char *path_normalize(const char *path) {
+char *
+path_normalize(const char *path) {
   if (!path) return NULL;
 
   char *copy = str_copy(path);

@@ -1,4 +1,11 @@
 
+//
+// clib-package.h
+//
+// Copyright (c) 2014 Stephen Mathieson
+// MIT license
+//
+
 #ifndef CLIB_PACKAGE_H
 #define CLIB_PACKAGE_H 1
 

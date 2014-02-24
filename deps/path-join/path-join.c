@@ -43,8 +43,8 @@ path_join(const char *dir, const char *file) {
       free(buf);
       return NULL;
     }
-    filecopy++;
-    strcat(buf, filecopy);
+    strcat(buf, ++filecopy);
+    free(--filecopy);
   } else {
     strcat(buf, file);
   }

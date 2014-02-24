@@ -7,13 +7,14 @@
 //
 
 
-#ifndef PATH_NORMALIZE
-#define PATH_NORMALIZE
+#ifndef PATH_NORMALIZE_H
+#define PATH_NORMALIZE_H 1
 
 /*
  * Normalize the given `path`
  */
 
-char *path_normalize(const char *path);
+char *
+path_normalize(const char *);
 
 #endif

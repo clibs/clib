@@ -1,6 +1,6 @@
 {
   "name": "path-normalize",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "repo": "stephenmathieson/path-normalize.c",
   "description": "Normalize a path",
   "keywords": [
