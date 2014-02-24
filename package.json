@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "rewrite-in-c",
+  "version": "1.0.0",
   "repo": "clibs/clib",
   "dependencies": {
     "stephenmathieson/trim.c": "0.0.2",

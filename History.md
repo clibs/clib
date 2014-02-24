@@ -1,4 +1,28 @@
 
+1.0.0 / 2014-02-24
+==================
+
+ * Pin deps
+ * Update clib-package
+ * Use console-colors instead of using escape sequence directly
+ * Update which for str-copy usage
+ * Update wiki-registry for parser fix and str_copy usage
+ * Update str-flatten for memory fixes
+ * Update mkdirp for Windows support
+ * Update all dependencies
+ * search: handle str_copy failure
+ * Use str_copy instead of strdup
+ * Fix package.json
+ * Add note about libcurl
+ * fix search output padding
+ * suppress unused function warnings
+ * Add 'install' key to package.json
+ * Free wiki package
+ * Add clib-search
+ * Update installation instructions
+ * Initial port to C
+ * remove node stuff
+
 0.2.0 / 2013-12-19
 ==================
 
