@@ -1,19 +1,27 @@
 
 CC     ?= cc
-BINS    = clib clib-install clib-search
 PREFIX ?= /usr/local
-SRC     = $(wildcard src/*.c)
-DEPS    = $(wildcard deps/*/*.c)
+
+BINS = clib clib-install clib-search
+
+SRC  = $(wildcard src/*.c)
+DEPS = $(wildcard deps/*/*.c)
+OBJS = $(DEPS:.c=.o)
+
 CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function
 LDFLAGS = -lcurl
 
 all: $(BINS)
 
-$(BINS): $(SRC)
-	$(CC) $(CFLAGS) -o $@ src/$@.c $(DEPS) $(LDFLAGS)
+$(BINS): $(SRC) $(OBJS)
+	$(CC) $(CFLAGS) -o $@ src/$@.c $(OBJS) $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $< -c -o $@ $(CFLAGS)
 
 clean:
 	$(foreach c, $(BINS), rm -f $(c);)
+	rm -f $(OBJS)
 
 install: $(BINS)
 	mkdir -p $(PREFIX)/bin
