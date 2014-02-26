@@ -8,7 +8,7 @@ echo -e "\nRunning clib(1) tests\n"
 for t in $TESTS; do
   ./$t
   if [ $? -ne 0 ]; then
-    echo "  (✖) $t"
+    echo >&2 "  (✖) $t"
     EXIT_CODE=1
   else
     echo "  (✓) $t"
