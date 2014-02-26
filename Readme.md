@@ -9,11 +9,15 @@
 
   Expects [libcurl](http://curl.haxx.se/libcurl/) to be installed and linkable.
 
-```
-$ git clone https://github.com/clibs/clib.git /tmp/clib
-$ cd /tmp/clib
-$ make install
-```
+  With [homebrew](https://github.com/Homebrew/homebrew):
+
+    $ brew install clib
+
+  With git:  
+
+    $ git clone https://github.com/clibs/clib.git /tmp/clib
+    $ cd /tmp/clib
+    $ make install
 
 ## About
 
