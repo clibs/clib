@@ -122,8 +122,13 @@ executable(clib_package_t *pkg) {
     , pkg->version);
 
   if (pkg->dependencies) {
-    rc = clib_package_install_dependencies(pkg, dir, opts.verbose);
-    if (-1 == rc) goto e5;
+    char *deps = malloc(strlen(dir) + 6);
+    if (deps) {
+      sprintf(deps, "%s/deps", dir);
+      rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
+      free(deps);
+      if (-1 == rc) goto e5;
+    } else goto e5;
   }
 
   // cheap install
