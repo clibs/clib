@@ -1,4 +1,13 @@
 
+1.0.1 / 2014-02-26
+==================
+
+ * Fix installation of executables with dependencies
+ * Add note about homebrew
+ * Add Travis and a primitive testing framework
+ * Account for out of range return codes
+ * Compile objects
+
 1.0.0 / 2014-02-24
 ==================
 
