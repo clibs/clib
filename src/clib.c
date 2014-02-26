@@ -82,6 +82,10 @@ main(int argc, const char **argv) {
 
   int code = system(command);
 
+  if (code > 255) {
+    code = 1;
+  }
+
   free(cmd);
   if (args) free(args);
   free(command);
