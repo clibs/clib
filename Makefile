@@ -30,4 +30,7 @@ install: $(BINS)
 uninstall:
 	$(foreach c, $(BINS), rm -f $(PREFIX)/bin/$(c);)
 
-.PHONY: all clean install uninstall
+test:
+	@./test.sh
+
+.PHONY: test all clean install uninstall
