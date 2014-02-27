@@ -34,18 +34,18 @@
 ## Usage
 
 ```
-  Usage: clib [options] [command]
-
-  Commands:
-
-    install <pkg>          install the given package(s)
-    search [query]         search available packages
-    help [cmd]             display help for [cmd]
+  clib <command> [options]
 
   Options:
 
-    -h, --help     output usage information
-    -V, --version  output the version number
+    -h, --help     Output this message
+    -v, --version  Output version information
+
+  Commands:
+
+    install [name...]  Install one or more packages
+    search [query]     Search for packages
+    help <cmd>         Display help for cmd
 ```
 
 ## Examples
@@ -72,12 +72,6 @@ $ clib install ms file hash
 
 ```
 $ clib install visionmedia/mon visionmedia/every visionmedia/watch
-```
-
-  Once again with brace expansion, you do love brace expansion right? ;)
-
-```
-$ clib install visionmedia/{mon,every,watch}
 ```
 
 ## package.json
