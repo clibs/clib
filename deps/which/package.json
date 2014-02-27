@@ -1,6 +1,6 @@
 {
   "name": "which",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repo": "clibs/which",
   "description": "Locate executable via PATH or given string",
   "keywords": ["lookup", "which", "locate", "find", "path", "bin", "executable"],
@@ -8,5 +8,8 @@
   "src": ["src/which.c", "src/which.h"],
   "dependencies": {
     "stephenmathieson/str-copy.c": "*"
+  },
+  "development": {
+    "stephenmathieson/describe.h": "1.0.0"
   }
 }

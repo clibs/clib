@@ -42,11 +42,15 @@ which_path(const char *name, const char *_path) {
     // path
     int len = strlen(tok) + 2 + strlen(name);
     char *file = malloc(len);
-    if (!file) return NULL;
+    if (!file) {
+      free(path);
+      return NULL;
+    }
     sprintf(file, "%s/%s", tok, name);
 
     // executable
     if (0 == access(file, X_OK)) {
+      free(path);
       return file;
     }
 
