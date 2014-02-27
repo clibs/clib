@@ -28,10 +28,17 @@ static const char *usage =
   "\n"
   "    install [name...]  Install one or more packages\n"
   "    search [query]     Search for packages\n"
+  "    help <cmd>         Display help for cmd\n"
   "";
 
 int
 main(int argc, const char **argv) {
+  char *cmd = NULL;
+  char *args = NULL;
+  char *command = NULL;
+  char *bin = NULL;
+  int rc = 1;
+
   if (NULL == argv[1]
    || 0 == strncmp(argv[1], "-h", 2)
    || 0 == strncmp(argv[1], "--help", 6)) {
@@ -50,28 +57,36 @@ main(int argc, const char **argv) {
     return 1;
   }
 
-  char *cmd = str_copy(argv[1]);
+  cmd = str_copy(argv[1]);
   if (NULL == cmd) {
     fprintf(stderr, "Memory allocation failure\n");
     return 1;
   }
   cmd = trim(cmd);
 
-  // additional arguments to pass to subcommand
-  char *args = NULL;
-  if (argc >= 3) {
-    args = str_flatten(argv, 2, argc);
-    if (NULL == args) goto e1;
+  if (0 == strcmp(cmd, "help")) {
+    if (argc >= 3) {
+      cmd = str_copy(argv[2]);
+      args = str_copy("--help");
+    } else {
+      fprintf(stderr, "Help command required.\n");
+      goto cleanup;
+    }
+  } else {
+    if (argc >= 3) {
+      args = str_flatten(argv, 2, argc);
+      if (NULL == args) goto cleanup;
+    }
   }
 
-  char *command = malloc(1024);
-  if (NULL == command) goto e2;
+  command = malloc(1024);
+  if (NULL == command) goto cleanup;
   sprintf(command, "clib-%s", cmd);
 
-  char *bin = which(command);
+  bin = which(command);
   if (NULL == bin) {
-    fprintf(stderr, "Unsupported command \"%s\".\n", cmd);
-    goto e3;
+    fprintf(stderr, "Unsupported command \"%s\"\n", cmd);
+    goto cleanup;
   }
 
   if (args) {
@@ -80,26 +95,13 @@ main(int argc, const char **argv) {
     strcpy(command, bin);
   }
 
-  int code = system(command);
+  rc = system(command);
+  if (rc > 255) rc = 1;
 
-  if (code > 255) {
-    code = 1;
-  }
-
-  free(cmd);
+cleanup:
+  if (cmd) free(cmd);
   if (args) free(args);
-  free(command);
-  free(bin);
-
-  return code;
-
-e3:
-  free(bin);
-e2:
-  if (args) free(args);
-  free(command);
-e1:
-  free(cmd);
-
-  return 1;
+  if (command) free(command);
+  if (bin) free(bin);
+  return rc;
 }
