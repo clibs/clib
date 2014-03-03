@@ -1,6 +1,6 @@
 {
   "name": "substr",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repo": "stephenmathieson/substr.c",
   "description": "Get a substring of a string",
   "keywords": [ "substr", "substring", "string" ],

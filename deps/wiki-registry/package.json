@@ -1,6 +1,6 @@
 {
   "name": "wiki-registry",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repo": "stephenmathieson/wiki-registry.c",
   "description": "Turn a GitHub Wiki page into a package registry",
   "keywords": [ "registry", "github", "wiki" ],
@@ -16,6 +16,9 @@
     "stephenmathieson/http-get.c": "*",
     "stephenmathieson/case.c": "*",
     "stephenmathieson/trim.c": "*",
+    "stephenmathieson/gumbo-text-content.c": "*",
+    "stephenmathieson/gumbo-get-element-by-id.c": "*",
+    "stephenmathieson/gumbo-get-elements-by-tag-name.c": "*",
     "clibs/list": "*"
   }
 }
