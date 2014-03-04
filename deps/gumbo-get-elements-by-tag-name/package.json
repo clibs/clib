@@ -1,0 +1,20 @@
+{
+  "name": "gumbo-get-elements-by-tag-name",
+  "version": "1.0.0",
+  "repo": "stephenmathieson/gumbo-get-elements-by-tag-name.c",
+  "license": "MIT",
+  "src": [
+    "src/get-elements-by-tag-name.c",
+    "src/get-elements-by-tag-name.h"
+  ],
+  "dependencies": {
+    "list": "*",
+    "stephenmathieson/str-copy.c": "*",
+    "stephenmathieson/case.c": "*",
+    "stephenmathieson/trim.c": "*"
+  },
+  "development": {
+    "thlorenz/gumbo-parser.c": "*",
+    "stephenmathieson/gumbo-get-element-by-id.c": "*"
+  }
+}

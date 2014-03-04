@@ -1,0 +1,14 @@
+{
+  "name": "gumbo-get-element-by-id",
+  "version": "1.0.1",
+  "repo": "stephenmathieson/gumbo-get-element-by-id.c",
+  "license": "MIT",
+  "src": [
+    "src/get-element-by-id.c",
+    "src/get-element-by-id.h"
+  ],
+  "dependencies": {},
+  "development": {
+    "thlorenz/gumbo-parser.c": "*"
+  }
+}
