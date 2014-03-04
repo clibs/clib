@@ -11,15 +11,15 @@
 #include <string.h>
 #include "case.h"
 
-#define modifier     'a' - 'A'
-#define is_lower(c)  c >= 'a' && c <= 'z'
-#define is_upper(c)  c >= 'A' && c <= 'Z'
-#define is_sep(c)    c == '-' || c == '_' || c == ' '
+#define CASE_MODIFIER     'a' - 'A'
+#define CASE_IS_LOWER(c)  c >= 'a' && c <= 'z'
+#define CASE_IS_UPPER(c)  c >= 'A' && c <= 'Z'
+#define CASE_IS_SEP(c)    c == '-' || c == '_' || c == ' '
 
 char *case_upper(char *str) {
   for (int i = 0, len = strlen(str); i < len; i++) {
-    if (is_lower(str[i])) {
-      str[i] -= modifier;
+    if (CASE_IS_LOWER(str[i])) {
+      str[i] -= CASE_MODIFIER;
     }
   }
   return str;
@@ -27,8 +27,8 @@ char *case_upper(char *str) {
 
 char *case_lower(char *str) {
   for (int i = 0, len = strlen(str); i < len; i++) {
-    if (is_upper(str[i])) {
-      str[i] += modifier;
+    if (CASE_IS_UPPER(str[i])) {
+      str[i] += CASE_MODIFIER;
     }
   }
   return str;
@@ -36,11 +36,11 @@ char *case_lower(char *str) {
 
 char *case_camel(char *str) {
   for (int i = 0, len = strlen(str); i < len; i++) {
-    if (is_sep(str[i])) {
+    if (CASE_IS_SEP(str[i])) {
       memmove(&str[i], &str[i + 1], len - i);
       // never cap the first char
-      if (i && is_lower(str[i])) {
-        str[i] -= modifier;
+      if (i && CASE_IS_LOWER(str[i])) {
+        str[i] -= CASE_MODIFIER;
       }
       // account for removing seperator
       i--;
