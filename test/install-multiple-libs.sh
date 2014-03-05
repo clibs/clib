@@ -14,3 +14,5 @@ clib install -o tmp \
 
 [ -d ./tmp/trim ] && [ -f ./tmp/trim/package.json ] ||
   throw "failed to install trim.c"
+
+rm -rf ./tmp
