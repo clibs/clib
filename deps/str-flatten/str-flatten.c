@@ -12,26 +12,34 @@
 
 char *
 str_flatten(const char *array[], int start, int end) {
-  int size = 1; // terminator
-  for (int i = start; i < end; i++) size += strlen(array[i]);
-  size += end - start - 1; // number of spaces
+  int count = end - start;
+  size_t lengths[count];
+  size_t size = 0;
+  size_t pos = 0;
 
-  char *str = malloc(sizeof(char) * size);
-  if (NULL == str) return NULL;
-  int pos = 0;
-  *str = '\0';
-
-  for (int i = start; i < end; i++) {
-    const char *word = array[i];
-    int len = strlen(word);
-    strncat(&str[pos], word, len);
-    pos += len;
-    str[pos] = ' ';
-    pos++;
+  for (int i = start, j = 0; i < end; ++i, ++j) {
+    lengths[j] = strlen(array[i]);
+    size += lengths[j];
   }
 
-  pos--;
-  str[pos] = '\0';
+  char *str = malloc(size + count);
+  str[size + count - 1] = '\0';
+
+  for (int i = start, j = 0; i < (end - 1); ++i, ++j) {
+    memcpy(str + pos + j
+      // current index
+      , array[i]
+      // current index length
+      , lengths[j]);
+    // add space
+    str[pos + lengths[j] + j] = ' ';
+    // bump `pos`
+    pos += lengths[j];
+  }
+
+  memcpy(str + pos + count - 1
+    , array[end - 1]
+    , lengths[count - 1]);
 
   return str;
 }

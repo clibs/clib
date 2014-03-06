@@ -2,3 +2,4 @@ clib
 clib-install
 clib-search
 *.o
+tmp/
