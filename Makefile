@@ -8,7 +8,7 @@ SRC  = $(wildcard src/*.c)
 DEPS = $(wildcard deps/*/*.c)
 OBJS = $(DEPS:.c=.o)
 
-CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function
+CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__
 LDFLAGS = -lcurl
 
 all: $(BINS)
