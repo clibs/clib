@@ -1,4 +1,19 @@
 
+1.1.0 / 2014-03-10
+==================
+
+ * Update console-colors
+ * Added unset `__STRICT_ANSI__` for MinGW
+ * Test installing multiple libs from the clibs namespace
+ * Test cleanup when done
+ * Add a test for installing multiple libs
+ * Update str-flatten for memory fixes
+ * Update case.c
+ * search: Update wiki-registry
+ * Update usage and examples
+ * Update which
+ * Add help command
+
 1.0.1 / 2014-02-26
 ==================
 
