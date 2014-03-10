@@ -536,13 +536,13 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       }
 
       int rc = http_get_file(file_url, file_path);
-      free(file_url);
       free(file_path);
       if (-1 == rc) {
         if (verbose) clib_package_error("error", "unable to fetch %s", file_url);
         free(pkg_dir);
         return -1;
       }
+      free(file_url);
     }
 
     list_iterator_destroy(it);
