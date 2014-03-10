@@ -540,6 +540,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       if (-1 == rc) {
         if (verbose) clib_package_error("error", "unable to fetch %s", file_url);
         free(pkg_dir);
+        free(file_url);
         return -1;
       }
       free(file_url);

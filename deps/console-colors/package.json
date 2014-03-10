@@ -1,6 +1,6 @@
 {
   "name": "console-colors",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repo": "Constellation/console-colors.c",
   "description": "Write formatted string to console with colors",
   "keywords": [ "console", "color" ],

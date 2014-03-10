@@ -32,7 +32,7 @@
 #include "console-colors.h"
 
 static int Write(FILE *stream, const char *format, va_list ap) {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
     return vfprintf_s(stream, format, ap);
 #else
     return vfprintf(stream, format, ap);
