@@ -11,28 +11,23 @@
 
 #include "list/list.h"
 
-#define CLIB_PACKAGE_DEFAULT_AUTHOR  "clibs"
-#define CLIB_PACKAGE_DEFAULT_VERSION "master"
-
-typedef struct clib_package_dependency {
+typedef struct {
   char *name;
   char *author;
   char *version;
-  struct clib_package_dependency *next;
-  struct clib_package_dependency *prev;
 } clib_package_dependency_t;
 
 typedef struct {
-  const char *name;
-  const char *author;
-  const char *version;
-  const char *repo;
-  const char *repo_name;
-  const char *description;
-  const char *license;
-  const char *install;
-  const char *json;
-  const char *url;
+  char *author;
+  char *description;
+  char *install;
+  char *json;
+  char *license;
+  char *name;
+  char *repo;
+  char *repo_name;
+  char *url;
+  char *version;
   list_t *dependencies;
   list_t *development;
   list_t *src;
@@ -70,5 +65,8 @@ clib_package_install_development(clib_package_t *, const char *, int);
 
 void
 clib_package_free(clib_package_t *);
+
+void
+clib_package_dependency_free(void *);
 
 #endif
