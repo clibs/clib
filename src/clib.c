@@ -66,6 +66,7 @@ main(int argc, const char **argv) {
 
   if (0 == strcmp(cmd, "help")) {
     if (argc >= 3) {
+      free(cmd);
       cmd = str_copy(argv[2]);
       args = str_copy("--help");
     } else {
