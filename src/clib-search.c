@@ -36,7 +36,10 @@ matches(int count, char *args[], wiki_package_t *pkg) {
   if (NULL == name) goto fail;
   case_lower(name);
   for (int i = 0; i < count; i++) {
-    if (strstr(name, args[i])) return 1;
+    if (strstr(name, args[i])) {
+      free(name);
+      return 1;
+    }
   }
 
   description = str_copy(pkg->description);
@@ -45,11 +48,13 @@ matches(int count, char *args[], wiki_package_t *pkg) {
   for (int i = 0; i < count; i++) {
     if (strstr(description, args[i])) {
       free(description);
+      free(name);
       return 1;
     }
   }
 
 fail:
+  if (name) free(name);
   if (description) free(description);
   return 0;
 }
