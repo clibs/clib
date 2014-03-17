@@ -275,6 +275,7 @@ install_packages(list_t *list, const char *dir, int verbose) {
     if (pkg) clib_package_free(pkg);
     if (error) {
       list_iterator_destroy(iterator);
+      iterator = NULL;
       rc = -1;
       goto cleanup;
     }
