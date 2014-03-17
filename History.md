@@ -1,4 +1,10 @@
 
+1.1.2 / 2014-03-17
+==================
+
+ * Update clib-package to 0.2.1
+ * Fix leaks in `help` and `search` commands
+
 1.1.1 / 2014-03-10
 ==================
 
