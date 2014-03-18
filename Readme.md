@@ -1,4 +1,3 @@
-
 # clib(1)
 
   Package manager for the C programming language.
@@ -13,11 +12,22 @@
 
     $ brew install clib
 
-  With git:  
+  With git:
 
     $ git clone https://github.com/clibs/clib.git /tmp/clib
     $ cd /tmp/clib
     $ make install
+    
+  Ubuntu:
+  
+    # install libcurl
+    $ sudo apt-get install libcurl4-gnutls-dev -qq
+    # clone
+    $ git clone https://github.com/clibs/clib.git /tmp/clib && cd /tmp/clib
+    # build
+    $ make
+    # put on path
+    $ sudo make install
 
 ## About
 
