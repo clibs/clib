@@ -1,3 +1,4 @@
+
 # clib(1)
 
   Package manager for the C programming language.
@@ -121,7 +122,3 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ## Articles
 
   - [Introducing Clib](https://medium.com/code-adventures/b32e6e769cb3) - introduction to clib
-
-## License 
-
-  MIT
