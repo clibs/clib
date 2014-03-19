@@ -12,7 +12,8 @@
     "stephenmathieson/case.c": "0.1.1",
     "jwerle/fs.c": "0.1.0",
     "stephenmathieson/http-get.c": "0.1.0",
-    "Constellation/console-colors.c": "1.0.1"
+    "Constellation/console-colors.c": "1.0.1",
+    "logger": "0.0.0"
   },
   "install": "make install"
 }

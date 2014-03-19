@@ -13,6 +13,7 @@
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
 #include "http-get/http-get.h"
+#include "logger/logger.h"
 #include "version.h"
 
 struct options {
@@ -49,7 +50,7 @@ setopt_dev(command_t *self) {
 static int
 install_local_packages() {
   if (-1 == fs_exists("./package.json")) {
-    fprintf(stderr, "Missing package.json\n");
+    logger_error("error", "Missing package.json");
     return 1;
   }
 

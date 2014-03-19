@@ -18,6 +18,7 @@
 #include "clib-package/clib-package.h"
 #include "console-colors/console-colors.h"
 #include "str-copy/str-copy.h"
+#include "logger/logger.h"
 #include "version.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
@@ -97,7 +98,7 @@ main(int argc, char *argv[]) {
   char *html = wiki_html_cache();
   if (NULL == html) {
     command_free(&program);
-    fprintf(stderr, "Failed to fetch wiki HTML\n");
+    logger_error("error", "failed to fetch wiki HTML");
     return 1;
   }
 
