@@ -1,0 +1,9 @@
+{
+  "name": "logger",
+  "version": "0.0.0",
+  "repo": "clibs/logger.h",
+  "src": ["logger.h"],
+  "dependencies": {
+    "Constellation/console-colors.c": "1.0.1"
+  }
+}

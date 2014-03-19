@@ -1,6 +1,6 @@
 {
   "name": "clib-package",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "repo": "stephenmathieson/clib-package",
   "src": [
     "src/clib-package.h",
@@ -15,7 +15,8 @@
     "jwerle/fs.c": "0.1.0",
     "stephenmathieson/path-join.c": "*",
     "stephenmathieson/str-copy.c": "0.0.3",
-    "stephenmathieson/parse-repo.c": "1.1.0"
+    "stephenmathieson/parse-repo.c": "1.1.0",
+    "logger": "0.0.0"
   },
   "development": {
     "stephenmathieson/describe.h": "1.0.0",

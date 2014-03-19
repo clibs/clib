@@ -1,6 +1,6 @@
 {
   "name": "str-starts-with",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repo": "stephenmathieson/str-starts-with.c",
   "description": "Check if a string starts with another string",
   "keywords": [ "string" ],
