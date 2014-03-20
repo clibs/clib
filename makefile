@@ -1,4 +1,3 @@
-
 CC     ?= cc
 PREFIX ?= /usr/local
 
