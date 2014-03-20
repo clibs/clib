@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "fs/fs.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
@@ -185,8 +186,20 @@ done:
 
 static int
 install_packages(int n, char *pkgs[]) {
+  pthread_t tid[n];
+  int ret;
+
   for (int i = 0; i < n; i++) {
-    if (-1 == install_package(pkgs[i])) return 1;
+    ret = pthread_create(&tid[i],
+                         NULL,
+                         (void *)install_package(pkgs[i]),
+                         NULL);
+    if(ret != 0){
+      sprintf(stderr, "create %s pthread error!\n", pkgs[i]);
+      exit(1);
+    }else if(-1 == install_package(pkgs[i])){ 
+      return 1;
+    }
   }
   return 0;
 }
