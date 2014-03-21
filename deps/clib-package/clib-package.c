@@ -18,6 +18,7 @@
 #include "mkdirp/mkdirp.h"
 #include "fs/fs.h"
 #include "path-join/path-join.h"
+#include "logger/logger.h"
 #include "parse-repo/parse-repo.h"
 
 #include "clib-package.h"
@@ -42,18 +43,6 @@ json_array_get_string_safe(JSON_Array *, int);
 
 static inline char *
 clib_package_file_url(const char *, const char *);
-
-static inline void
-clib_package_debug(const char *, const char *, int);
-
-static inline void
-clib_package_log(const char *, const char *, ...);
-
-static inline void
-clib_package_error(const char *, const char *, ...);
-
-static inline void
-clib_package_warn(const char *, const char *, ...);
 
 static inline char *
 clib_package_slug(const char *, const char *, const char *);
@@ -116,49 +105,6 @@ clib_package_file_url(const char *url, const char *file) {
   }
   return res;
 }
-
-/**
- * Debug/log functions
- */
-
-static inline void
-clib_package_debug(const char *type, const char *msg, int color) {
-  printf("  \033[%dm%10s\033[0m : \033[90m%s\033[m\n", color, type, msg);
-}
-
-static inline void
-clib_package_log(const char *type, const char *msg, ...) {
-  char *buf = malloc(512 * sizeof(char));
-  va_list args;
-  va_start(args, msg);
-  vsprintf(buf, msg, args);
-  va_end(args);
-  clib_package_debug(type, msg, 36);
-  free(buf);
-}
-
-static inline void
-clib_package_error(const char *type, const char *msg, ...) {
-  char *buf = malloc(512 * sizeof(char));
-  va_list args;
-  va_start(args, msg);
-  vsprintf(buf, msg, args);
-  va_end(args);
-  clib_package_debug(type, buf, 31);
-  free(buf);
-}
-
-static inline void
-clib_package_warn(const char *type, const char *msg, ...) {
-  char *buf = malloc(512 * sizeof(char));
-  va_list args;
-  va_start(args, msg);
-  vsprintf(buf, msg, args);
-  va_end(args);
-  clib_package_debug(type, buf, 33);
-  free(buf);
-}
-
 
 /**
  * Build a slug
@@ -304,11 +250,11 @@ clib_package_new(const char *json, int verbose) {
 
   if (!json) goto cleanup;
   if (!(root = json_parse_string(json))) {
-    clib_package_error("error", "unable to parse json");
+    logger_error("error", "unable to parse json");
     goto cleanup;
   }
   if (!(json_object = json_value_get_object(root))) {
-    clib_package_error("error", "invalid package.json");
+    logger_error("error", "invalid package.json");
     goto cleanup;
   }
   if (!(pkg = malloc(sizeof(clib_package_t)))) goto cleanup;
@@ -329,7 +275,7 @@ clib_package_new(const char *json, int verbose) {
     // repo name may not be package name (thing.c -> thing)
     pkg->repo_name = parse_repo_name(pkg->repo);
   } else {
-    if (verbose) clib_package_warn("warning", "missing repo in package.json");
+    if (verbose) logger_warn("warning", "missing repo in package.json");
     pkg->author = NULL;
     pkg->repo_name = NULL;
   }
@@ -398,10 +344,10 @@ clib_package_new_from_slug(const char *slug, int verbose) {
   if (!(repo = clib_package_repo(author, name))) goto error;
 
   // fetch json
-  if (verbose) clib_package_log("fetch", json_url);
+  if (verbose) logger_info("fetch", json_url);
   res = http_get(json_url);
   if (!res || !res->ok) {
-    clib_package_error("error", "unable to fetch %s", json_url);
+    logger_error("error", "unable to fetch %s", json_url);
     goto error;
   }
 
@@ -572,7 +518,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   // write package.json
   if (!(package_json = path_join(pkg_dir, "package.json"))) goto cleanup;
   if (-1 == fs_write(package_json, pkg->json)) {
-    clib_package_error("error", "Failed to write %s", package_json);
+    logger_error("error", "Failed to write %s", package_json);
     goto cleanup;
   }
 
@@ -599,16 +545,16 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     }
 
     // TODO the whole URL is overkill and floods my terminal
-    if (verbose) clib_package_log("fetch", file_url);
+    if (verbose) logger_info("fetch", file_url);
 
     // fetch source file and save to disk
     if (-1 == http_get_file(file_url, file_path)) {
-      clib_package_error("error", "unable to fetch %s", file_url);
+      logger_error("error", "unable to fetch %s", file_url);
       error = 1;
       goto loop_cleanup;
     }
 
-    if (verbose) clib_package_log("save", file_path);
+    if (verbose) logger_info("save", file_path);
 
   loop_cleanup:
     if (file_url) free(file_url);
