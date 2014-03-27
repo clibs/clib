@@ -3,16 +3,16 @@ CC     ?= cc
 PREFIX ?= /usr/local
 
 ifeq ($(OS),Windows_NT)
-BINS = clib.exe clib-install.exe clib-search.exe
+BINS    = clib.exe clib-install.exe clib-search.exe
 LDFLAGS = -lcurldll
-CP_F    = copy /Y
-RM_F    = del /Q /S
+CP      = copy /Y
+RM      = del /Q /S
 MKDIR_P = mkdir
 else
-BINS = clib clib-install clib-search
+BINS    = clib clib-install clib-search
 LDFLAGS = -lcurl
-CP_F    = cp -f
-RM_F    = rm -f
+CP      = cp -f
+RM      = rm -f
 MKDIR_P = mkdir -p
 endif
 
@@ -31,15 +31,15 @@ $(BINS): $(SRC) $(OBJS)
 	$(CC) $< -c -o $@ $(CFLAGS)
 
 clean:
-	$(foreach c, $(BINS), $(RM_F) $(c);)
-	$(RM_F) $(OBJS)
+	$(foreach c, $(BINS), $(RM) $(c);)
+	$(RM) $(OBJS)
 
 install: $(BINS)
 	$(MKDIR_P) $(PREFIX)/bin
-	$(foreach c, $(BINS), $(CP_F) $(c) $(PREFIX)/bin/$(c);)
+	$(foreach c, $(BINS), $(CP) $(c) $(PREFIX)/bin/$(c);)
 
 uninstall:
-	$(foreach c, $(BINS), $(RM_F) $(PREFIX)/bin/$(c);)
+	$(foreach c, $(BINS), $(RM) $(PREFIX)/bin/$(c);)
 
 test:
 	@./test.sh
