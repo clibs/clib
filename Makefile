@@ -25,7 +25,7 @@ CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__
 all: $(BINS)
 
 $(BINS): $(SRC) $(OBJS)
-	$(CC) $(CFLAGS) -o $@ src/$@.c $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $< -c -o $@ $(CFLAGS)
