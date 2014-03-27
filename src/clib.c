@@ -37,7 +37,6 @@ main(int argc, const char **argv) {
   char *args = NULL;
   char *command = NULL;
   char *bin = NULL;
-  char *p = NULL;
   int rc = 1;
 
   if (NULL == argv[1]
@@ -95,7 +94,7 @@ main(int argc, const char **argv) {
     goto cleanup;
   }
 #ifdef _WIN32
-  for (p = bin; *p; p++)
+  for (char *p = bin; *p; p++)
     if (*p == '/') *p = '\\';
 #endif
 
