@@ -1,4 +1,14 @@
 
+1.1.3 / 2014-03-26
+==================
+
+ * Windows port of Makefile
+ * Surpress writes to stderr in tests
+ * Use clibs/logger
+ * Update clib-package to 0.2.2
+ * Readme: Add Travis status button.
+ * Add an explicit LICENSE file
+
 1.1.2 / 2014-03-17
 ==================
 
