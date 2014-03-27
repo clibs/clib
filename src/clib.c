@@ -37,6 +37,7 @@ main(int argc, const char **argv) {
   char *args = NULL;
   char *command = NULL;
   char *bin = NULL;
+  char *p = NULL;
   int rc = 1;
 
   if (NULL == argv[1]
@@ -82,13 +83,21 @@ main(int argc, const char **argv) {
 
   command = malloc(1024);
   if (NULL == command) goto cleanup;
+#ifdef _WIN32
+  sprintf(command, "clib-%s.exe", cmd);
+#else
   sprintf(command, "clib-%s", cmd);
+#endif
 
   bin = which(command);
   if (NULL == bin) {
     fprintf(stderr, "Unsupported command \"%s\"\n", cmd);
     goto cleanup;
   }
+#ifdef _WIN32
+  for (p = bin; *p; p++)
+    if (*p == '/') *p = '\\';
+#endif
 
   if (args) {
     sprintf(command, "%s %s", bin, args);
