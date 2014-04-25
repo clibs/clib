@@ -34,7 +34,7 @@ setopt_dir(command_t *self) {
 }
 
 static void
-setopt_quite(command_t *self) {
+setopt_quiet(command_t *self) {
   opts.verbose = 0;
 }
 
@@ -217,9 +217,9 @@ main(int argc, char *argv[]) {
     , setopt_dir);
   command_option(&program
     , "-q"
-    , "--quite"
+    , "--quiet"
     , "disable verbose output"
-    , setopt_quite);
+    , setopt_quiet);
   command_option(&program
     , "-d"
     , "--dev"
