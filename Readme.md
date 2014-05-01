@@ -1,7 +1,6 @@
-
 # clib(1)
 
-  [![Build Status](https://travis-ci.org/clibs/clib.png?branch=master)](https://travis-ci.org/clibs/clib)
+  [![Build Status](https://travis-ci.org/clibs/clib.svg?branch=master)](https://travis-ci.org/clibs/clib)
 
   Package manager for the C programming language.
 
