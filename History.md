@@ -1,4 +1,12 @@
 
+1.1.5 / 2014-05-06
+==================
+
+ * README: Use SVG badge for Travis
+ * Fix quiet flag typo
+ * Fix unused variable warning on non-WIN32 platforms
+ * Add a test for brace expansion
+
 1.1.4 / 2014-03-26
 ==================
 
