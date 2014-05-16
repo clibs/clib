@@ -1,6 +1,6 @@
 /*
  Parson ( http://kgabis.github.com/parson/ )
- Copyright (c) 2013 Krzysztof Gabis
+ Copyright (c) 2012 - 2014 Krzysztof Gabis
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,6 @@ extern "C"
 #endif    
     
 #include <stddef.h>   /* size_t */    
-
-#define PARSON_VERSION 20131130
     
 /* Types and enums */
 typedef struct json_object_t JSON_Object;

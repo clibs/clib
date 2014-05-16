@@ -352,7 +352,9 @@ clib_package_new_from_slug(const char *slug, int verbose) {
   }
 
   free(json_url);
+  json_url = NULL;
   free(name);
+  name = NULL;
 
   // build package
   pkg = clib_package_new(res->data, verbose);

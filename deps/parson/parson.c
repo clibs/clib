@@ -1,6 +1,6 @@
 /*
  Parson ( http://kgabis.github.com/parson/ )
- Copyright (c) 2013 Krzysztof Gabis
+ Copyright (c) 2012 - 2014 Krzysztof Gabis
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -102,6 +102,7 @@ static JSON_Value * json_value_init_null(void);
 
 /* Parser */
 static void         skip_quotes(const char **string);
+static int          parse_utf_16(char **processed, char **unprocessed);
 static const char * get_processed_string(const char **string);
 static JSON_Value * parse_object_value(const char **string, size_t nesting);
 static JSON_Value * parse_array_value(const char **string, size_t nesting);
@@ -380,63 +381,86 @@ static void skip_quotes(const char **string) {
     skip_char(string);
 }
 
+static int parse_utf_16(char **processed, char **unprocessed) {
+    unsigned int cp, lead, trail;
+    char *processed_ptr = *processed;
+    char *unprocessed_ptr = *unprocessed;
+    unprocessed_ptr++; /* skips u */
+    if (!is_utf((const unsigned char*)unprocessed_ptr) || sscanf(unprocessed_ptr, "%4x", &cp) == EOF)
+            return ERROR;
+    if (cp < 0x80) {
+        *processed_ptr = cp; /* 0xxxxxxx */
+    } else if (cp < 0x800) {
+        *processed_ptr++ = ((cp >> 6) & 0x1F) | 0xC0; /* 110xxxxx */
+        *processed_ptr   = ((cp     ) & 0x3F) | 0x80; /* 10xxxxxx */
+    } else if (cp < 0xD800 || cp > 0xDFFF) {
+        *processed_ptr++ = ((cp >> 12) & 0x0F) | 0xE0; /* 1110xxxx */
+        *processed_ptr++ = ((cp >> 6)  & 0x3F) | 0x80; /* 10xxxxxx */
+        *processed_ptr   = ((cp     )  & 0x3F) | 0x80; /* 10xxxxxx */
+    } else if (cp >= 0xD800 && cp <= 0xDBFF) { /* lead surrogate (0xD800..0xDBFF) */
+        lead = cp;
+        unprocessed_ptr += 4; /* should always be within the buffer, otherwise previous sscanf would fail */
+        if (*unprocessed_ptr++ != '\\' || *unprocessed_ptr++ != 'u' || /* starts with \u? */
+            !is_utf((const unsigned char*)unprocessed_ptr)          ||
+            sscanf(unprocessed_ptr, "%4x", &trail) == EOF           ||
+            trail < 0xDC00 || trail > 0xDFFF) { /* valid trail surrogate? (0xDC00..0xDFFF) */
+                return ERROR;
+        }
+        cp = ((((lead-0xD800)&0x3FF)<<10)|((trail-0xDC00)&0x3FF))+0x010000;
+        *processed_ptr++ = (((cp >> 18) & 0x07) | 0xF0); /* 11110xxx */
+        *processed_ptr++ = (((cp >> 12) & 0x3F) | 0x80); /* 10xxxxxx */
+        *processed_ptr++ = (((cp >> 6)  & 0x3F) | 0x80); /* 10xxxxxx */
+        *processed_ptr   = (((cp     )  & 0x3F) | 0x80); /* 10xxxxxx */
+    } else { /* trail surrogate before lead surrogate */
+        return ERROR;
+    }
+    unprocessed_ptr += 3;
+    *processed = processed_ptr;
+    *unprocessed = unprocessed_ptr;
+    return SUCCESS;
+}
+
 /* Returns contents of a string inside double quotes and parses escaped
  characters inside.
  Example: "\u006Corem ipsum" -> lorem ipsum */
 static const char * get_processed_string(const char **string) {
     const char *string_start = *string;
-    char *output, *processed_ptr, *unprocessed_ptr, current_char;
-    unsigned int utf_val;
+    char *output = NULL, *processed_ptr = NULL, *unprocessed_ptr = NULL;
     skip_quotes(string);
     if (**string == '\0')
         return NULL;
-    output = parson_strndup(string_start + 1, *string  - string_start - 2);
+    output = parson_strndup(string_start + 1, *string - string_start - 2);
     if (!output)
         return NULL;
     processed_ptr = unprocessed_ptr = output;
-    while (*unprocessed_ptr) {
-        current_char = *unprocessed_ptr;
-        if (current_char == '\\') {
+    while (*unprocessed_ptr != '\0') {
+        if (*unprocessed_ptr == '\\') {
             unprocessed_ptr++;
-            current_char = *unprocessed_ptr;
-            switch (current_char) {
+            switch (*unprocessed_ptr) {
                 case '\"': case '\\': case '/': break;
-                case 'b': current_char = '\b'; break;
-                case 'f': current_char = '\f'; break;
-                case 'n': current_char = '\n'; break;
-                case 'r': current_char = '\r'; break;
-                case 't': current_char = '\t'; break;
+                case 'b': *processed_ptr = '\b'; break;
+                case 'f': *processed_ptr = '\f'; break;
+                case 'n': *processed_ptr = '\n'; break;
+                case 'r': *processed_ptr = '\r'; break;
+                case 't': *processed_ptr = '\t'; break;
                 case 'u':
-                    unprocessed_ptr++;
-                    if (!is_utf((const unsigned char*)unprocessed_ptr) ||
-                        sscanf(unprocessed_ptr, "%4x", &utf_val) == EOF) {
-                            parson_free(output);
-                            return NULL;
+                    if (parse_utf_16(&processed_ptr, &unprocessed_ptr) == ERROR) {
+                        parson_free(output);
+                        return NULL;
                     }
-                    if (utf_val < 0x80) {
-                        current_char = utf_val;
-                    } else if (utf_val < 0x800) {
-                        *processed_ptr++ = (utf_val >> 6) | 0xC0;
-                        current_char = ((utf_val | 0x80) & 0xBF);
-                    } else {
-                        *processed_ptr++ = (utf_val >> 12) | 0xE0;
-                        *processed_ptr++ = (((utf_val >> 6) | 0x80) & 0xBF);
-                        current_char = ((utf_val | 0x80) & 0xBF);
-                    }
-                    unprocessed_ptr += 3;
                     break;
                 default:
                     parson_free(output);
                     return NULL;
                     break;
             }
-        } else if ((unsigned char)current_char < 0x20) { /* 0x00-0x19 are invalid characters for json string (http://www.ietf.org/rfc/rfc4627.txt) */
-            parson_free(output);
+        } else if ((unsigned char)*unprocessed_ptr < 0x20) {
+            parson_free(output); /* 0x00-0x19 are invalid characters for json string (http://www.ietf.org/rfc/rfc4627.txt) */
             return NULL;
+        } else {
+            *processed_ptr = *unprocessed_ptr;
         }
-        *processed_ptr = current_char;
-        processed_ptr++;
-        unprocessed_ptr++;
+        processed_ptr++, unprocessed_ptr++;
     }
     *processed_ptr = '\0';
     if (try_realloc((void**)&output, strlen(output) + 1) == ERROR)
@@ -619,7 +643,10 @@ JSON_Value * json_parse_file_with_comments(const char *filename) {
 }
 
 JSON_Value * json_parse_string(const char *string) {
-    if (!string || (*string != '{' && *string != '['))
+    if (!string)
+        return NULL;
+    skip_whitespaces(&string);
+    if (*string != '{' && *string != '[')
         return NULL;
     return parse_value((const char**)&string, 0);
 }
