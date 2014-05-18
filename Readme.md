@@ -12,24 +12,30 @@
 
   With [homebrew](https://github.com/Homebrew/homebrew):
 
-    $ brew install clib
+```bash
+$ brew install clib
+```
 
   With git:
 
-    $ git clone https://github.com/clibs/clib.git /tmp/clib
-    $ cd /tmp/clib
-    $ make install
-    
+```bash
+$ git clone https://github.com/clibs/clib.git /tmp/clib
+$ cd /tmp/clib
+$ make install
+```
+
   Ubuntu:
-  
-    # install libcurl
-    $ sudo apt-get install libcurl4-gnutls-dev -qq
-    # clone
-    $ git clone https://github.com/clibs/clib.git /tmp/clib && cd /tmp/clib
-    # build
-    $ make
-    # put on path
-    $ sudo make install
+
+```bash  
+# install libcurl
+$ sudo apt-get install libcurl4-gnutls-dev -qq
+# clone
+$ git clone https://github.com/clibs/clib.git /tmp/clib && cd /tmp/clib
+# build
+$ make
+# put on path
+$ sudo make install
+```
 
 ## About
 
@@ -64,25 +70,25 @@
 
  Install a few dependencies to `./deps`:
 
-```
+```bash
 $ clib install clibs/ms clibs/commander
 ```
 
  Install them to `./src` instead:
 
-```
+```bash
 $ clib install clibs/ms clibs/commander -o src
 ```
 
  When installing libraries from the `clibs` org you can omit the name:
 
-```
+```bash
 $ clib install ms file hash
 ```
 
  Install some executables:
 
-```
+```bash
 $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ```
 
