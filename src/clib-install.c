@@ -82,76 +82,60 @@ e1:
 static int
 executable(clib_package_t *pkg) {
   int rc;
+  char *url = NULL;
+  char *file = NULL;
+  char *tarball = NULL;
+  char *command = NULL;
+  char *dir = NULL;
+  char *deps = NULL;
 
-  char *url = malloc(256);
-  if (NULL == url) goto fail;
-  sprintf(url
+  rc = asprintf(&url
     , "https://github.com/%s/%s/archive/%s.tar.gz"
     , pkg->author
     , pkg->name
     , pkg->version);
+  if (-1 == rc) goto cleanup;
 
-  char *file = malloc(256);
-  if (NULL == file) goto e1;
-  sprintf(file
-    , "%s-%s.tar.gz"
-    , pkg->name
-    , pkg->version);
+  rc = asprintf(&file, "%s-%s.tar.gz", pkg->name, pkg->version);
+  if (-1 == rc) goto cleanup;
 
-  char *tarball = malloc(256);
-  if (NULL == tarball) goto e2;
-  sprintf(tarball, "/tmp/%s", file);
+  rc = asprintf(&tarball, "/tmp/%s", file);
+  if (-1 == rc) goto cleanup;
 
   rc = http_get_file(url, tarball);
-  if (-1 == rc) goto e3;
+  if (-1 == rc) goto cleanup;
 
-  char *command = malloc(512);
-  if (NULL == command) goto e3;
+  rc = asprintf(&command, "cd /tmp && tar -xf %s", file);
+  if (-1 == rc) goto cleanup;
 
   // cheap untar
-  sprintf(command
-    , "cd /tmp && tar -xf %s"
-    , file);
   rc = system(command);
-  if (0 != rc) goto e4;
+  if (0 != rc) goto cleanup;
 
-  char *dir = malloc(256);
-  if (NULL == dir) goto e4;
-  sprintf(dir
-    , "/tmp/%s-%s"
-    , pkg->name
-    , pkg->version);
+  rc = asprintf(&dir, "/tmp/%s-%s", pkg->name, pkg->version);
+  if (-1 == rc) goto cleanup;
 
   if (pkg->dependencies) {
-    char *deps = malloc(strlen(dir) + 6);
-    if (deps) {
-      sprintf(deps, "%s/deps", dir);
-      rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
-      free(deps);
-      if (-1 == rc) goto e5;
-    } else goto e5;
+    rc = asprintf(&deps, "%s/deps", dir);
+    if (-1 == rc) goto cleanup;
+    rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
+    if (-1 == rc) goto cleanup;
   }
 
-  // cheap install
-  sprintf(command
-    , "cd %s && %s"
-    , dir
-    , pkg->install);
+  free(command);
+  command = NULL;
+
+  rc = asprintf(&command, "cd %s && %s", dir, pkg->install);
+  if (-1 == rc) goto cleanup;
   rc = system(command);
+
+cleanup:
   free(dir);
   free(command);
   free(tarball);
   free(file);
   free(url);
-  return 0;
-
-e5: free(dir);
-e4: free(command);
-e3: free(tarball);
-e2: free(file);
-e1: free(url);
-fail:
-  return -1;
+  return rc;
 }
 
 /**
