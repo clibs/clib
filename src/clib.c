@@ -31,6 +31,14 @@ static const char *usage =
   "    help <cmd>         Display help for cmd\n"
   "";
 
+#define format(...) ({                               \
+  if (-1 == asprintf(__VA_ARGS__)) {                 \
+    rc = 1;                                          \
+    fprintf(stderr, "Memory allocation failure\n");  \
+    goto cleanup;                                    \
+  }                                                  \
+})
+
 int
 main(int argc, const char **argv) {
   char *cmd = NULL;
@@ -39,6 +47,7 @@ main(int argc, const char **argv) {
   char *bin = NULL;
   int rc = 1;
 
+  // usage
   if (NULL == argv[1]
    || 0 == strncmp(argv[1], "-h", 2)
    || 0 == strncmp(argv[1], "--help", 6)) {
@@ -46,17 +55,20 @@ main(int argc, const char **argv) {
     return 0;
   }
 
+  // version
   if (0 == strncmp(argv[1], "-v", 2)
    || 0 == strncmp(argv[1], "--version", 9)) {
     printf("%s\n", CLIB_VERSION);
     return 0;
   }
 
+  // unknown
   if (0 == strncmp(argv[1], "--", 2)) {
     fprintf(stderr, "Unknown option: \"%s\"\n", argv[1]);
     return 1;
   }
 
+  // sub-command
   cmd = str_copy(argv[1]);
   if (NULL == cmd) {
     fprintf(stderr, "Memory allocation failure\n");
@@ -80,12 +92,10 @@ main(int argc, const char **argv) {
     }
   }
 
-  command = malloc(1024);
-  if (NULL == command) goto cleanup;
 #ifdef _WIN32
-  sprintf(command, "clib-%s.exe", cmd);
+  format(&command, "clib-%s.exe", cmd);
 #else
-  sprintf(command, "clib-%s", cmd);
+  format(&command, "clib-%s", cmd);
 #endif
 
   bin = which(command);
@@ -93,13 +103,15 @@ main(int argc, const char **argv) {
     fprintf(stderr, "Unsupported command \"%s\"\n", cmd);
     goto cleanup;
   }
+
 #ifdef _WIN32
   for (char *p = bin; *p; p++)
     if (*p == '/') *p = '\\';
 #endif
 
   if (args) {
-    sprintf(command, "%s %s", bin, args);
+    command = NULL;
+    format(&command, "%s %s", bin, args);
   } else {
     strcpy(command, bin);
   }
