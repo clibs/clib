@@ -44,6 +44,7 @@ main(int argc, const char **argv) {
   char *cmd = NULL;
   char *args = NULL;
   char *command = NULL;
+  char *command_with_args = NULL;
   char *bin = NULL;
   int rc = 1;
 
@@ -110,19 +111,19 @@ main(int argc, const char **argv) {
 #endif
 
   if (args) {
-    command = NULL;
-    format(&command, "%s %s", bin, args);
+    format(&command_with_args, "%s %s", bin, args);
   } else {
-    strcpy(command, bin);
+    format(&command_with_args, "%s", bin);
   }
 
-  rc = system(command);
+  rc = system(command_with_args);
   if (rc > 255) rc = 1;
 
 cleanup:
-  if (cmd) free(cmd);
-  if (args) free(args);
-  if (command) free(command);
-  if (bin) free(bin);
+  free(cmd);
+  free(args);
+  free(command);
+  free(command_with_args);
+  free(bin);
   return rc;
 }
