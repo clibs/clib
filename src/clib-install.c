@@ -79,6 +79,11 @@ e1:
   return 1;
 }
 
+#define E_FORMAT(...) ({      \
+  rc = asprintf(__VA_ARGS__); \
+  if (-1 == rc) goto cleanup; \
+});
+
 static int
 executable(clib_package_t *pkg) {
   int rc;
@@ -89,35 +94,24 @@ executable(clib_package_t *pkg) {
   char *dir = NULL;
   char *deps = NULL;
 
-  rc = asprintf(&url
+  E_FORMAT(&url
     , "https://github.com/%s/%s/archive/%s.tar.gz"
     , pkg->author
     , pkg->name
     , pkg->version);
-  if (-1 == rc) goto cleanup;
-
-  rc = asprintf(&file, "%s-%s.tar.gz", pkg->name, pkg->version);
-  if (-1 == rc) goto cleanup;
-
-  rc = asprintf(&tarball, "/tmp/%s", file);
-  if (-1 == rc) goto cleanup;
-
+  E_FORMAT(&file, "%s-%s.tar.gz", pkg->name, pkg->version);
+  E_FORMAT(&tarball, "/tmp/%s", file);
   rc = http_get_file(url, tarball);
-  if (-1 == rc) goto cleanup;
-
-  rc = asprintf(&command, "cd /tmp && tar -xf %s", file);
-  if (-1 == rc) goto cleanup;
+  E_FORMAT(&command, "cd /tmp && tar -xf %s", file);
 
   // cheap untar
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  rc = asprintf(&dir, "/tmp/%s-%s", pkg->name, pkg->version);
-  if (-1 == rc) goto cleanup;
+  E_FORMAT(&dir, "/tmp/%s-%s", pkg->name, pkg->version);
 
   if (pkg->dependencies) {
-    rc = asprintf(&deps, "%s/deps", dir);
-    if (-1 == rc) goto cleanup;
+    E_FORMAT(&deps, "%s/deps", dir);
     rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
     if (-1 == rc) goto cleanup;
   }
@@ -125,8 +119,7 @@ executable(clib_package_t *pkg) {
   free(command);
   command = NULL;
 
-  rc = asprintf(&command, "cd %s && %s", dir, pkg->install);
-  if (-1 == rc) goto cleanup;
+  E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
   rc = system(command);
 
 cleanup:
@@ -137,6 +130,8 @@ cleanup:
   free(url);
   return rc;
 }
+
+#undef E_FORMAT
 
 /**
  * Create and install a package from `slug`.
