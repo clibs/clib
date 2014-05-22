@@ -1,4 +1,15 @@
 
+1.1.7 / 2014-05-22
+==================
+
+ * package: Update clib-package to 0.2.4
+ * Change GitHub endpoint (raw.github.com -> raw.githubusercontent.com)
+ * install: Fetch makefiles
+ * clib: Fix bad `free`
+ * clib: Fix possible overflow in subcommand handling
+ * install: Fix possible memory overflows
+ * Improve Readme syntax highlighting
+
 1.1.6 / 2014-05-16
 ==================
 

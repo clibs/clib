@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "repo": "clibs/clib",
   "dependencies": {
     "stephenmathieson/trim.c": "0.0.2",
