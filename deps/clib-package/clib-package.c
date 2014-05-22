@@ -268,6 +268,7 @@ clib_package_new(const char *json, int verbose) {
   pkg->license = json_object_get_string_safe(json_object, "license");
   pkg->description = json_object_get_string_safe(json_object, "description");
   pkg->install = json_object_get_string_safe(json_object, "install");
+  pkg->makefile = json_object_get_string_safe(json_object, "makefile");
 
   // TODO npm-style "repository" (thlorenz/gumbo-parser.c#1)
   if (pkg->repo) {
@@ -421,7 +422,7 @@ char *
 clib_package_url(const char *author, const char *name, const char *version) {
   if (!author || !name || !version) return NULL;
   int size =
-      23 // https://raw.github.com/
+      34 // https://raw.githubusercontent.com/
     + strlen(author)
     + 1 // /
     + strlen(name)
@@ -434,7 +435,7 @@ clib_package_url(const char *author, const char *name, const char *version) {
   if (slug) {
     memset(slug, '\0', size);
     sprintf(slug
-      , "https://raw.github.com/%s/%s/%s"
+      , "https://raw.githubusercontent.com/%s/%s/%s"
       , author
       , name
       , version);
@@ -491,6 +492,48 @@ clib_package_dependency_new(const char *repo, const char *version) {
 }
 
 /**
+ * Fetch a file associated with the given `pkg`.
+ *
+ * Returns 0 on success.
+ */
+
+static int
+fetch_package_file(
+      clib_package_t *pkg
+    , const char *dir
+    , char *file
+    , int verbose
+  ) {
+  char *url = NULL;
+  char *path = NULL;
+  int rc = 0;
+
+  if (!(url = clib_package_file_url(pkg->url, file))) {
+    return 1;
+  }
+
+  if (!(path = path_join(dir, basename(file)))) {
+    rc = 1;
+    goto cleanup;
+  }
+
+  if (verbose) logger_info("fetch", url);
+
+  if (-1 == http_get_file(url, path)) {
+    logger_error("error", "unable to fetch %s", url);
+    rc = 1;
+    goto cleanup;
+  }
+
+  if (verbose) logger_info("save", path);
+
+cleanup:
+  free(url);
+  free(path);
+  return rc;
+}
+
+/**
  * Install the given `pkg` in `dir`
  */
 
@@ -514,9 +557,6 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     if (NULL == pkg->url) goto cleanup;
   }
 
-  // if no sources are listed, just install
-  if (NULL == pkg->src) goto install;
-
   // write package.json
   if (!(package_json = path_join(pkg_dir, "package.json"))) goto cleanup;
   if (-1 == fs_write(package_json, pkg->json)) {
@@ -524,45 +564,22 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     goto cleanup;
   }
 
+  // fetch makefile
+  if (pkg->makefile) {
+    if (0 != fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose)) {
+      goto cleanup;
+    }
+  }
+
+  // if no sources are listed, just install
+  if (NULL == pkg->src) goto install;
+
   iterator = list_iterator_new(pkg->src, LIST_HEAD);
   list_node_t *source;
   while ((source = list_iterator_next(iterator))) {
-    char *filename = NULL;
-    char *file_url = NULL;
-    char *file_path = NULL;
-    int error = 0;
-
-    filename = source->val;
-
-    // get file URL to fetch
-    if (!(file_url = clib_package_file_url(pkg->url, filename))) {
-      error = 1;
-      goto loop_cleanup;
-    }
-
-    // get file path to save
-    if (!(file_path = path_join(pkg_dir, basename(filename)))) {
-      error = 1;
-      goto loop_cleanup;
-    }
-
-    // TODO the whole URL is overkill and floods my terminal
-    if (verbose) logger_info("fetch", file_url);
-
-    // fetch source file and save to disk
-    if (-1 == http_get_file(file_url, file_path)) {
-      logger_error("error", "unable to fetch %s", file_url);
-      error = 1;
-      goto loop_cleanup;
-    }
-
-    if (verbose) logger_info("save", file_path);
-
-  loop_cleanup:
-    if (file_url) free(file_url);
-    if (file_path) free(file_path);
-    if (error) {
+    if (0 != fetch_package_file(pkg, pkg_dir, source->val, verbose)) {
       list_iterator_destroy(iterator);
+      iterator = NULL;
       rc = -1;
       goto cleanup;
     }
@@ -618,6 +635,7 @@ clib_package_free(clib_package_t *pkg) {
   if (pkg->json) free(pkg->json);
   if (pkg->license) free(pkg->license);
   if (pkg->name) free(pkg->name);
+  if (pkg->makefile) free(pkg->makefile);
   if (pkg->repo) free(pkg->repo);
   if (pkg->repo_name) free(pkg->repo_name);
   if (pkg->url) free(pkg->url);

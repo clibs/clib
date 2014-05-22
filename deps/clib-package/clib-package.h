@@ -28,6 +28,7 @@ typedef struct {
   char *repo_name;
   char *url;
   char *version;
+  char *makefile;
   list_t *dependencies;
   list_t *development;
   list_t *src;
