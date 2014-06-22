@@ -122,6 +122,8 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 }
 ```
 
+ See [explanation of package.json](https://github.com/clibs/clib/wiki/Explanation-of-package.json) for more details.
+
 ## Contributing
 
  If you're interested in being part of this initiative let me know and I'll add you to the `clibs` organization so you can create repos here and contribute to existing ones.
