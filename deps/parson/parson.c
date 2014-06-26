@@ -437,12 +437,14 @@ static const char * get_processed_string(const char **string) {
         if (*unprocessed_ptr == '\\') {
             unprocessed_ptr++;
             switch (*unprocessed_ptr) {
-                case '\"': case '\\': case '/': break;
-                case 'b': *processed_ptr = '\b'; break;
-                case 'f': *processed_ptr = '\f'; break;
-                case 'n': *processed_ptr = '\n'; break;
-                case 'r': *processed_ptr = '\r'; break;
-                case 't': *processed_ptr = '\t'; break;
+                case '\"': *processed_ptr = '\"'; break;
+                case '\\': *processed_ptr = '\\'; break;
+                case '/':  *processed_ptr = '/';  break;
+                case 'b':  *processed_ptr = '\b'; break;
+                case 'f':  *processed_ptr = '\f'; break;
+                case 'n':  *processed_ptr = '\n'; break;
+                case 'r':  *processed_ptr = '\r'; break;
+                case 't':  *processed_ptr = '\t'; break;
                 case 'u':
                     if (parse_utf_16(&processed_ptr, &unprocessed_ptr) == ERROR) {
                         parson_free(output);
@@ -460,7 +462,8 @@ static const char * get_processed_string(const char **string) {
         } else {
             *processed_ptr = *unprocessed_ptr;
         }
-        processed_ptr++, unprocessed_ptr++;
+        processed_ptr++;
+        unprocessed_ptr++;
     }
     *processed_ptr = '\0';
     if (try_realloc((void**)&output, strlen(output) + 1) == ERROR)
