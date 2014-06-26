@@ -17,7 +17,7 @@ MKDIR_P = mkdir -p
 endif
 
 SRC  = $(wildcard src/*.c)
-DEPS = $(wildcard deps/*/*.c)
+DEPS = $(wildcard deps/*/*.c src/util.c)
 OBJS = $(DEPS:.c=.o)
 
 CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__

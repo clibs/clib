@@ -14,6 +14,7 @@
 #include "clib-package/clib-package.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
+#include "util.h"
 #include "version.h"
 
 struct options {

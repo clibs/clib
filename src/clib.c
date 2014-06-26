@@ -13,6 +13,7 @@
 #include "which/which.h"
 #include "str-flatten/str-flatten.h"
 #include "str-copy/str-copy.h"
+#include "util.h"
 #include "version.h"
 
 static const char *usage =
