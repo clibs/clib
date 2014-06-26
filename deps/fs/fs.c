@@ -17,10 +17,6 @@
 #include <fcntl.h>
 #include "fs.h"
 
-#ifdef _WIN32
-extern int fileno(FILE*);
-#endif
-
 void
 fs_error (const char *prefix) {
   char fmt[256];
