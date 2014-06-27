@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "asprintf/asprintf.h"
 #include "fs/fs.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
