@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "trim/trim.h"
+#include "asprintf/asprintf.h"
 #include "which/which.h"
 #include "str-flatten/str-flatten.h"
 #include "str-copy/str-copy.h"

@@ -1,0 +1,9 @@
+{
+  "name": "asprintf",
+  "version": "0.0.2",
+  "repo": "littlstar/asprintf.c",
+  "description": "asprintf() implementation",
+  "keywords": ["asprintf", "sprintf", "alloc", "string"],
+  "src": ["asprintf.h", "asprintf.c"]
+}
+
