@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "asprintf/asprintf.h"
 #include "fs/fs.h"
+#include "tempdir/tempdir.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
 #include "http-get/http-get.h"
@@ -94,9 +95,13 @@ executable(clib_package_t *pkg) {
   char *command = NULL;
   char *dir = NULL;
   char *deps = NULL;
-  char *tmp = getenv("TEMP");
+  char *tmp = NULL;
 
-  if (!tmp) tmp = "/tmp";
+  tmp = gettempdir();
+  if (NULL == tmp) {
+    logger_error("error", "gettempdir() out of memory");
+    return -1;
+  }
 
   E_FORMAT(&url
     , "https://github.com/%s/%s/archive/%s.tar.gz"
@@ -127,6 +132,7 @@ executable(clib_package_t *pkg) {
   rc = system(command);
 
 cleanup:
+  free(tmp);
   free(dir);
   free(command);
   free(tarball);
