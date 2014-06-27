@@ -14,6 +14,12 @@
 #include "path-normalize/path-normalize.h"
 #include "mkdirp.h"
 
+#ifdef _WIN32
+#define PATH_SEPARATOR   '\\'
+#else
+#define PATH_SEPARATOR   '/'
+#endif
+
 /*
  * Recursively `mkdir(path, mode)`
  */
@@ -32,7 +38,7 @@ mkdirp(const char *path, mode_t mode) {
   if (NULL == parent) goto fail;
 
   char *p = parent + strlen(parent);
-  while ('/' != *p && p != parent) {
+  while (PATH_SEPARATOR != *p && p != parent) {
     p--;
   }
   *p = '\0';

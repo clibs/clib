@@ -1,6 +1,6 @@
 {
   "name": "mkdirp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repo": "stephenmathieson/mkdirp.c",
   "description": "mkdir -p",
   "keywords": [
