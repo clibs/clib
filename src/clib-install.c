@@ -93,6 +93,9 @@ executable(clib_package_t *pkg) {
   char *command = NULL;
   char *dir = NULL;
   char *deps = NULL;
+  char *tmp = getenv("TEMP");
+
+  if (!tmp) tmp = "/tmp";
 
   E_FORMAT(&url
     , "https://github.com/%s/%s/archive/%s.tar.gz"
@@ -100,15 +103,15 @@ executable(clib_package_t *pkg) {
     , pkg->name
     , pkg->version);
   E_FORMAT(&file, "%s-%s.tar.gz", pkg->name, pkg->version);
-  E_FORMAT(&tarball, "/tmp/%s", file);
+  E_FORMAT(&tarball, "%s/%s", tmp, file);
   rc = http_get_file(url, tarball);
-  E_FORMAT(&command, "cd /tmp && tar -xf %s", file);
+  E_FORMAT(&command, "cd %s && tar -xf %s", tmp, file);
 
   // cheap untar
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  E_FORMAT(&dir, "/tmp/%s-%s", pkg->name, pkg->version);
+  E_FORMAT(&dir, "%s/%s-%s", tmp, pkg->name, pkg->version);
 
   if (pkg->dependencies) {
     E_FORMAT(&deps, "%s/deps", dir);
@@ -177,7 +180,11 @@ install_packages(int n, char *pkgs[]) {
 
 int
 main(int argc, char *argv[]) {
+#ifdef _WIN32
+  opts.dir = ".\\deps";
+#else
   opts.dir = "./deps";
+#endif
   opts.verbose = 1;
   opts.dev = 0;
 
