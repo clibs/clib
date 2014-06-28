@@ -12,8 +12,10 @@
 #include <time.h>
 #include "case/case.h"
 #include "commander/commander.h"
+#include "tempdir/tempdir.h"
 #include "fs/fs.h"
 #include "http-get/http-get.h"
+#include "asprintf/asprintf.h"
 #include "wiki-registry/wiki-registry.h"
 #include "clib-package/clib-package.h"
 #include "console-colors/console-colors.h"
@@ -22,7 +24,7 @@
 #include "version.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
-#define CLIB_SEARCH_CACHE "/tmp/clib-search.cache"
+#define CLIB_SEARCH_CACHE "clib-search.cache"
 #define CLIB_SEARCH_CACHE_TIME 1000 * 60 * 60 * 5
 
 static int
@@ -61,8 +63,33 @@ fail:
 }
 
 static char *
+clib_search_file(void) {
+  char *file = NULL;
+  char *temp = NULL;
+
+  temp = gettempdir();
+  if (NULL == temp) {
+    logger_error("error", "gettempdir() out of memory");
+    return NULL;
+  }
+
+  int rc = asprintf(&file, "%s/%s", temp, CLIB_SEARCH_CACHE);
+  if (-1 == rc) {
+    logger_error("error", "asprintf() out of memory");
+    free(temp);
+    return NULL;
+  }
+
+  free(temp);
+  return file;
+}
+
+static char *
 wiki_html_cache() {
-  fs_stats *stats = fs_stat(CLIB_SEARCH_CACHE);
+  char *cache_file = clib_search_file();
+  if (NULL == cache_file) return NULL;
+
+  fs_stats *stats = fs_stat(cache_file);
   if (NULL == stats) goto set_cache;
 
   long now = (long) time(NULL);
@@ -71,7 +98,11 @@ wiki_html_cache() {
 
   free(stats);
 
-  if (delta < CLIB_SEARCH_CACHE_TIME) return fs_read(CLIB_SEARCH_CACHE);
+  if (delta < CLIB_SEARCH_CACHE_TIME) {
+    char *data = fs_read(cache_file);
+    free(cache_file);
+    return data;
+  }
 
 set_cache:;
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
@@ -82,7 +113,8 @@ set_cache:;
   http_get_free(res);
 
   if (NULL == html) return html;
-  fs_write(CLIB_SEARCH_CACHE, html);
+  fs_write(cache_file, html);
+  free(cache_file);
   return html;
 }
 
