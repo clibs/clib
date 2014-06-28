@@ -1,4 +1,19 @@
 
+1.2.1 / 2014-06-28
+==================
+
+ * clib-search: Use `gettempdir()` for computing the system's temp path
+ * clib-install: Use `gettempdir()` for computing the system's temp path
+ * package.json: Add stephenmathieson/tempdir.c to dependencies
+ * package.json: Pin asprintf.c at 0.0.2
+ * clib.c: Use littlstar/asprintf.c
+ * clib-install.c: Use littlstar/asprintf.c
+ * package.json: Add littlstar/asprintf for `asprintf` on Windows
+ * package.json: Update clib-package to 0.2.6
+ * Check $TEMP before using /tmp
+ * package.json: Update stephenmathieson/clib-package and jwerle/fs.c
+ * Readme: Added link to package.json explanation
+
 1.2.0 / 2014-05-23
 ==================
 
