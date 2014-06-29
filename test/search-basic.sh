@@ -6,7 +6,7 @@ rm -f $CACHE 2> /dev/null
 N=`clib search | wc -l`
 # lame check for more than 100 lines of output
 [ $N -lt 100 ] && {
-  echo >&2 "Expected `clib search` to return at least 100 results";
+  echo >&2 "Expected \`clib search\` to return at least 100 results";
   exit 1
 }
 
