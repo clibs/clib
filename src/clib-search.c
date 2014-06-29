@@ -19,7 +19,7 @@
 #include "wiki-registry/wiki-registry.h"
 #include "clib-package/clib-package.h"
 #include "console-colors/console-colors.h"
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "logger/logger.h"
 #include "version.h"
 
@@ -45,7 +45,7 @@ matches(int count, char *args[], wiki_package_t *pkg) {
     }
   }
 
-  description = str_copy(pkg->description);
+  description = strdup(pkg->description);
   if (NULL == description) goto fail;
   case_lower(description);
   for (int i = 0; i < count; i++) {
@@ -108,7 +108,7 @@ set_cache:;
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
   if (!res->ok) return NULL;
 
-  char *html = str_copy(res->data);
+  char *html = strdup(res->data);
   if (NULL == html) return NULL;
   http_get_free(res);
 
