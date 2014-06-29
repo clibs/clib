@@ -1,6 +1,6 @@
 {
   "name": "tempdir",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repo": "stephenmathieson/tempdir.c",
   "description": "implementation of Python's tempfile.tempdir",
   "keywords": ["temp", "tempdir"],

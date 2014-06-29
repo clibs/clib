@@ -40,8 +40,8 @@ static const char *env_vars[] = {
   static const char *platform_dirs[] = {
     "C:\\TEMP",
     "C:\\TMP",
-    "/TEMP",
-    "/TMP",
+    "\\TEMP",
+    "\\TMP",
     NULL,
   };
 #else
