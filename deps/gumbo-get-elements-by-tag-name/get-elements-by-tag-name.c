@@ -5,7 +5,6 @@
 #include "list/list.h"
 #include "trim/trim.h"
 #include "case/case.h"
-#include "str-copy/str-copy.h"
 
 #define NODE_TYPE_CHECK(node)           \
   if (GUMBO_NODE_DOCUMENT != node->type \

@@ -1,6 +1,6 @@
 {
   "name": "gumbo-get-elements-by-tag-name",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repo": "stephenmathieson/gumbo-get-elements-by-tag-name.c",
   "license": "MIT",
   "src": [
@@ -9,7 +9,6 @@
   ],
   "dependencies": {
     "list": "*",
-    "stephenmathieson/str-copy.c": "*",
     "stephenmathieson/case.c": "*",
     "stephenmathieson/trim.c": "*"
   },

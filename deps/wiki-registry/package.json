@@ -1,6 +1,6 @@
 {
   "name": "wiki-registry",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repo": "stephenmathieson/wiki-registry.c",
   "description": "Turn a GitHub Wiki page into a package registry",
   "keywords": [ "registry", "github", "wiki" ],
@@ -12,7 +12,7 @@
   "dependencies": {
     "thlorenz/gumbo-parser.c": "*",
     "stephenmathieson/substr.c": "*",
-    "stephenmathieson/str-copy.c": "*",
+    "strdup": "0.0.0",
     "stephenmathieson/http-get.c": "*",
     "stephenmathieson/case.c": "*",
     "stephenmathieson/trim.c": "*",

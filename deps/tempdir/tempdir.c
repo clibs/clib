@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "tempdir.h"
 
 // 1. The directory named by the TMPDIR environment variable.
@@ -73,21 +73,21 @@ gettempdir(void) {
   for (int i = 0; env_vars[i]; i++) {
     char *dir = getenv(env_vars[i]);
     if (dir && 0 == is_directory(dir)) {
-      return str_copy(dir);
+      return strdup(dir);
     }
   }
 
   // platform-specific checks (4)
   for (int i = 0; platform_dirs[i]; i++) {
     if (0 == is_directory(platform_dirs[i])) {
-      return str_copy(platform_dirs[i]);
+      return strdup(platform_dirs[i]);
     }
   }
 
   // fallback to cwd (5)
   char cwd[256];
   if (NULL != getcwd(cwd, sizeof(cwd))) {
-    return str_copy(cwd);
+    return strdup(cwd);
   }
 
   return NULL;

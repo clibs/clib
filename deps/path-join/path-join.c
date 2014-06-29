@@ -8,7 +8,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "str-ends-with/str-ends-with.h"
 #include "str-starts-with/str-starts-with.h"
 #include "path-join.h"
@@ -38,7 +38,7 @@ path_join(const char *dir, const char *file) {
 
   // remove the sep if necessary
   if (str_starts_with(file, PATH_JOIN_SEPERATOR)) {
-    char *filecopy = str_copy(file);
+    char *filecopy = strdup(file);
     if (NULL == filecopy) {
       free(buf);
       return NULL;

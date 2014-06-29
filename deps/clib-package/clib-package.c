@@ -11,7 +11,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "parson/parson.h"
 #include "substr/substr.h"
 #include "http-get/http-get.h"
@@ -67,7 +67,7 @@ static inline char *
 json_object_get_string_safe(JSON_Object *obj, const char *key) {
   const char *val = json_object_get_string(obj, key);
   if (!val) return NULL;
-  return str_copy(val);
+  return strdup(val);
 }
 
 /**
@@ -80,7 +80,7 @@ static inline char *
 json_array_get_string_safe(JSON_Array *array, int index) {
   const char *val = json_array_get_string(array, index);
   if (!val) return NULL;
-  return str_copy(val);
+  return strdup(val);
 }
 
 /**
@@ -261,7 +261,7 @@ clib_package_new(const char *json, int verbose) {
 
   memset(pkg, '\0', sizeof(clib_package_t));
 
-  pkg->json = str_copy(json);
+  pkg->json = strdup(json);
   pkg->name = json_object_get_string_safe(json_object, "name");
   pkg->repo = json_object_get_string_safe(json_object, "repo");
   pkg->version = json_object_get_string_safe(json_object, "version");
@@ -484,8 +484,8 @@ clib_package_dependency_new(const char *repo, const char *version) {
   }
 
   dep->version = 0 == strcmp("*", version)
-    ? str_copy(DEFAULT_REPO_VERSION)
-    : str_copy(version);
+    ? strdup(DEFAULT_REPO_VERSION)
+    : strdup(version);
   dep->name = clib_package_parse_name(repo);
   dep->author = clib_package_parse_author(repo);
   return dep;

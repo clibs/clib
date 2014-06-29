@@ -16,7 +16,7 @@
 #include "http-get/http-get.h"
 #include "list/list.h"
 #include "substr/substr.h"
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "case/case.h"
 #include "trim/trim.h"
 #include "wiki-registry.h"
@@ -127,7 +127,7 @@ wiki_registry_parse(const char *html) {
       while ((li_node = list_iterator_next(li_iterator))) {
         wiki_package_t *package = parse_li(li_node->val);
         if (package && package->description) {
-          package->category = str_copy(category);
+          package->category = strdup(category);
           list_rpush(pkgs, list_node_new(package));
         } else {
           // failed to parse package

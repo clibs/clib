@@ -7,7 +7,7 @@
 //
 
 #include <string.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "path-normalize.h"
 
 /*
@@ -18,7 +18,7 @@ char *
 path_normalize(const char *path) {
   if (!path) return NULL;
 
-  char *copy = str_copy(path);
+  char *copy = strdup(path);
   if (NULL == copy) return NULL;
   char *ptr = copy;
 

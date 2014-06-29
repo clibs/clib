@@ -1,6 +1,6 @@
 {
   "name": "clib-package",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "repo": "stephenmathieson/clib-package",
   "src": [
     "src/clib-package.h",
@@ -9,13 +9,13 @@
   "dependencies": {
     "list": "*",
     "kgabis/parson": "*",
-    "stephenmathieson/substr.c": "*",
-    "stephenmathieson/http-get.c": "*",
-    "stephenmathieson/mkdirp.c": "0.1.3",
+    "stephenmathieson/substr.c": "0.1.2",
+    "stephenmathieson/http-get.c": "0.1.0",
+    "stephenmathieson/mkdirp.c": "0.1.4",
     "jwerle/fs.c": "0.1.1",
-    "stephenmathieson/path-join.c": "*",
-    "stephenmathieson/str-copy.c": "0.0.3",
-    "stephenmathieson/parse-repo.c": "1.1.0",
+    "stephenmathieson/path-join.c": "0.0.6",
+    "strdup": "0.0.0",
+    "stephenmathieson/parse-repo.c": "1.1.1",
     "logger": "0.0.0"
   },
   "development": {

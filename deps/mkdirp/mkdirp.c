@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "path-normalize/path-normalize.h"
 #include "mkdirp.h"
 
@@ -34,7 +34,7 @@ mkdirp(const char *path, mode_t mode) {
   pathname = path_normalize(path);
   if (NULL == pathname) goto fail;
 
-  parent = str_copy(pathname);
+  parent = strdup(pathname);
   if (NULL == parent) goto fail;
 
   char *p = parent + strlen(parent);

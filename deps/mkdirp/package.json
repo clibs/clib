@@ -1,6 +1,6 @@
 {
   "name": "mkdirp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "repo": "stephenmathieson/mkdirp.c",
   "description": "mkdir -p",
   "keywords": [
@@ -14,6 +14,6 @@
   ],
   "dependencies": {
     "stephenmathieson/path-normalize.c": "*",
-    "stephenmathieson/str-copy.c": "*"
+    "strdup": "0.0.0"
   }
 }

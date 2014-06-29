@@ -1,6 +1,6 @@
 {
   "name": "substr",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repo": "stephenmathieson/substr.c",
   "description": "Get a substring of a string",
   "keywords": [ "substr", "substring", "string" ],
@@ -10,7 +10,7 @@
     "src/substr.h"
   ],
   "dependencies": {
-    "stephenmathieson/str-copy.c": "*"
+    "strdup": "0.0.0"
   },
   "development": {
     "stephenmathieson/describe.h": "*"

@@ -8,8 +8,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "strdup/strdup.h"
 #include "which.h"
-#include "str-copy/str-copy.h"
 
 // delimiter
 
@@ -34,7 +34,7 @@ which(const char *name) {
 
 char *
 which_path(const char *name, const char *_path) {
-  char *path = str_copy(_path);
+  char *path = strdup(_path);
   if (NULL == path) return NULL;
   char *tok = strtok(path, WHICH_DELIMITER);
 

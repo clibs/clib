@@ -1,12 +1,12 @@
 {
   "name": "tempdir",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "repo": "stephenmathieson/tempdir.c",
   "description": "implementation of Python's tempfile.tempdir",
   "keywords": ["temp", "tempdir"],
   "src": ["tempdir.h", "tempdir.c"],
   "dependencies": {
-    "stephenmathieson/str-copy.c": "*"
+    "strdup": "0.0.0"
   },
   "development": {
     "jwerle/fs.c": "*"

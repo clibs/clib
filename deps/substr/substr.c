@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "substr.h"
 
 /*
@@ -23,7 +23,7 @@ substr(const char *str, int start, int end) {
   if (-1 == end) end = len;
   if (end <= start) return NULL;
   int diff = end - start;
-  if (len == diff) return str_copy(str);
+  if (len == diff) return strdup(str);
   if (len < start) return NULL;
   if (len + 1 < end) return NULL;
 

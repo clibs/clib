@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "substr/substr.h"
 #include "parse-repo.h"
 
@@ -20,7 +20,7 @@ parse_repo_owner(const char *slug, const char *fallback) {
 
   if (NULL == slug) return NULL;
   if (0 == strlen(slug)) return NULL;
-  if (!(copy = str_copy(slug))) return NULL;
+  if (!(copy = strdup(slug))) return NULL;
 
   if ((owner = strchr(copy, '/'))) {
     int delta = owner - copy;
@@ -35,7 +35,7 @@ parse_repo_owner(const char *slug, const char *fallback) {
   }
 
   if (fallback && 0 < strlen(copy) && '@' != copy[0]) {
-    owner = str_copy(fallback);
+    owner = strdup(fallback);
   }
 
   free(copy);
@@ -51,7 +51,7 @@ parse_repo_name(const char *slug) {
 
   if (NULL == slug) return NULL;
   if (0 == strlen(slug)) return NULL;
-  if (!(copy = str_copy(slug))) return NULL;
+  if (!(copy = strdup(slug))) return NULL;
 
   if ((version = strchr(copy, '@'))) {
     int delta = version - copy;
@@ -73,7 +73,7 @@ parse_repo_name(const char *slug) {
     copy = tmp;
   }
 
-  if (copy) name = str_copy(copy);
+  if (copy) name = strdup(copy);
   free(copy);
   return name;
 }
@@ -93,11 +93,11 @@ parse_repo_version(const char *slug, const char *fallback) {
     // malformed
     if (0 == strlen(version)) return NULL;
     // * <-> master
-    if ('*' == version[0]) return str_copy("master");
-    return str_copy(version);
+    if ('*' == version[0]) return strdup("master");
+    return strdup(version);
   }
 
   version = NULL;
-  if (fallback) version = str_copy(fallback);
+  if (fallback) version = strdup(fallback);
   return version;
 }
