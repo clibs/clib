@@ -13,7 +13,7 @@
 #include "asprintf/asprintf.h"
 #include "which/which.h"
 #include "str-flatten/str-flatten.h"
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "version.h"
 
 static const char *usage =
@@ -71,7 +71,7 @@ main(int argc, const char **argv) {
   }
 
   // sub-command
-  cmd = str_copy(argv[1]);
+  cmd = strdup(argv[1]);
   if (NULL == cmd) {
     fprintf(stderr, "Memory allocation failure\n");
     return 1;
@@ -81,8 +81,8 @@ main(int argc, const char **argv) {
   if (0 == strcmp(cmd, "help")) {
     if (argc >= 3) {
       free(cmd);
-      cmd = str_copy(argv[2]);
-      args = str_copy("--help");
+      cmd = strdup(argv[2]);
+      args = strdup("--help");
     } else {
       fprintf(stderr, "Help command required.\n");
       goto cleanup;
