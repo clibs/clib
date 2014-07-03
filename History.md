@@ -1,4 +1,15 @@
 
+1.2.2 / 2014-07-03
+==================
+
+ * test: Fix unescaped backticks
+ * deps: Update tempdir
+ * package.json: Update tempdir.c for a Windows bugfix
+ * test: Add two basic testcases for clib-search(1)
+ * clib: Use strdup rather than str-copy
+ * clib-search: Use strdup rather than str-copy
+ * package.json: Update deps to remove str-copy usage
+
 1.2.1 / 2014-06-28
 ==================
 
