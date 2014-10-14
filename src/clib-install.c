@@ -2,7 +2,7 @@
 //
 // clib-install.c
 //
-// Copyright (c) 2013 Stephen Mathieson
+// Copyright (c) 2012-2014 clib authors
 // MIT licensed
 //
 
