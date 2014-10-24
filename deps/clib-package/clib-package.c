@@ -409,7 +409,7 @@ error:
   free(url);
   free(json_url);
   free(repo);
-  if (res) http_get_free(res);
+  http_get_free(res);
   if (pkg) clib_package_free(pkg);
   return NULL;
 }
