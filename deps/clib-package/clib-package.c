@@ -176,7 +176,7 @@ parse_package_deps(JSON_Object *obj) {
     error = 0;
 
   loop_cleanup:
-    if (version) free(version);
+    free(version);
     if (error) {
       list_destroy(list);
       list = NULL;
@@ -217,7 +217,7 @@ install_packages(list_t *list, const char *dir, int verbose) {
     error = 0;
 
   loop_cleanup:
-    if (slug) free(slug);
+    free(slug);
     if (pkg) clib_package_free(pkg);
     if (error) {
       list_iterator_destroy(iterator);
@@ -403,12 +403,12 @@ clib_package_new_from_slug(const char *slug, int verbose) {
   return pkg;
 
 error:
-  if (author) free(author);
-  if (name) free(name);
-  if (version) free(version);
-  if (url) free(url);
-  if (json_url) free(json_url);
-  if (repo) free(repo);
+  free(author);
+  free(name);
+  free(version);
+  free(url);
+  free(json_url);
+  free(repo);
   if (res) http_get_free(res);
   if (pkg) clib_package_free(pkg);
   return NULL;
@@ -589,8 +589,8 @@ install:
   rc = clib_package_install_dependencies(pkg, dir, verbose);
 
 cleanup:
-  if (pkg_dir) free(pkg_dir);
-  if (package_json) free(package_json);
+  free(pkg_dir);
+  free(package_json);
   if (iterator) list_iterator_destroy(iterator);
   return rc;
 }
@@ -629,17 +629,17 @@ clib_package_install_development(clib_package_t *pkg
 
 void
 clib_package_free(clib_package_t *pkg) {
-  if (pkg->author) free(pkg->author);
-  if (pkg->description) free(pkg->description);
-  if (pkg->install) free(pkg->install);
-  if (pkg->json) free(pkg->json);
-  if (pkg->license) free(pkg->license);
-  if (pkg->name) free(pkg->name);
-  if (pkg->makefile) free(pkg->makefile);
-  if (pkg->repo) free(pkg->repo);
-  if (pkg->repo_name) free(pkg->repo_name);
-  if (pkg->url) free(pkg->url);
-  if (pkg->version) free(pkg->version);
+  free(pkg->author);
+  free(pkg->description);
+  free(pkg->install);
+  free(pkg->json);
+  free(pkg->license);
+  free(pkg->name);
+  free(pkg->makefile);
+  free(pkg->repo);
+  free(pkg->repo_name);
+  free(pkg->url);
+  free(pkg->version);
   if (pkg->src) list_destroy(pkg->src);
   if (pkg->dependencies) list_destroy(pkg->dependencies);
   if (pkg->development) list_destroy(pkg->development);
@@ -649,8 +649,8 @@ clib_package_free(clib_package_t *pkg) {
 void
 clib_package_dependency_free(void *_dep) {
   clib_package_dependency_t *dep = (clib_package_dependency_t *) _dep;
-  if (dep->name) free(dep->name);
-  if (dep->author) free(dep->author);
-  if (dep->version) free(dep->version);
+  free(dep->name);
+  free(dep->author);
+  free(dep->version);
   free(dep);
 }

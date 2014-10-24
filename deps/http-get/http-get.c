@@ -99,5 +99,5 @@ int http_get_file(const char *url, const char *file) {
 
 void http_get_free(http_get_response_t *res) {
   if (NULL == res) return;
-  if (res->data) free(res->data);
+  free(res->data);
 }

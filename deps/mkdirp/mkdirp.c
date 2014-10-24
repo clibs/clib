@@ -62,7 +62,7 @@ mkdirp(const char *path, mode_t mode) {
     : -1;
 
 fail:
-  if (pathname) free(pathname);
-  if (parent) free(parent);
+  free(pathname);
+  free(parent);
   return -1;
 }

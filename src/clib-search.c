@@ -57,8 +57,8 @@ matches(int count, char *args[], wiki_package_t *pkg) {
   }
 
 fail:
-  if (name) free(name);
-  if (description) free(description);
+  free(name);
+  free(description);
   return 0;
 }
 
