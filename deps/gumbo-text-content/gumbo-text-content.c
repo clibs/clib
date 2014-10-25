@@ -81,6 +81,6 @@ gumbo_text_content(GumboNode *node) {
   }
 
 cleanup:
-  if (text_nodes) free(text_nodes);
+  free(text_nodes);
   return text_content;
 }

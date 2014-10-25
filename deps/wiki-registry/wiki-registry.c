@@ -81,7 +81,7 @@ parse_li(GumboNode *li) {
   add_package_href(self);
 
 cleanup:
-  if (text) free(text);
+  free(text);
   return self;
 }
 
@@ -166,9 +166,9 @@ wiki_registry(const char *url) {
 
 void
 wiki_package_free(wiki_package_t *pkg) {
-  if (pkg->repo) free(pkg->repo);
-  if (pkg->href) free(pkg->href);
-  if (pkg->description) free(pkg->description);
-  if (pkg->category) free(pkg->category);
+  free(pkg->repo);
+  free(pkg->href);
+  free(pkg->description);
+  free(pkg->category);
   free(pkg);
 }
