@@ -176,7 +176,7 @@ parse_package_deps(JSON_Object *obj) {
     error = 0;
 
   loop_cleanup:
-    free(version);
+    if (version) free(version);
     if (error) {
       list_destroy(list);
       list = NULL;
@@ -217,7 +217,7 @@ install_packages(list_t *list, const char *dir, int verbose) {
     error = 0;
 
   loop_cleanup:
-    free(slug);
+    if (slug) free(slug);
     if (pkg) clib_package_free(pkg);
     if (error) {
       list_iterator_destroy(iterator);
@@ -589,8 +589,8 @@ install:
   rc = clib_package_install_dependencies(pkg, dir, verbose);
 
 cleanup:
-  free(pkg_dir);
-  free(package_json);
+  if (pkg_dir) free(pkg_dir);
+  if (package_json) free(package_json);
   if (iterator) list_iterator_destroy(iterator);
   return rc;
 }
