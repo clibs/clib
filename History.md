@@ -1,4 +1,12 @@
 
+1.2.3 / 2014-10-24
+==================
+
+  * package: Update deps
+  * Bug #52: Deletion of unnecessary checks before calls of the function "free"
+  * Readme: add a blog article
+  * Fixs copyright statement across project
+
 1.2.2 / 2014-07-03
 ==================
 
