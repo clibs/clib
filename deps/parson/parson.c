@@ -1224,8 +1224,8 @@ JSON_Status json_object_set_null(JSON_Object *object, const char *name) {
 }
 
 JSON_Status json_object_dotset_value(JSON_Object *object, const char *name, JSON_Value *value) {
-    char *dot_pos = strchr(name, '.');
-    char *current_name = NULL;
+    const char *dot_pos = strchr(name, '.');
+    const char *current_name = NULL;
     JSON_Object *temp_obj = NULL;
     JSON_Value *new_value = NULL;
     if (value == NULL) {
@@ -1291,8 +1291,8 @@ JSON_Status json_object_remove(JSON_Object *object, const char *name) {
 }
 
 JSON_Status json_object_dotremove(JSON_Object *object, const char *name) {
-    char *dot_pos = strchr(name, '.');
-    char *current_name = NULL;
+    const char *dot_pos = strchr(name, '.');
+    const char *current_name = NULL;
     JSON_Object *temp_obj = NULL;
     if (dot_pos == NULL) {
         return json_object_remove(object, name);
