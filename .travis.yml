@@ -1,4 +1,6 @@
 language: c
-before_install: sudo apt-get install libcurl4-gnutls-dev -qq
+before_install: 
+- sudo apt-get update
+- sudo apt-get install -qq libcurl4-gnutls-dev
 install: sudo make install
 script: sudo make test
