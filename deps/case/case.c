@@ -19,7 +19,7 @@
 char *case_upper(char *str) {
   for (int i = 0, len = strlen(str); i < len; i++) {
     if (CASE_IS_LOWER(str[i])) {
-      str[i] &= CASE_MODIFIER;
+      str[i] &= ~CASE_MODIFIER;
     }
   }
   return str;
@@ -40,7 +40,7 @@ char *case_camel(char *str) {
       memmove(&str[i], &str[i + 1], len - i);
       // never cap the first char
       if (i && CASE_IS_LOWER(str[i])) {
-        str[i] &= CASE_MODIFIER;
+        str[i] &= ~CASE_MODIFIER;
       }
       // account for removing seperator
       i--;
