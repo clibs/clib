@@ -9,7 +9,7 @@
     "stephenmathieson/clib-package": "0.2.8",
     "commander": "1.3.2",
     "stephenmathieson/wiki-registry.c": "0.0.4",
-    "stephenmathieson/case.c": "0.1.1",
+    "stephenmathieson/case.c": "0.1.3",
     "jwerle/fs.c": "0.1.1",
     "stephenmathieson/http-get.c": "0.1.1",
     "stephenmathieson/tempdir.c": "0.0.2",
