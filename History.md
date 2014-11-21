@@ -1,4 +1,12 @@
 
+1.2.4 / 2014-11-21
+==================
+
+  * package: Update stephenmathieson/case.c to 0.1.3
+  * travis: add apt-get update before installing
+  * deps: Update parson
+  * History: typo
+
 1.2.3 / 2014-10-24
 ==================
 
