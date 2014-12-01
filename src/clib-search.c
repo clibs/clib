@@ -27,6 +27,13 @@
 #define CLIB_SEARCH_CACHE "clib-search.cache"
 #define CLIB_SEARCH_CACHE_TIME 1000 * 60 * 60 * 5
 
+static int opt_color;
+
+static void
+setopt_nocolor(command_t *self) {
+    opt_color = 0;
+}
+
 static int
 matches(int count, char *args[], wiki_package_t *pkg) {
   // Display all packages if there's no query
@@ -120,12 +127,27 @@ set_cache:;
 
 int
 main(int argc, char *argv[]) {
+  opt_color = 1;
+
   command_t program;
   command_init(&program, "clib-search", CLIB_VERSION);
   program.usage = "[options] [query ...]";
+
+  command_option(&program
+  , "-n"
+  , "--nocolor"
+  , "don't colorize output"
+  , setopt_nocolor);
+
   command_parse(&program, argc, argv);
 
   for (int i = 0; i < program.argc; i++) case_lower(program.argv[i]);
+
+  /*
+   * Set "color theme"
+   */
+  cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
+  cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
 
   char *html = wiki_html_cache();
   if (NULL == html) {
@@ -143,11 +165,11 @@ main(int argc, char *argv[]) {
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
     if (matches(program.argc, program.argv, pkg)) {
-      cc_fprintf(CC_FG_DARK_CYAN, stdout, "  %s\n", pkg->repo);
+      cc_fprintf(fg_color_highlight, stdout, "  %s\n", pkg->repo);
       printf("  url: ");
-      cc_fprintf(CC_FG_DARK_GRAY, stdout, "%s\n", pkg->href);
+      cc_fprintf(fg_color_text, stdout, "%s\n", pkg->href);
       printf("  desc: ");
-      cc_fprintf(CC_FG_DARK_GRAY, stdout, "%s\n", pkg->description);
+      cc_fprintf(fg_color_text, stdout, "%s\n", pkg->description);
       printf("\n");
     }
     wiki_package_free(pkg);
