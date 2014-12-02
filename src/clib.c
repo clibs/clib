@@ -14,7 +14,10 @@
 #include "which/which.h"
 #include "str-flatten/str-flatten.h"
 #include "strdup/strdup.h"
+#include "debug/debug.h"
 #include "version.h"
+
+debug_t debugger;
 
 static const char *usage =
   "\n"
@@ -48,6 +51,8 @@ main(int argc, const char **argv) {
   char *command_with_args = NULL;
   char *bin = NULL;
   int rc = 1;
+
+  debug_init(&debugger, "clib");
 
   // usage
   if (NULL == argv[1]
@@ -93,12 +98,14 @@ main(int argc, const char **argv) {
       if (NULL == args) goto cleanup;
     }
   }
+  debug(&debugger, "args: %s", args);
 
 #ifdef _WIN32
   format(&command, "clib-%s.exe", cmd);
 #else
   format(&command, "clib-%s", cmd);
 #endif
+  debug(&debugger, "command '%s'", cmd);
 
   bin = which(command);
   if (NULL == bin) {
@@ -117,7 +124,10 @@ main(int argc, const char **argv) {
     format(&command_with_args, "%s", bin);
   }
 
+  debug(&debugger, "exec: %s", command_with_args);
+
   rc = system(command_with_args);
+  debug(&debugger, "returned %d", rc);
   if (rc > 255) rc = 1;
 
 cleanup:

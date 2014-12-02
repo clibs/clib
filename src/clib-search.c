@@ -21,11 +21,14 @@
 #include "console-colors/console-colors.h"
 #include "strdup/strdup.h"
 #include "logger/logger.h"
+#include "debug/debug.h"
 #include "version.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
 #define CLIB_SEARCH_CACHE "clib-search.cache"
 #define CLIB_SEARCH_CACHE_TIME 1000 * 60 * 60 * 5
+
+debug_t debugger;
 
 static int opt_color;
 
@@ -80,6 +83,7 @@ clib_search_file(void) {
     return NULL;
   }
 
+  debug(&debugger, "tempdir: %s", temp);
   int rc = asprintf(&file, "%s/%s", temp, CLIB_SEARCH_CACHE);
   if (-1 == rc) {
     logger_error("error", "asprintf() out of memory");
@@ -88,6 +92,7 @@ clib_search_file(void) {
   }
 
   free(temp);
+  debug(&debugger, "search file: %s", file);
   return file;
 }
 
@@ -103,6 +108,7 @@ wiki_html_cache() {
   long modified = stats->st_mtime;
   long delta = now - modified;
 
+  debug(&debugger, "cache delta %d (%d - %d)", delta, now, modified);
   free(stats);
 
   if (delta < CLIB_SEARCH_CACHE_TIME) {
@@ -112,6 +118,7 @@ wiki_html_cache() {
   }
 
 set_cache:;
+  debug(&debugger, "setting cache (%s) from %s", cache_file, CLIB_WIKI_URL);
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
   if (!res->ok) return NULL;
 
@@ -121,6 +128,7 @@ set_cache:;
 
   if (NULL == html) return html;
   fs_write(cache_file, html);
+  debug(&debugger, "wrote cache (%s)", cache_file);
   free(cache_file);
   return html;
 }
@@ -128,6 +136,8 @@ set_cache:;
 int
 main(int argc, char *argv[]) {
   opt_color = 1;
+
+  debug_init(&debugger, "clib-search");
 
   command_t program;
   command_init(&program, "clib-search", CLIB_VERSION);
@@ -144,8 +154,12 @@ main(int argc, char *argv[]) {
   for (int i = 0; i < program.argc; i++) case_lower(program.argv[i]);
 
   // set color theme
-  cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
-  cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
+  cc_color_t fg_color_highlight = opt_color
+    ? CC_FG_DARK_CYAN
+    : CC_FG_NONE;
+  cc_color_t fg_color_text = opt_color
+    ? CC_FG_DARK_GRAY
+    : CC_FG_NONE;
 
   char *html = wiki_html_cache();
   if (NULL == html) {
@@ -156,6 +170,8 @@ main(int argc, char *argv[]) {
 
   list_t *pkgs = wiki_registry_parse(html);
   free(html);
+
+  debug(&debugger, "found %zu packages", pkgs->len);
 
   list_node_t *node;
   list_iterator_t *it = list_iterator_new(pkgs, LIST_HEAD);
@@ -169,6 +185,8 @@ main(int argc, char *argv[]) {
       printf("  desc: ");
       cc_fprintf(fg_color_text, stdout, "%s\n", pkg->description);
       printf("\n");
+    } else {
+      debug(&debugger, "skipped package %s", pkg->repo);
     }
     wiki_package_free(pkg);
   }

@@ -16,7 +16,10 @@
 #include "clib-package/clib-package.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
+#include "debug/debug.h"
 #include "version.h"
+
+debug_t debugger;
 
 struct options {
   const char *dir;
@@ -33,16 +36,19 @@ static struct options opts;
 static void
 setopt_dir(command_t *self) {
   opts.dir = (char *) self->arg;
+  debug(&debugger, "set dir: %s", opts.dir);
 }
 
 static void
 setopt_quiet(command_t *self) {
   opts.verbose = 0;
+  debug(&debugger, "set quiet flag");
 }
 
 static void
 setopt_dev(command_t *self) {
   opts.dev = 1;
+  debug(&debugger, "set development flag");
 }
 
 /**
@@ -56,6 +62,7 @@ install_local_packages() {
     return 1;
   }
 
+  debug(&debugger, "reading local package.json");
   char *json = fs_read("./package.json");
   if (NULL == json) return 1;
 
@@ -97,6 +104,8 @@ executable(clib_package_t *pkg) {
   char *deps = NULL;
   char *tmp = NULL;
 
+  debug(&debugger, "install executable %s", pkg->repo);
+
   tmp = gettempdir();
   if (NULL == tmp) {
     logger_error("error", "gettempdir() out of memory");
@@ -113,14 +122,20 @@ executable(clib_package_t *pkg) {
   rc = http_get_file(url, tarball);
   E_FORMAT(&command, "cd %s && tar -xf %s", tmp, file);
 
+  debug(&debugger, "file: %s", file);
+  debug(&debugger, "tarball: %s", tarball);
+  debug(&debugger, "command: %s", command);
+
   // cheap untar
   rc = system(command);
   if (0 != rc) goto cleanup;
 
   E_FORMAT(&dir, "%s/%s-%s", tmp, pkg->name, pkg->version);
+  debug(&debugger, "dir: %s", dir);
 
   if (pkg->dependencies) {
     E_FORMAT(&deps, "%s/deps", dir);
+    debug(&debugger, "deps: %s", deps);
     rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
     if (-1 == rc) goto cleanup;
   }
@@ -129,6 +144,7 @@ executable(clib_package_t *pkg) {
   command = NULL;
 
   E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
+  debug(&debugger, "command: %s", command);
   rc = system(command);
 
 cleanup:
@@ -176,6 +192,7 @@ done:
 static int
 install_packages(int n, char *pkgs[]) {
   for (int i = 0; i < n; i++) {
+    debug(&debugger, "install %s (%d)", pkgs[i], i);
     if (-1 == install_package(pkgs[i])) return 1;
   }
   return 0;
@@ -194,6 +211,8 @@ main(int argc, char *argv[]) {
 #endif
   opts.verbose = 1;
   opts.dev = 0;
+
+  debug_init(&debugger, "clib-install");
 
   command_t program;
 
@@ -219,6 +238,8 @@ main(int argc, char *argv[]) {
     , "install development dependencies"
     , setopt_dev);
   command_parse(&program, argc, argv);
+
+  debug(&debugger, "%d arguments", program.argc);
 
   int code = 0 == program.argc
     ? install_local_packages()
