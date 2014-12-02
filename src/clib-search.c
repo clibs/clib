@@ -134,18 +134,16 @@ main(int argc, char *argv[]) {
   program.usage = "[options] [query ...]";
 
   command_option(&program
-  , "-n"
-  , "--nocolor"
-  , "don't colorize output"
-  , setopt_nocolor);
+    , "-n"
+    , "--no-color"
+    , "don't colorize output"
+    , setopt_nocolor);
 
   command_parse(&program, argc, argv);
 
   for (int i = 0; i < program.argc; i++) case_lower(program.argv[i]);
 
-  /*
-   * Set "color theme"
-   */
+  // set color theme
   cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
   cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
 
