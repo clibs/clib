@@ -1,4 +1,12 @@
 
+1.4.0 / 2014-12-01
+==================
+
+  * src: Add `debug()`s
+  * deps: Update clib-package and asprintf
+  * deps: Fix whitespace in case
+  * deps: Update parson
+
 1.3.0 / 2014-12-01
 ==================
 
