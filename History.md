@@ -1,4 +1,11 @@
 
+1.3.0 / 2014-12-01
+==================
+
+  * test: Add checks for clib-search --no-color
+  * clib-search: Rename option `--nocolor` to `--no-color`
+  * clib-search: Add --nocolor option to clib-search for uncolorized terminal output [@breckinloggins, #100]
+
 1.2.4 / 2014-11-21
 ==================
 
