@@ -16,7 +16,7 @@
 int
 asprintf (char **str, const char *fmt, ...) {
   int size = 0;
-  va_list args = {{0}};
+  va_list args;
 
   // init variadic argumens
   va_start(args, fmt);
@@ -33,7 +33,7 @@ asprintf (char **str, const char *fmt, ...) {
 int
 vasprintf (char **str, const char *fmt, va_list args) {
   int size = 0;
-  va_list tmpa = {{0}};
+  va_list tmpa;
 
   // copy
   va_copy(tmpa, args);

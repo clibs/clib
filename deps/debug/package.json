@@ -1,0 +1,15 @@
+{
+  "name": "debug",
+  "version": "0.0.0",
+  "src": ["debug.h", "debug.c"],
+  "repo": "stephenmathieson/debug.c",
+  "license": "mit",
+  "dependencies": {
+    "strdup": "0.0.0",
+    "littlstar/asprintf.c": "0.0.3",
+    "wildcardcmp": "0.0.0"
+  },
+  "development": {
+    "ms": "*"
+  }
+}
