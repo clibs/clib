@@ -42,7 +42,7 @@ case_camel(char *str) {
       memmove(&str[i], &str[i + 1], len - i);
       // never cap the first char
       if (i && islower(str[i])) {
-	str[i] &= ~CASE_MODIFIER;
+        str[i] &= ~CASE_MODIFIER;
       }
       // account for removing seperator
       i--;
