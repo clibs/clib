@@ -103,6 +103,7 @@ executable(clib_package_t *pkg) {
   char *dir = NULL;
   char *deps = NULL;
   char *tmp = NULL;
+  char *reponame = NULL;
 
   debug(&debugger, "install executable %s", pkg->repo);
 
@@ -112,16 +113,28 @@ executable(clib_package_t *pkg) {
     return -1;
   }
 
+  if (!pkg->repo) {
+    logger_error("error", "repo field required to install executable");
+    return -1;
+  }
+
+  reponame = strrchr(pkg->repo, '/');
+  if (reponame && *reponame != '\0') reponame++;
+  else {
+    logger_error("error", "malformed repo field, must be in the form user/pkg");
+    return -1;
+  }
+
   E_FORMAT(&url
-    , "https://github.com/%s/%s/archive/%s.tar.gz"
-    , pkg->author
-    , pkg->name
+    , "https://github.com/%s/archive/%s.tar.gz"
+    , pkg->repo
     , pkg->version);
-  E_FORMAT(&file, "%s-%s.tar.gz", pkg->name, pkg->version);
+  E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
   E_FORMAT(&tarball, "%s/%s", tmp, file);
   rc = http_get_file(url, tarball);
   E_FORMAT(&command, "cd %s && tar -xf %s", tmp, file);
 
+  debug(&debugger, "download url: %s", url);
   debug(&debugger, "file: %s", file);
   debug(&debugger, "tarball: %s", tarball);
   debug(&debugger, "command: %s", command);
@@ -130,7 +143,7 @@ executable(clib_package_t *pkg) {
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  E_FORMAT(&dir, "%s/%s-%s", tmp, pkg->name, pkg->version);
+  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
   debug(&debugger, "dir: %s", dir);
 
   if (pkg->dependencies) {
