@@ -1,4 +1,9 @@
 
+1.4.1 / 2014-12-15
+==================
+
+  * install: Use name from repo instead of package name when installing (#67, @jb55)
+
 1.4.0 / 2014-12-01
 ==================
 
