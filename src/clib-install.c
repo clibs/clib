@@ -132,7 +132,7 @@ executable(clib_package_t *pkg) {
   E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
   E_FORMAT(&tarball, "%s/%s", tmp, file);
   rc = http_get_file(url, tarball);
-  E_FORMAT(&command, "cd %s && tar -xf %s", tmp, file);
+  E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
 
   debug(&debugger, "download url: %s", url);
   debug(&debugger, "file: %s", file);
