@@ -24,7 +24,7 @@
 #include "debug/debug.h"
 #include "version.h"
 
-#define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
+#define CLIB_PACKAGES_URL "https://raw.githubusercontent.com/warmwaffles/clib-packages/master/Packages.md"
 #define CLIB_SEARCH_CACHE "clib-search.cache"
 #define CLIB_SEARCH_CACHE_TIME 1000 * 60 * 60 * 5
 
@@ -118,8 +118,8 @@ wiki_html_cache() {
   }
 
 set_cache:;
-  debug(&debugger, "setting cache (%s) from %s", cache_file, CLIB_WIKI_URL);
-  http_get_response_t *res = http_get(CLIB_WIKI_URL);
+  debug(&debugger, "setting cache (%s) from %s", cache_file, CLIB_PACKAGES_URL);
+  http_get_response_t *res = http_get(CLIB_PACKAGES_URL);
   if (!res->ok) return NULL;
 
   char *html = strdup(res->data);
