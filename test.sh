@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TESTS=`find test/* -type f -perm +111`
+TESTS=`find test/* -type f -perm -111`
 EXIT_CODE=0
 
 echo -e "\nRunning clib(1) tests\n"
