@@ -26,7 +26,7 @@ SRC  = $(wildcard src/*.c)
 DEPS = $(wildcard deps/*/*.c)
 OBJS = $(DEPS:.c=.o)
 
-CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__
+CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags) $(shell curl-config --libs)
 
 all: $(BINS)
 
