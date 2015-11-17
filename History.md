@@ -1,4 +1,11 @@
 
+1.5.0 / 2015-11-17
+==================
+
+  * clib-search: add `-c/--skip-cache` flag for ignoring $TMPDIR/clib-search.cache
+  * test.sh cygwin compatibility
+  * add cygwin compatible
+
 1.4.2 / 2015-01-06
 ==================
 
