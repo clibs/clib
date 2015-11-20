@@ -188,6 +188,7 @@ cleanup:
 
 char* concat(char *s1, char *s2) {
     char *result = malloc(strlen(s1)+strlen(s2)+1);
+    if (!result) return result; // return the unsuccessful NULL
     strcpy(result, s1);
     strcat(result, s2);
     return result;
@@ -201,6 +202,7 @@ write_dependency(clib_package_t *pkg, char* prefix) {
   JSON_Value *packageJson = json_parse_file("package.json");
   if (NULL == packageJson) return 1;
   char *fieldName = concat(prefix, pkg->name);
+  if (!fieldName) goto e1;
   if (0 != json_object_dotset_string(json_object(packageJson), fieldName, pkg->version)) goto e1;
   int retCode = json_serialize_to_file_pretty(packageJson, "package.json");
   json_value_free(packageJson);
