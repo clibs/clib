@@ -201,7 +201,7 @@ static int
 write_dependency(clib_package_t *pkg, char* prefix) {
   JSON_Value *packageJson = json_parse_file("package.json");
   if (NULL == packageJson) return 1;
-  char *fieldName = concat(prefix, pkg->name);
+  char *fieldName = concat(prefix, pkg->repo);
   if (!fieldName) goto e1;
   if (0 != json_object_dotset_string(json_object(packageJson), fieldName, pkg->version)) goto e1;
   int retCode = json_serialize_to_file_pretty(packageJson, "package.json");
