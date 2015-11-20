@@ -17,6 +17,7 @@
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "debug/debug.h"
+#include "parson/parson.h"
 #include "version.h"
 
 debug_t debugger;
@@ -25,6 +26,8 @@ struct options {
   const char *dir;
   int verbose;
   int dev;
+  int save;
+  int savedev;
 };
 
 static struct options opts;
@@ -51,10 +54,21 @@ setopt_dev(command_t *self) {
   debug(&debugger, "set development flag");
 }
 
+static void
+setopt_save(command_t *self) {
+  opts.save = 1;
+  debug(&debugger, "set save flag");
+}
+
+static void
+setopt_savedev(command_t *self) {
+  opts.savedev = 1;
+  debug(&debugger, "set savedev flag");
+}
+
 /**
  * Install dependency packages at `pwd`.
  */
-
 static int
 install_local_packages() {
   if (-1 == fs_exists("./package.json")) {
@@ -172,6 +186,50 @@ cleanup:
 
 #undef E_FORMAT
 
+char* concat(char *s1, char *s2) {
+    char *result = malloc(strlen(s1)+strlen(s2)+1);
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
+/**
+ * Writes out a dependency to package.json
+ */
+static int
+write_dependency(clib_package_t *pkg, char* prefix) {
+  JSON_Value *packageJson = json_parse_file("package.json");
+  if (NULL == packageJson) return 1;
+  char *fieldName = concat(prefix, pkg->name);
+  if (0 != json_object_dotset_string(json_object(packageJson), fieldName, pkg->version)) goto e1;
+  int retCode = json_serialize_to_file_pretty(packageJson, "package.json");
+  json_value_free(packageJson);
+  if (fieldName) free(fieldName);
+  return retCode;
+e1:
+  if (fieldName) free(fieldName);
+  json_value_free(packageJson);
+  return 1;
+}
+
+/**
+ * Save a dependency to package.json.
+ */
+static int
+save_dependency(clib_package_t *pkg) {
+  debug(&debugger, "saving dependency %s at %s", pkg->name, pkg->version);
+  return write_dependency(pkg, "dependencies.");
+}
+
+/**
+ * Save a development dependency to package.json.
+ */
+static int
+save_dev_dependency(clib_package_t *pkg) {
+  debug(&debugger, "saving dev dependency %s at %s", pkg->name, pkg->version);
+  return write_dependency(pkg, "development.");
+}
+
 /**
  * Create and install a package from `slug`.
  */
@@ -185,7 +243,7 @@ install_package(const char *slug) {
 
   if (pkg->install) {
     rc = executable(pkg);
-    goto done;
+    goto check_save;
   }
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
@@ -193,7 +251,9 @@ install_package(const char *slug) {
     rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
   }
 
-done:
+check_save:
+  if (opts.save) save_dependency(pkg);
+  if (opts.savedev) save_dev_dependency(pkg);
   clib_package_free(pkg);
   return rc;
 }
@@ -250,6 +310,16 @@ main(int argc, char *argv[]) {
     , "--dev"
     , "install development dependencies"
     , setopt_dev);
+  command_option(&program
+    , "-s"
+    , "--save"
+    , "save dependency in package.json"
+    , setopt_save);
+  command_option(&program
+      , "-e"
+      , "--save-dev"
+      , "save development dependency in package.json"
+      , setopt_savedev);
   command_parse(&program, argc, argv);
 
   debug(&debugger, "%d arguments", program.argc);

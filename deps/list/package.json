@@ -1,6 +1,6 @@
 {
   "name": "list",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "repo": "clibs/list",
   "description": "Simple linked list",
   "keywords": ["list", "structure"],

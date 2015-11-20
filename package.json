@@ -16,7 +16,8 @@
     "strdup": "0.0.0",
     "Constellation/console-colors.c": "1.0.1",
     "littlstar/asprintf.c": "0.0.3",
-    "logger": "0.0.0"
+    "logger": "0.0.0",
+    "kgabis/parson": "master"
   },
   "install": "make install"
 }
