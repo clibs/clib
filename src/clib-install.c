@@ -18,6 +18,7 @@
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "parson/parson.h"
+#include "str-concat/str-concat.h"
 #include "version.h"
 
 debug_t debugger;
@@ -185,14 +186,6 @@ cleanup:
 }
 
 #undef E_FORMAT
-
-char* concat(char *s1, char *s2) {
-    char *result = malloc(strlen(s1)+strlen(s2)+1);
-    if (!result) return result; // return the unsuccessful NULL
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
 
 /**
  * Writes out a dependency to package.json
