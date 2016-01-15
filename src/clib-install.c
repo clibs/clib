@@ -19,6 +19,7 @@
 #include "debug/debug.h"
 #include "parson/parson.h"
 #include "str-concat/str-concat.h"
+#include "str-replace/str-replace.h"
 #include "version.h"
 
 debug_t debugger;
@@ -193,18 +194,26 @@ cleanup:
 static int
 write_dependency(clib_package_t *pkg, char* prefix) {
   JSON_Value *packageJson = json_parse_file("package.json");
-  if (NULL == packageJson) return 1;
-  char *fieldName = concat(prefix, pkg->repo);
-  if (!fieldName) goto e1;
-  if (0 != json_object_dotset_string(json_object(packageJson), fieldName, pkg->version)) goto e1;
+  JSON_Object *packageJsonObject = json_object(packageJson);
+  JSON_Value *newDepSectionValue = NULL;
+
+  if (NULL == packageJson || NULL == packageJsonObject) return 1;
+
+  // If the dependency section doesn't exist then create it
+  JSON_Object *depSection = json_object_dotget_object(packageJsonObject, prefix);
+  if (NULL == depSection) {
+    newDepSectionValue = json_value_init_object();
+    depSection = json_value_get_object(newDepSectionValue);
+    json_object_set_value(packageJsonObject, prefix, newDepSectionValue);
+  }
+
+  // Add the dependency to the dependency section
+  json_object_set_string(depSection, pkg->repo, pkg->version);
+
+  // Flush package.json
   int retCode = json_serialize_to_file_pretty(packageJson, "package.json");
   json_value_free(packageJson);
-  if (fieldName) free(fieldName);
   return retCode;
-e1:
-  if (fieldName) free(fieldName);
-  json_value_free(packageJson);
-  return 1;
 }
 
 /**
@@ -213,7 +222,7 @@ e1:
 static int
 save_dependency(clib_package_t *pkg) {
   debug(&debugger, "saving dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "dependencies.");
+  return write_dependency(pkg, "dependencies");
 }
 
 /**
@@ -222,7 +231,7 @@ save_dependency(clib_package_t *pkg) {
 static int
 save_dev_dependency(clib_package_t *pkg) {
   debug(&debugger, "saving dev dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "development.");
+  return write_dependency(pkg, "development");
 }
 
 /**

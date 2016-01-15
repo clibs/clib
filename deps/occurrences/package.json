@@ -1,0 +1,15 @@
+{
+  "name": "occurrences",
+  "version": "1.0.0",
+  "repo": "stephenmathieson/occurrences.c",
+  "description": "Get the number of occurrences of `needle` in `haystack`",
+  "keywords": [ "string", "occurrences", "count" ],
+  "license": "MIT",
+  "src": [
+    "occurrences.c",
+    "occurrences.h"
+  ],
+  "development": {
+    "stephenmathieson/describe.h": "2.0.1"
+  }
+}
