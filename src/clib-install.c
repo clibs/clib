@@ -306,12 +306,12 @@ main(int argc, char *argv[]) {
     , "install development dependencies"
     , setopt_dev);
   command_option(&program
-    , "-s"
+    , "-S"
     , "--save"
     , "save dependency in package.json"
     , setopt_save);
   command_option(&program
-      , "-e"
+      , "-D"
       , "--save-dev"
       , "save development dependency in package.json"
       , setopt_savedev);
