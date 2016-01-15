@@ -17,7 +17,7 @@
     "Constellation/console-colors.c": "1.0.1",
     "littlstar/asprintf.c": "0.0.3",
     "logger": "0.0.0",
-    "kgabis/parson": "master"
+    "clibs/parson": "1.0.0"
   },
   "install": "make install"
 }
