@@ -161,7 +161,7 @@ static int num_bytes_in_utf8_sequence(unsigned char c) {
 static int verify_utf8_sequence(const unsigned char *string, int *len) {
     unsigned int cp = 0;
     *len = num_bytes_in_utf8_sequence(string[0]);
-    
+
     if (*len == 1) {
         cp = string[0];
     } else if (*len == 2 && IS_CONT(string[1])) {
@@ -179,24 +179,24 @@ static int verify_utf8_sequence(const unsigned char *string, int *len) {
     } else {
         return 0;
     }
-    
+
     /* overlong encodings */
     if ((cp < 0x80    && *len > 1) ||
         (cp < 0x800   && *len > 2) ||
         (cp < 0x10000 && *len > 3)) {
         return 0;
     }
-    
+
     /* invalid unicode */
     if (cp > 0x10FFFF) {
         return 0;
     }
-    
+
     /* surrogate halves */
     if (cp >= 0xD800 && cp <= 0xDFFF) {
         return 0;
     }
-    
+
     return 1;
 }
 
@@ -330,17 +330,17 @@ static JSON_Status json_object_resize(JSON_Object *object, size_t new_capacity) 
         new_capacity == 0) {
             return JSONFailure; /* Shouldn't happen */
     }
-    
+
     temp_names = (char**)parson_malloc(new_capacity * sizeof(char*));
     if (temp_names == NULL)
         return JSONFailure;
-    
+
     temp_values = (JSON_Value**)parson_malloc(new_capacity * sizeof(JSON_Value*));
     if (temp_names == NULL) {
         parson_free(temp_names);
         return JSONFailure;
     }
-    
+
     if (object->names != NULL && object->values != NULL && object->count > 0) {
         memcpy(temp_names, object->names, object->count * sizeof(char*));
         memcpy(temp_values, object->values, object->count * sizeof(JSON_Value*));
@@ -731,7 +731,7 @@ static int json_serialize_to_buffer_r(const JSON_Value *value, char *buf, int le
     size_t i = 0, count = 0;
     double num = 0.0;
     int written = -1, written_total = 0;
-    
+
     switch (json_value_get_type(value)) {
         case JSONArray:
             array = json_value_get_array(value);
@@ -864,7 +864,7 @@ static int append_indent(char *buf, int level) {
     int i;
     int written = -1, written_total = 0;
     for (i = 0; i < level; i++) {
-        APPEND_STRING("    ");
+        APPEND_STRING("  ");
     }
     return written_total;
 }
@@ -1145,7 +1145,7 @@ JSON_Value * json_value_deep_copy(const JSON_Value *value) {
     char *temp_string_copy = NULL;
     JSON_Array *temp_array = NULL, *temp_array_copy = NULL;
     JSON_Object *temp_object = NULL, *temp_object_copy = NULL;
-    
+
     switch (json_value_get_type(value)) {
         case JSONArray:
             temp_array = json_value_get_array(value);
@@ -1606,7 +1606,7 @@ JSON_Status json_object_clear(JSON_Object *object) {
     if (object == NULL) {
         return JSONFailure;
     }
-    for (i = 0; i < json_object_get_count(object); i++) {        
+    for (i = 0; i < json_object_get_count(object); i++) {
         parson_free(object->names[i]);
         json_value_free(object->values[i]);
     }
