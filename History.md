@@ -1,4 +1,12 @@
 
+1.5.1 / 2016-01-17
+==================
+
+  * test: remove kgabis/parson comment
+  * deps,package: update `parson`
+  * deps,package: update `str-replace`
+  * install: add `--save` and `--save-dev` options (#124, @darthtrevino)
+
 1.5.0 / 2015-11-17
 ==================
 
@@ -178,19 +186,19 @@
  * add support for omitting "clibs/" on install
  * change: install packages to their own subdirectory
 
-0.1.0 / 2013-10-11 
+0.1.0 / 2013-10-11
 ==================
 
  * add search command
 
-0.0.3 / 2012-11-20 
+0.0.3 / 2012-11-20
 ==================
 
   * add cpm-install(1)
   * add -o, --out <dir>
   * change default dir to ./deps
 
-0.0.2 / 2012-10-30 
+0.0.2 / 2012-10-30
 ==================
 
   * add bin
