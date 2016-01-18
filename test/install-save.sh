@@ -9,9 +9,6 @@ pushd tmp/test-save
 ../../clib-install -D clibs/parson@1.0.0 >/dev/null
 popd
 
-#
-# NOTE: It looks like parson is injecting an escape character here on serialization
-# https://github.com/kgabis/parson/blob/master/parson.c#L845
 if ! grep --quiet "stephenmathieson/tabs-to-spaces" tmp/test-save/package.json; then
   echo >&2 "Failed to find stephenmathieson/tabs-to-spaces saved in package.json"
   exit 1
