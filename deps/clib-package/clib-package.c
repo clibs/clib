@@ -32,6 +32,8 @@
 #define DEFAULT_REPO_OWNER "clibs"
 #endif
 
+#define GITHUB_CONTENT_URL "https://raw.githubusercontent.com/"
+
 debug_t _debugger;
 
 #define _debug(...) ({                                         \
@@ -357,7 +359,6 @@ clib_package_new_from_slug(const char *slug, int verbose) {
   if (!(version = parse_repo_version(slug, DEFAULT_REPO_VERSION))) goto error;
   if (!(url = clib_package_url(author, name, version))) goto error;
   if (!(json_url = clib_package_file_url(url, "package.json"))) goto error;
-  if (!(repo = clib_package_repo(author, name))) goto error;
 
   _debug("author: %s", author);
   _debug("name: %s", name);
@@ -386,12 +387,14 @@ clib_package_new_from_slug(const char *slug, int verbose) {
 
   // force version number
   if (pkg->version) {
-    if (0 != strcmp(version, pkg->version)) {
-      _debug("forcing version number: %s (%s)", version, pkg->version);
-      free(pkg->version);
-      pkg->version = version;
-    } else {
-      free(version);
+    if (version) {
+      if (0 != strcmp(version, DEFAULT_REPO_VERSION)) {
+        _debug("forcing version number: %s (%s)", version, pkg->version);
+        free(pkg->version);
+        pkg->version = version;
+      } else {
+        free(version);
+      }
     }
   } else {
     pkg->version = version;
@@ -409,14 +412,16 @@ clib_package_new_from_slug(const char *slug, int verbose) {
     pkg->author = author;
   }
 
-  // force package repo
+  if (!(repo = clib_package_repo(pkg->author, pkg->name))) goto error;
+
   if (pkg->repo) {
     if (0 != strcmp(repo, pkg->repo)) {
-      free(pkg->repo);
-      pkg->repo = repo;
-    } else {
-      free(repo);
+      free(url);
+      if (!(url = clib_package_url_from_repo(pkg->repo, pkg->version)))
+        goto error;
     }
+    free(repo);
+    repo = NULL;
   } else {
     pkg->repo = repo;
   }
@@ -444,7 +449,7 @@ char *
 clib_package_url(const char *author, const char *name, const char *version) {
   if (!author || !name || !version) return NULL;
   int size =
-      34 // https://raw.githubusercontent.com/
+      strlen(GITHUB_CONTENT_URL)
     + strlen(author)
     + 1 // /
     + strlen(name)
@@ -457,9 +462,31 @@ clib_package_url(const char *author, const char *name, const char *version) {
   if (slug) {
     memset(slug, '\0', size);
     sprintf(slug
-      , "https://raw.githubusercontent.com/%s/%s/%s"
+      , GITHUB_CONTENT_URL "%s/%s/%s"
       , author
       , name
+      , version);
+  }
+  return slug;
+}
+
+char *
+clib_package_url_from_repo(const char *repo, const char *version) {
+  if (!repo || !version) return NULL;
+  int size =
+      strlen(GITHUB_CONTENT_URL)
+    + strlen(repo)
+    + 1 // /
+    + strlen(version)
+    + 1 // \0
+    ;
+
+  char *slug = malloc(size);
+  if (slug) {
+    memset(slug, '\0', size);
+    sprintf(slug
+      , GITHUB_CONTENT_URL "%s/%s"
+      , repo
       , version);
   }
   return slug;
@@ -537,6 +564,8 @@ fetch_package_file(
   if (!(url = clib_package_file_url(pkg->url, file))) {
     return 1;
   }
+
+  _debug("file URL: %s", url);
 
   if (!(path = path_join(dir, basename(file)))) {
     rc = 1;
