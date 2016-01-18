@@ -1,6 +1,6 @@
 {
   "name": "str-replace",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "repo": "stephenmathieson/str-replace.c",
   "description": "String replacement in C",
   "keywords": [ "string", "replace" ],
@@ -11,9 +11,9 @@
   ],
   "dependencies": {
     "stephenmathieson/occurrences.c": "*",
-    "stephenmathieson/str-copy.c": "*"
+    "clibs/strdup": "0.0.2"
   },
   "development": {
-    "stephenmathieson/describe.h": "*"
+    "stephenmathieson/describe.h": "2.0.2"
   }
 }

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "occurrences/occurrences.h"
-#include "str-copy/str-copy.h"
+#include "strdup/strdup.h"
 #include "str-replace.h"
 
 /*
@@ -21,7 +21,7 @@ str_replace(const char *str, const char *sub, const char *replace) {
   char *pos = (char *) str;
   int count = occurrences(sub, str);
 
-  if (0 >= count) return str_copy(str);
+  if (0 >= count) return strdup(str);
 
   int size = (
         strlen(str)
