@@ -1,6 +1,6 @@
 /*
  Parson ( http://kgabis.github.com/parson/ )
- Copyright (c) 2012 - 2014 Krzysztof Gabis
+ Copyright (c) 2012 - 2015 Krzysztof Gabis
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,14 @@ enum json_result_t {
     JSONFailure = -1
 };
 typedef int JSON_Status;
-   
+    
+typedef void * (*JSON_Malloc_Function)(size_t);
+typedef void   (*JSON_Free_Function)(void *);
+
+/* Call only once, before calling any other function from parson API. If not called, malloc and free
+   from stdlib will be used for all allocations */
+void json_set_allocation_functions(JSON_Malloc_Function malloc_fun, JSON_Free_Function free_fun);
+    
 /* Parses first JSON value in a file, returns NULL in case of error */
 JSON_Value * json_parse_file(const char *filename);
 
@@ -68,11 +75,18 @@ JSON_Value * json_parse_string(const char *string);
 JSON_Value * json_parse_string_with_comments(const char *string);
     
 /* Serialization */
-size_t      json_serialization_size(const JSON_Value *value);
+size_t      json_serialization_size(const JSON_Value *value); /* returns 0 on fail */
 JSON_Status json_serialize_to_buffer(const JSON_Value *value, char *buf, size_t buf_size_in_bytes);
 JSON_Status json_serialize_to_file(const JSON_Value *value, const char *filename);
 char *      json_serialize_to_string(const JSON_Value *value);
-void        json_free_serialized_string(char *string); /* frees string from json_serialize_to_string */
+
+/* Pretty serialization */
+size_t      json_serialization_size_pretty(const JSON_Value *value); /* returns 0 on fail */
+JSON_Status json_serialize_to_buffer_pretty(const JSON_Value *value, char *buf, size_t buf_size_in_bytes);
+JSON_Status json_serialize_to_file_pretty(const JSON_Value *value, const char *filename);
+char *      json_serialize_to_string_pretty(const JSON_Value *value);
+
+void        json_free_serialized_string(char *string); /* frees string from json_serialize_to_string and json_serialize_to_string_pretty */
 
 /* Comparing */
 int  json_value_equals(const JSON_Value *a, const JSON_Value *b);
@@ -114,14 +128,16 @@ int           json_object_dotget_boolean(const JSON_Object *object, const char *
 size_t        json_object_get_count(const JSON_Object *object);
 const char  * json_object_get_name (const JSON_Object *object, size_t index);
     
-/* Creates new name-value pair or frees and replaces old value with new one. */
+/* Creates new name-value pair or frees and replaces old value with a new one. 
+ * json_object_set_value does not copy passed value so it shouldn't be freed afterwards. */
 JSON_Status json_object_set_value(JSON_Object *object, const char *name, JSON_Value *value);
 JSON_Status json_object_set_string(JSON_Object *object, const char *name, const char *string);
 JSON_Status json_object_set_number(JSON_Object *object, const char *name, double number);
 JSON_Status json_object_set_boolean(JSON_Object *object, const char *name, int boolean);
 JSON_Status json_object_set_null(JSON_Object *object, const char *name);
 
-/* Works like dotget functions, but creates whole hierarchy if necessary. */
+/* Works like dotget functions, but creates whole hierarchy if necessary.
+ * json_object_dotset_value does not copy passed value so it shouldn't be freed afterwards. */
 JSON_Status json_object_dotset_value(JSON_Object *object, const char *name, JSON_Value *value);
 JSON_Status json_object_dotset_string(JSON_Object *object, const char *name, const char *string);
 JSON_Status json_object_dotset_number(JSON_Object *object, const char *name, double number);
@@ -153,7 +169,8 @@ size_t        json_array_get_count  (const JSON_Array *array);
 JSON_Status json_array_remove(JSON_Array *array, size_t i);
 
 /* Frees and removes from array value at given index and replaces it with given one.
- * Does nothing and returns JSONFailure if index doesn't exist. */
+ * Does nothing and returns JSONFailure if index doesn't exist. 
+ * json_array_replace_value does not copy passed value so it shouldn't be freed afterwards. */
 JSON_Status json_array_replace_value(JSON_Array *array, size_t i, JSON_Value *value);
 JSON_Status json_array_replace_string(JSON_Array *array, size_t i, const char* string);
 JSON_Status json_array_replace_number(JSON_Array *array, size_t i, double number);
@@ -163,7 +180,8 @@ JSON_Status json_array_replace_null(JSON_Array *array, size_t i);
 /* Frees and removes all values from array */
 JSON_Status json_array_clear(JSON_Array *array);
 
-/* Appends new value at the end of array. */
+/* Appends new value at the end of array.
+ * json_array_append_value does not copy passed value so it shouldn't be freed afterwards. */
 JSON_Status json_array_append_value(JSON_Array *array, JSON_Value *value);
 JSON_Status json_array_append_string(JSON_Array *array, const char *string);
 JSON_Status json_array_append_number(JSON_Array *array, double number);
