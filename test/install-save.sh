@@ -6,7 +6,7 @@ pushd tmp/test-save
 ../../clib-install --save stephenmathieson/tabs-to-spaces@1.0.0 >/dev/null
 ../../clib-install -S darthtrevino/str-concat@0.0.2 >/dev/null
 ../../clib-install --save-dev jwerle/fs.c@0.1.1 >/dev/null
-../../clib-install -D clibs/parson@1.0.0 >/dev/null
+../../clib-install -D clibs/parson@1.0.2 >/dev/null
 popd
 
 if ! grep --quiet "stephenmathieson/tabs-to-spaces" tmp/test-save/package.json; then
