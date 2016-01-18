@@ -1,4 +1,13 @@
 
+1.7.0 / 2016-01-17
+==================
+
+  * test: fix installed `parson` version
+  * deps,package: update `parson`
+  * package,deps: update `logger`
+  * deps,package: update clib-package (adds ability to install from repo in "package.json [@willemt])
+  * Makefile: rename `MKDIR_P` to `MKDIRP`
+
 1.6.0 / 2016-01-17
 ==================
 
