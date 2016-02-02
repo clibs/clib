@@ -1,0 +1,19 @@
+{
+  "name": "str-replace",
+  "version": "0.0.6",
+  "repo": "stephenmathieson/str-replace.c",
+  "description": "String replacement in C",
+  "keywords": [ "string", "replace" ],
+  "license": "MIT",
+  "src": [
+    "src/str-replace.c",
+    "src/str-replace.h"
+  ],
+  "dependencies": {
+    "stephenmathieson/occurrences.c": "*",
+    "clibs/strdup": "0.0.2"
+  },
+  "development": {
+    "stephenmathieson/describe.h": "2.0.2"
+  }
+}

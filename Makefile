@@ -2,18 +2,24 @@
 CC     ?= cc
 PREFIX ?= /usr/local
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(shell uname -o),Cygwin)
+BINS    = clib.exe clib-install.exe clib-search.exe
+LDFLAGS = -lcurl
+CP      = cp -f
+RM      = rm -f
+MKDIR   = mkdir -p
+else ifeq ($(OS),Windows_NT)
 BINS    = clib.exe clib-install.exe clib-search.exe
 LDFLAGS = -lcurldll
 CP      = copy /Y
 RM      = del /Q /S
-MKDIR_P = mkdir
+MKDIR   = mkdir
 else
 BINS    = clib clib-install clib-search
 LDFLAGS = -lcurl
 CP      = cp -f
 RM      = rm -f
-MKDIR_P = mkdir -p
+MKDIR   = mkdir -p
 endif
 
 SRC  = $(wildcard src/*.c)
@@ -35,7 +41,7 @@ clean:
 	$(RM) $(OBJS)
 
 install: $(BINS)
-	$(MKDIR_P) $(PREFIX)/bin
+	$(MKDIR) $(PREFIX)/bin
 	$(foreach c, $(BINS), $(CP) $(c) $(PREFIX)/bin/$(c);)
 
 uninstall:

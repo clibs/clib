@@ -11,8 +11,13 @@
 #include "str-ends-with.h"
 
 bool str_ends_with(const char *str, const char *end) {
-  int end_len = strlen(end);
-  int str_len = strlen(str);
+  int end_len;
+  int str_len;
+
+  if (NULL == str || NULL == end) return false;
+
+  end_len = strlen(end);
+  str_len = strlen(str);
 
   return str_len < end_len
        ? false

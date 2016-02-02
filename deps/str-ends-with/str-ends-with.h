@@ -11,6 +11,7 @@
 #define STR_ENDS_WITH
 
 #include <stdbool.h>
+#include <assert.h>
 
 bool str_ends_with(const char *str, const char *end);
 
