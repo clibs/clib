@@ -1,4 +1,3 @@
-
 CC     ?= cc
 BINS    = clib clib-install clib-search
 CP      = cp -f
