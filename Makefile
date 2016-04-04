@@ -1,32 +1,16 @@
 
 CC     ?= cc
-PREFIX ?= /usr/local
-
-ifeq ($(shell uname -o),Cygwin)
-BINS    = clib.exe clib-install.exe clib-search.exe
-LDFLAGS = -lcurl
-CP      = cp -f
-RM      = rm -f
-MKDIR_P = mkdir -p
-else ifeq ($(OS),Windows_NT)
-BINS    = clib.exe clib-install.exe clib-search.exe
-LDFLAGS = -lcurldll
-CP      = copy /Y
-RM      = del /Q /S
-MKDIR_P = mkdir
-else
 BINS    = clib clib-install clib-search
-LDFLAGS = -lcurl
 CP      = cp -f
 RM      = rm -f
 MKDIR_P = mkdir -p
-endif
 
 SRC  = $(wildcard src/*.c)
 DEPS = $(wildcard deps/*/*.c)
 OBJS = $(DEPS:.c=.o)
 
-CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags) $(shell curl-config --libs)
+CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
+LDFLAGS = $(shell curl-config --libs)
 
 all: $(BINS)
 
