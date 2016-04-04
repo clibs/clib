@@ -40,7 +40,7 @@ list_destroy(list_t *self) {
     LIST_FREE(curr);
     curr = next;
   }
-  
+
   LIST_FREE(self);
 }
 
@@ -76,13 +76,13 @@ list_rpop(list_t *self) {
   if (!self->len) return NULL;
 
   list_node_t *node = self->tail;
-  
+
   if (--self->len) {
     (self->tail = node->prev)->next = NULL;
   } else {
     self->tail = self->head = NULL;
   }
-  
+
   node->next = node->prev = NULL;
   return node;
 }
@@ -96,19 +96,19 @@ list_lpop(list_t *self) {
   if (!self->len) return NULL;
 
   list_node_t *node = self->head;
-  
+
   if (--self->len) {
     (self->head = node->next)->prev = NULL;
   } else {
     self->head = self->tail = NULL;
   }
-  
+
   node->next = node->prev = NULL;
   return node;
 }
 
 /*
- * Prepend the given node to the list 
+ * Prepend the given node to the list
  * and return the node, NULL on failure.
  */
 
@@ -125,7 +125,7 @@ list_lpush(list_t *self, list_node_t *node) {
     self->head = self->tail = node;
     node->prev = node->next = NULL;
   }
-  
+
   ++self->len;
   return node;
 }
@@ -152,7 +152,7 @@ list_find(list_t *self, void *val) {
       }
     }
   }
-  
+
   list_iterator_destroy(it);
   return NULL;
 }
@@ -170,7 +170,7 @@ list_at(list_t *self, int index) {
     index = ~index;
   }
 
-  if (index < self->len) {
+  if ((unsigned)index < self->len) {
     list_iterator_t *it = list_iterator_new(self, direction);
     list_node_t *node = list_iterator_next(it);
     while (index--) node = list_iterator_next(it);
@@ -185,7 +185,7 @@ list_at(list_t *self, int index) {
  * Remove the given node from the list, freeing it and it's value.
  */
 
-void 
+void
 list_remove(list_t *self, list_node_t *node) {
   node->prev
     ? (node->prev->next = node->next)
@@ -194,9 +194,9 @@ list_remove(list_t *self, list_node_t *node) {
   node->next
     ? (node->next->prev = node->prev)
     : (self->tail = node->prev);
- 
+
   if (self->free) self->free(node->val);
-  
+
   LIST_FREE(node);
   --self->len;
 }

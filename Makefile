@@ -1,8 +1,10 @@
 CC     ?= cc
+PREFIX ?= /usr/local
+
 BINS    = clib clib-install clib-search
 CP      = cp -f
 RM      = rm -f
-MKDIR_P = mkdir -p
+MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
 DEPS = $(wildcard deps/*/*.c)
@@ -24,7 +26,7 @@ clean:
 	$(RM) $(OBJS)
 
 install: $(BINS)
-	$(MKDIR_P) $(PREFIX)/bin
+	$(MKDIR) $(PREFIX)/bin
 	$(foreach c, $(BINS), $(CP) $(c) $(PREFIX)/bin/$(c);)
 
 uninstall:

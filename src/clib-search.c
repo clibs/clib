@@ -31,10 +31,16 @@
 debug_t debugger;
 
 static int opt_color;
+static int opt_cache;
 
 static void
 setopt_nocolor(command_t *self) {
     opt_color = 0;
+}
+
+static void
+setopt_nocache(command_t *self) {
+    opt_cache = 0;
 }
 
 static int
@@ -101,6 +107,11 @@ wiki_html_cache() {
   char *cache_file = clib_search_file();
   if (NULL == cache_file) return NULL;
 
+  if (0 == opt_cache) {
+    debug(&debugger, "skipping cache file (%s)", cache_file);
+    goto set_cache;
+  }
+
   fs_stats *stats = fs_stat(cache_file);
   if (NULL == stats) goto set_cache;
 
@@ -136,6 +147,7 @@ set_cache:;
 int
 main(int argc, char *argv[]) {
   opt_color = 1;
+  opt_cache = 1;
 
   debug_init(&debugger, "clib-search");
 
@@ -143,11 +155,21 @@ main(int argc, char *argv[]) {
   command_init(&program, "clib-search", CLIB_VERSION);
   program.usage = "[options] [query ...]";
 
-  command_option(&program
+  command_option(
+      &program
     , "-n"
     , "--no-color"
     , "don't colorize output"
-    , setopt_nocolor);
+    , setopt_nocolor
+  );
+
+  command_option(
+      &program
+    , "-c"
+    , "--skip-cache"
+    , "skip the search cache"
+    , setopt_nocache
+  );
 
   command_parse(&program, argc, argv);
 

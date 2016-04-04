@@ -1,7 +1,7 @@
 {
   "name": "clib-package",
-  "version": "0.3.1",
-  "repo": "stephenmathieson/clib-package",
+  "version": "0.4.1",
+  "repo": "clibs/clib-package",
   "src": [
     "src/clib-package.h",
     "src/clib-package.c"
@@ -16,11 +16,11 @@
     "stephenmathieson/path-join.c": "0.0.6",
     "strdup": "0.0.0",
     "stephenmathieson/parse-repo.c": "1.1.1",
-    "logger": "0.0.0",
+    "logger": "0.0.1",
     "stephenmathieson/debug.c": "0.0.0"
   },
   "development": {
-    "stephenmathieson/describe.h": "1.0.0",
+    "stephenmathieson/describe.h": "2.0.1",
     "stephenmathieson/rimraf.c": "0.1.0"
   }
 }
