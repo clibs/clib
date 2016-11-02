@@ -1,4 +1,13 @@
 
+1.8.0 / 2016-11-02
+==================
+
+  * Fix version number
+  * Updated broken link to article (#134)
+  * Add ccan to clib conversion script (#128)
+  * Add 'curl-config' to Makefile to find cURL (#117)
+  * Update .gitignore
+
 1.7.0 / 2016-01-17
 ==================
 
