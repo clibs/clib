@@ -1,7 +1,6 @@
 {
   "name": "http-get",
-  "version": "0.1.1",
-  "repo": "stephenmathieson/http-get.c",
+  "repo": "zyoung51/http-get.c",
   "description": "Simple HTTP GET requests backed by libcurl",
   "keywords": [ "http", "curl", "get", "download" ],
   "license": "MIT",

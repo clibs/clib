@@ -1,6 +1,154 @@
-.DS_Store
-clib
-clib-install
-clib-search
-*.o
-tmp/
+##########################################################
+##
+## This file contains rules for file pattern matches
+## which git will ignore.
+##
+##	see: man git-ignore
+##
+## Author:  Brad Phylis
+##
+##########################################################
+
+
+
+##########################################################
+##    Backup Files
+##########################################################
+*~
+*.bak
+
+##########################################################
+##    Patch Files
+##########################################################
+#*.patch
+
+##########################################################
+##    Tmp swap Files
+##########################################################
+#*.swp
+
+
+##########################################################
+##    Eclipse Project Files
+##########################################################
+.project
+.cdtproject
+.settings/*
+.cproject
+
+##########################################################
+##    Kdevelop Project Files
+##########################################################
+*.kdevelop
+*.kdevses
+*.kdevelop.*
+
+##########################################################
+##    Doxygen Config
+##########################################################
+Doxyfile
+
+##########################################################
+##		Object and Lib Files
+##########################################################
+*.[o,a]
+*.so.*
+*.ko
+*.dll
+##########################################################
+##              Generated Source Files
+##########################################################
+*.mod.*
+
+##########################################################
+##   Executables
+##########################################################
+*.exe
+*.symvers
+platypus
+testing/unittest/unit_test
+##########################################################
+##   Tag Files
+##########################################################
+*.tag
+
+
+##########################################################
+##  MonoDevelop
+##########################################################
+*.pidb
+*.mdb
+*.userprefs
+*.usertasks
+
+##########################################################
+##  dependency Files 
+##########################################################
+*.P
+*.P.*
+
+##########################################################
+##  ctag file
+##########################################################
+tags
+
+##########################################################
+##  Other Build output Temporary files.
+##########################################################
+*.log
+
+##########################################################
+##  Kernel Drivers and Module Temporary Build Files.
+##########################################################
+
+#
+#  KO Compiler parameter log
+#
+*.o.cmd
+*.ko.cmd
+
+
+#
+# Ignorables <Device_Discovery> Kernel Driver Module
+#
+device_discovery/log.txt
+device_discovery/dd_user_space_test
+
+
+#
+# Ignorables <Interrupt_Mechanism> Kernel Driver Module
+#
+interrupt_mechanism/log.txt
+interrupt_mechanism/im_user_space_test
+
+
+#
+# Ignorables  Kernel Driver Module
+#
+kernel/*/Module.markers
+kernel/*/modules.order
+kernel/*/.tmp_versions
+
+# Ignore autotools files
+.deps
+.dirstamp
+/Makefile
+autom4te.cache/
+aclocal.m4
+stamp-h1
+config.status
+config.h
+configure
+Makefile.in
+config.h.in
+
+# Ignore autoconf generated files
+policy/misc/CDI.xml
+
+#ignore gcov output
+*.gcov
+*.gcno
+*.gcda
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ EOF ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#

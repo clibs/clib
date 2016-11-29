@@ -6,16 +6,12 @@
 // MIT licensed
 //
 
-#ifndef TRIM_H
-#define TRIM_H 1
 
-char *
-trim(char *);
+#ifndef __TRIM__
+#define __TRIM__ 1
 
-char *
-trim_right(char *);
-
-char *
-trim_left(char *);
+char *trim(char *str);
+char *trim_right(char *str);
+char *trim_left(char *str);
 
 #endif

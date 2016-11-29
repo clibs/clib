@@ -14,6 +14,7 @@
 
 char *
 strdup(const char *str) {
+  if (!str) return NULL;
   int len = strlen(str) + 1;
   char *buf = malloc(len);
   if (buf) memcpy(buf, str, len);

@@ -1,10 +1,10 @@
 {
   "name": "strdup",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "repo": "clibs/strdup",
   "description": "drop-in replacement for strdup(3) from libc",
   "keywords": [ "string", "copy" ],
-  "license": "MIT",
+  "license": "Expat",
   "src": [
     "strdup.c",
     "strdup.h"

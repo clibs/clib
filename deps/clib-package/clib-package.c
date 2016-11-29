@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "strdup/strdup.h"
+#include "str-concat/str-concat.h"
+#include "str-replace/str-replace.h"
 #include "parson/parson.h"
 #include "substr/substr.h"
 #include "http-get/http-get.h"
@@ -23,6 +25,7 @@
 #include "debug/debug.h"
 
 #include "clib-package.h"
+#include "config.h"
 
 #ifndef DEFAULT_REPO_VERSION
 #define DEFAULT_REPO_VERSION "master"
@@ -111,7 +114,7 @@ clib_package_file_url(const char *url, const char *file) {
   char *res = malloc(size);
   if (res) {
     memset(res, '\0', size);
-    sprintf(res, "%s/%s", url, file);
+    sprintf(res, "%s/%s", url, file[0] == '@' ? &file[1] : file);
   }
   return res;
 }
@@ -366,9 +369,7 @@ clib_package_new_from_slug(const char *slug, int verbose) {
 
   // fetch json
   if (verbose) logger_info("fetch", "%s/%s:package.json", author, name);
-  _debug("GET %s", json_url);
   res = http_get(json_url);
-  _debug("status: %d", res->status);
   if (!res || !res->ok) {
     logger_error("error", "unable to fetch %s/%s:package.json", author, name);
     goto error;
@@ -466,7 +467,11 @@ clib_package_url(const char *author, const char *name, const char *version) {
       , author
       , name
       , version);
+    if (!strncmp(version, "https", 5)) {
+        sprintf(slug, "%s", version);
+    }
   }
+  printf("returning slug: %s", slug);
   return slug;
 }
 
@@ -489,6 +494,7 @@ clib_package_url_from_repo(const char *repo, const char *version) {
       , repo
       , version);
   }
+  printf("returning slug: %s", slug);
   return slug;
 }
 
@@ -560,6 +566,7 @@ fetch_package_file(
   int rc = 0;
 
   _debug("fetch file: %s/%s", pkg->repo, file);
+  logger_info("fetch file", "%s/%s", pkg->repo, file);
 
   if (!(url = clib_package_file_url(pkg->url, file))) {
     return 1;
@@ -567,10 +574,18 @@ fetch_package_file(
 
   _debug("file URL: %s", url);
 
-  if (!(path = path_join(dir, basename(file)))) {
+  char * dpart = strdup(file);
+  char * pkg_dir = path_join(dir, dirname(dpart) + (file[0] == '@' ? 1 : 0));
+  mkdirp(pkg_dir, 0777);
+  free(pkg_dir);
+
+  file = (file[0] == '@') ? &file[1] : basename(file);
+  if (!(path = path_join(dir, file))) {
     rc = 1;
     goto cleanup;
   }
+
+  logger_info("fetch", "%s -> %s(%s)", url, path, file);
 
   if (verbose) logger_info("fetch", "%s:%s", pkg->repo, file);
 
@@ -642,6 +657,34 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       goto cleanup;
     }
   }
+
+  /* Create a .mk file for the project */
+  char * fname = concat(pkg->name, ".mk");
+  char * mkfile = path_join(pkg_dir, fname);
+  FILE * it = fopen(mkfile, "w+");
+  fputs("deps_", it);
+  fputs("_a_SOURCES += ", it);
+  iterator = list_iterator_new(pkg->src, LIST_HEAD);
+  while ((source = list_iterator_next(iterator))) {
+      char * fname = strdup(source->val);
+      char * fmod = (fname[0] == '@') ? &fname[1] : basename(fname);
+      fputs("deps/", it);
+      fputs(pkg->name, it);
+      fputs("/", it);
+      fputs(fmod, it);
+      fputs(" ", it);
+      free(fname);
+  }
+  fputs("\n", it);
+  fclose(it);
+  free(fname);
+  free(mkfile);
+
+  char * cmdline = (char*)malloc(4096);
+  sprintf(cmdline, "sed -i '/include $(top_srcdir)\\/deps\\/%s\\/%s.mk/d' deps.mk; echo 'include $(top_srcdir)/deps/%s/%s.mk' >> deps.mk",
+      pkg->name, pkg->name, pkg->name, pkg->name);
+  system(cmdline);
+  free(cmdline);
 
 install:
   rc = clib_package_install_dependencies(pkg, dir, verbose);
