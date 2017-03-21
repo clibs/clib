@@ -1,0 +1,5 @@
+#!/usr/bin/make -f
+%:
+	dh $@ --with autoreconf
+
+export LDFLAGS=-ldl

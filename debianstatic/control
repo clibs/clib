@@ -1,0 +1,11 @@
+Source: cpplib
+Section: http
+Priority: optional
+Maintainer: Zack Young <Zachary.Young@emc.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+
+Package: cpplib
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: C++ Package Manager for Chameleon

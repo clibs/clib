@@ -1,0 +1,26 @@
+{
+    "package": {
+        "name": "cpplib",
+        "repo": "debian",
+        "subject": "zyoung51"
+    },
+
+    "version": {
+        "name": "master"
+    },
+
+    "files":
+    [
+        {
+            "includePattern": "./(.*)\.deb$", "uploadPattern": "dists/trusty/main/binary-amd64/$1.deb",
+            "matrixParams":
+            {
+                "override": 1,
+                "deb_distribution": "trusty",
+                "deb_component": "main",
+                "deb_architecture": "amd64"
+            }
+        }
+    ],
+    "publish": true
+}

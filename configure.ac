@@ -29,9 +29,6 @@ AM_CONDITIONAL([HAVE_TARGET_X86_64], [test x"$arch" = x"x86_64"])
 
 PKG_CHECK_MODULES(CURL, libcurl)
 
-# Boost configuration checks
-AX_BOOST_BASE([1.51],, [AC_MSG_ERROR([Boost not found])])
-
 AC_MSG_NOTICE([Compiling With GCC 4.8 switches])
 CFLAGS="-O2 -D_GCC48_ -std=c99 -g"
 CPPFLAGS="-D_GCC48_ -Wall -fno-strict-aliasing -rdynamic -fexceptions \

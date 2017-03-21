@@ -1,6 +1,14 @@
-language: c
+language: cpp
+dist: trusty
 before_install: 
 - sudo apt-get update
-- sudo apt-get install -qq libcurl4-gnutls-dev
-install: sudo make install
-script: sudo make test
+- sudo apt-get install -qq libcurl4-gnutls-dev dh-make devscripts debhelper dh-autoreconf
+script: 
+- bash build-package.bash
+deploy:
+  - provider: bintray
+    file: .bintray.json
+    user: $BINTRAY_USER
+    key: $BINTRAY_KEY
+    on:
+      branch: master

@@ -20,7 +20,7 @@ debug_t debugger;
 
 static const char *usage =
   "\n"
-  "  clib <command> [options]\n"
+  "  cpplib <command> [options]\n"
   "\n"
   "  Options:\n"
   "\n"
@@ -100,9 +100,9 @@ main(int argc, const char **argv) {
   debug(&debugger, "args: %s", args);
 
 #ifdef _WIN32
-  format(&command, "clib-%s.exe", cmd);
+  format(&command, "cpplib-%s.exe", cmd);
 #else
-  format(&command, "clib-%s", cmd);
+  format(&command, "cpplib-%s", cmd);
 #endif
   debug(&debugger, "command '%s'", cmd);
 

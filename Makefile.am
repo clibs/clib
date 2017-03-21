@@ -10,12 +10,7 @@ LIBS += \
     -lpthread \
     -lstdc++ \
     -lrt\
-    -lboost_regex \
-    -lboost_date_time \
-    -lboost_thread \
-    -lboost_system \
-    -lz \
-    -lcurl
+    -lz
 
 deps__a_SOURCES =
 include $(top_srcdir)/deps.mk
