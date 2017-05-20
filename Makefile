@@ -1,7 +1,11 @@
 CC     ?= cc
 PREFIX ?= /usr/local
 
-BINS    = clib clib-install clib-search
+ifdef EXE
+	BINS = clib.exe clib-install.exe clib-search.exe
+else
+	BINS = clib clib-install clib-search
+endif
 CP      = cp -f
 RM      = rm -f
 MKDIR   = mkdir -p
@@ -10,8 +14,13 @@ SRC  = $(wildcard src/*.c)
 DEPS = $(wildcard deps/*/*.c)
 OBJS = $(DEPS:.c=.o)
 
-CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
-LDFLAGS = $(shell curl-config --libs)
+ifdef STATIC
+	CFLAGS  = -DCURL_STATICLIB -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell deps/curl/bin/curl-config --cflags)
+	LDFLAGS =  -static $(shell deps/curl/bin/curl-config --static-libs)
+else
+	CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
+	LDFLAGS = $(shell curl-config --libs)
+endif
 
 all: $(BINS)
 
