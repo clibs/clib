@@ -45,7 +45,7 @@ fs_rename (const char *from, const char *to) {
 
 fs_stats *
 fs_stat (const char *path) {
-  fs_stats *stats = malloc(sizeof(fs_stats));
+  fs_stats *stats = (fs_stats*) malloc(sizeof(fs_stats));
   int e = stat(path, stats);
   if (-1 == e) {
     free(stats);
@@ -58,7 +58,7 @@ fs_stat (const char *path) {
 fs_stats *
 fs_fstat (FILE *file) {
   if (NULL == file) return NULL;
-  fs_stats *stats = malloc(sizeof(fs_stats));
+  fs_stats *stats = (fs_stats*) malloc(sizeof(fs_stats));
   int fd = fileno(file);
   int e = fstat(fd, stats);
   if (-1 == e) {
@@ -71,7 +71,7 @@ fs_fstat (FILE *file) {
 
 fs_stats *
 fs_lstat (const char *path) {
-  fs_stats *stats = malloc(sizeof(fs_stats));
+  fs_stats *stats = (fs_stats*) malloc(sizeof(fs_stats));
 #ifdef _WIN32
   int e = stat(path, stats);
 #else
@@ -195,9 +195,9 @@ fs_fread (FILE *file) {
 
 char *
 fs_fnread (FILE *file, int len) {
-  char *buffer = malloc(sizeof(char) * (len + 1));
-  fread(buffer, 1, len, file);
-  buffer[len] = '\0';
+  char *buffer = (char*) malloc(sizeof(char) * (len + 1));
+  size_t n = fread(buffer, 1, len, file);
+  buffer[n] = '\0';
   return buffer;
 }
 

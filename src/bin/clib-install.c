@@ -9,18 +9,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "package.h"
 #include "asprintf/asprintf.h"
 #include "fs/fs.h"
 #include "tempdir/tempdir.h"
 #include "commander/commander.h"
-#include "clib-package/clib-package.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "parson/parson.h"
-#include "str-concat/str-concat.h"
-#include "str-replace/str-replace.h"
 #include "version.h"
+#include "cache.h"
 
 debug_t debugger;
 
@@ -33,6 +32,8 @@ struct options {
 };
 
 static struct options opts;
+
+static clib_package_opts_t package_opts;
 
 /**
  * Option setters.
@@ -66,6 +67,12 @@ static void
 setopt_savedev(command_t *self) {
   opts.savedev = 1;
   debug(&debugger, "set savedev flag");
+}
+
+static void
+setopt_skip_cache(command_t *self) {
+  package_opts.skip_cache = 1;
+  debug(&debugger, "set skip cache flag");
 }
 
 /**
@@ -291,6 +298,9 @@ main(int argc, char *argv[]) {
 
   debug_init(&debugger, "clib-install");
 
+  //30 days
+  clib_cache_init(30 * 24 *60 * 60);
+
   command_t program;
 
   command_init(&program
@@ -324,8 +334,15 @@ main(int argc, char *argv[]) {
       , "--save-dev"
       , "save development dependency in package.json"
       , setopt_savedev);
+  command_option(
+    &program
+    , "-c"
+    , "--skip-cache"
+    , "skip the search cache"
+    , setopt_skip_cache);
   command_parse(&program, argc, argv);
 
+  clib_package_set_opts(package_opts);
   debug(&debugger, "%d arguments", program.argc);
 
   int code = 0 == program.argc

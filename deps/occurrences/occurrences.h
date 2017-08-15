@@ -6,6 +6,7 @@
 // MIT licensed
 //
 
+
 #ifndef OCCURRENCES_H
 #define OCCURRENCES_H 1
 

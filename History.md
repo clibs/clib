@@ -1,3 +1,9 @@
+1.9.0 / 2017-08-15
+==================
+
+  * Migrated clib-package and clib-cache into the main repository
+  * Search cache moved to cache.c
+  * clib install and clib search accept -c / --cache-clear option
 
 1.8.0 / 2016-11-02
 ==================

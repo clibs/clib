@@ -1,0 +1,9 @@
+{
+  "name": "minunit",
+  "version": "0.0.1",
+  "repo": "jlcordeiro/minunit",
+  "description": "Minimal unit testing framework for C",
+  "keywords": ["unit", "testing"],
+  "license": "MIT",
+  "src": ["minunit.h"]
+}

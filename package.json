@@ -6,7 +6,6 @@
     "stephenmathieson/trim.c": "0.0.2",
     "which": "0.1.3",
     "stephenmathieson/str-flatten.c": "0.0.4",
-    "clib-package": "0.4.2",
     "commander": "1.3.2",
     "stephenmathieson/wiki-registry.c": "0.0.4",
     "stephenmathieson/case.c": "0.1.3",
@@ -19,7 +18,18 @@
     "Constellation/console-colors.c": "1.0.1",
     "littlstar/asprintf.c": "0.0.3",
     "logger": "0.0.1",
-    "clibs/parson": "1.0.2"
+    "clibs/parson": "1.0.2",
+    "list": "*",
+    "stephenmathieson/mkdirp.c": "0.1.5",
+    "stephenmathieson/path-join.c": "0.0.6",
+    "stephenmathieson/parse-repo.c": "1.1.1",
+    "stephenmathieson/debug.c": "0.0.0",
+    "isty001/copy": "0.0.0",
+    "stephenmathieson/rimraf.c": "0.1.0"
+  },
+  "development": {
+    "jlcordeiro/minunit": "*",
+    "stephenmathieson/describe.h": "2.0.1"
   },
   "install": "make install"
 }

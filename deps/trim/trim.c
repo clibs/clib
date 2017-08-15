@@ -11,8 +11,7 @@
 #include <string.h>
 #include "trim.h"
 
-char *
-trim_left(char *str) {
+char *trim_left(char *str) {
   int len = strlen(str);
   char *cur = str;
 
@@ -21,24 +20,28 @@ trim_left(char *str) {
     --len;
   }
 
-  if (str != cur) memmove(str, cur, len + 1);
+  if (str != cur) {
+    memmove(str, cur, len + 1);
+  }
 
   return str;
 }
 
-char *
-trim_right(char *str) {
+char *trim_right(char *str) {
   int len = strlen(str);
   char *cur = str + len - 1;
 
-  while (cur != str && isspace(*cur)) --cur;
+  while (cur != str && isspace(*cur)) {
+    --cur;
+    --len;
+  }
+
   cur[isspace(*cur) ? 0 : 1] = '\0';
 
   return str;
 }
 
-char *
-trim(char *str) {
+char *trim(char *str) {
   trim_right(str);
   trim_left(str);
   return str;
