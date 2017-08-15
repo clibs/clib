@@ -1,0 +1,9 @@
+{
+  "name": "assertion-macros",
+  "version": "0.2.1",
+  "repo": "stephenmathieson/assertion-macros.h",
+  "description": "Simple assertion macros",
+  "keywords": [ "assert", "assertions" ],
+  "license": "MIT",
+  "src": [ "assertion-macros.h" ]
+}
