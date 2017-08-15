@@ -37,7 +37,6 @@ $(TEST_BINS): $(TEST_SRC) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(@:.exe=).c $(OBJS) $(LDFLAGS)
 	./$@
 
-
 %.o: %.c
 	$(CC) $< -c -o $@ $(CFLAGS)
 
