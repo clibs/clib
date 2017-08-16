@@ -10,7 +10,7 @@ jobs:
         - sudo apt-get install -qq libcurl4-gnutls-dev
       install: sudo make install
       script: sudo make test
-    - stage: test
+    - stage: build and release
       env: job=dockcross-windows-x64
       before_install:
         - echo "Installing cross-compiling environment (for Windows x64)"
@@ -39,6 +39,16 @@ jobs:
         - deps/curl/bin/curl-config --libs
         - dockcross-windows-x64 make STATIC=true EXE=true
         - ls
-        - echo 'TODO upload artifacts'
       script:
-        - echo 'It works, trust me'
+        - echo 'The tests passed on Linux, so I'"'"'m sure it works fine on Windows.'
+      deploy:
+        provider: releases
+        api_key:
+          secure: ACA2zIa51OtZMjecNHEz4hmWIjMS0j+FM18ShWWKQTkkSNNBwaGJnyCunJzNvSE4EOB2/mmHDp7fLOUzfDDfzKnPttCra6efwCy3e3OJbfjGATtrDSrenWRu+WR7TWYPYeSrkF07ck1kBbqy9kVWbo7HMqd6xr6SyoOl1PyWmTt05L4IctHsWv97sj8KyNwP7sqQHRpXLbcY5QsniZ8A3pZbeEX9QAPCF95JWptGCl3PUIh8T8KGqttVAV/4bTinzIrIGbhApHY6yjDcO2dBhxRq6S8dHkC0kwU7Mqoi4eBpxDXqw6I+JnEdcVPGJqglj2g4bEgXsjUf0eHxuOHlW1b+RINUQPMw4zPKPrOr0axFySjYwbi6+LukLWDnyolhLB6xSe/4aDWz7UOrP48gUw3IICEAwMamhFeGp8ElWfvrEVZq8s4HozdK4hxCr+/HsEK9rS8nu4+ua1wF+5tSybIy22gT2H/fgK7y5qYkKONTK6ueb+ePnZ/UejQsvVWgYMAmps3mwzHpbviRPV3np9TZXimPGNoB7jD0892uCPmtztY6j8UW/uXXZvrDHo/BMhrMFbLIRcWGXAfLtudztS6+ZlMfQDHZkLRDBa1R1HYwCrQs7rhe32U9bBBULbfXyQ1vAPMa3E5Z/9n8K1fXSxSyHtfG10wjYD0j0qaLnk8=
+        file:
+          - clib.exe
+          - clib-install.exe
+          - clib-search.exe
+        skip_cleanup: true
+        on:
+          tags: true
