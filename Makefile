@@ -33,12 +33,14 @@ all: $(BINS)
 $(BINS): $(SRC) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ src/bin/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
-$(TEST_BINS): $(TEST_SRC) $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(@:.exe=).c $(OBJS) $(LDFLAGS)
-	./$@
-
 %.o: %.c
 	$(CC) $< -c -o $@ $(CFLAGS)
+
+test: $(TEST_BIN)
+	$(foreach t, $^, $(TEST_RUNNER) ./$(t) || exit 1;)
+
+test/%: test/%.o $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
 	$(foreach c, $(BINS), $(RM) $(c);)
@@ -53,5 +55,6 @@ uninstall:
 	$(foreach c, $(BINS), $(RM) $(PREFIX)/bin/$(c);)
 
 test: $(TEST_BINS)
+	@./test.sh
 
 .PHONY: test all clean install uninstall
