@@ -1,4 +1,11 @@
 
+1.8.1 / 2017-08-21
+==================
+
+  * travis: add @clibbot token
+  * Upload Windows binaries to tagged Github Releases (#147)
+  * Pre-compiled Windows binaries for future Github releases (#143)
+
 1.8.0 / 2016-11-02
 ==================
 
