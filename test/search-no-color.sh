@@ -1,14 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
 color_tests() {
-  local opt="$1"
-  local cmd="./clib-search ${opt}"
-  local stdout=`${cmd}`
+  cmd="./clib-search $1"
+  stdout=$($cmd)
   # lame check for color
-  if [[ $stdout == *"[39;49;90;49"* ]]; then
-    echo >&2 "Expected \`${cmd}\` to surpress all color";
-    exit 1
-  fi
+  case "$stdout" in
+    *"[39;49;90;49"*)
+      echo >&2 "Expected \`${cmd}\` to suppress all color"
+      exit 1
+      ;;
+  esac
 }
 
 color_tests --no-color

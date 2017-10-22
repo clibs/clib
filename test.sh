@@ -1,14 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 
-TESTS=`find test/* -type f -perm -111`
+TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
 export PATH="$PWD:$PATH"
 
-echo -e "\nRunning clib(1) tests\n"
+printf "\nRunning clib(1) tests\n\n"
 
 for t in $TESTS; do
-  ./$t
-  if [ $? -ne 0 ]; then
+  if ! ./"$t"; then
     echo >&2 "  (✖) $t"
     EXIT_CODE=1
   else

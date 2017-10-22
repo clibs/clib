@@ -12,13 +12,13 @@
 
   With [homebrew](https://github.com/Homebrew/homebrew):
 
-```bash
+```sh
 $ brew install clib
 ```
 
   With git:
 
-```bash
+```sh
 $ git clone https://github.com/clibs/clib.git /tmp/clib
 $ cd /tmp/clib
 $ make install
@@ -26,7 +26,7 @@ $ make install
 
   Ubuntu:
 
-```bash  
+```sh  
 # install libcurl
 $ sudo apt-get install libcurl4-gnutls-dev -qq
 # clone
@@ -70,25 +70,25 @@ $ sudo make install
 
  Install a few dependencies to `./deps`:
 
-```bash
+```sh
 $ clib install clibs/ms clibs/commander
 ```
 
  Install them to `./src` instead:
 
-```bash
+```sh
 $ clib install clibs/ms clibs/commander -o src
 ```
 
  When installing libraries from the `clibs` org you can omit the name:
 
-```bash
+```sh
 $ clib install ms file hash
 ```
 
  Install some executables:
 
-```bash
+```sh
 $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ```
 
