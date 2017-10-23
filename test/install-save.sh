@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 mkdir -p tmp/test-save
 cp test/data/test-save-package.json tmp/test-save/package.json
 
-pushd tmp/test-save
+cd tmp/test-save || exit
 ../../clib-install --save stephenmathieson/tabs-to-spaces@1.0.0 >/dev/null
 ../../clib-install -S darthtrevino/str-concat@0.0.2 >/dev/null
 ../../clib-install --save-dev jwerle/fs.c@0.1.1 >/dev/null
 ../../clib-install -D clibs/parson@1.0.2 >/dev/null
-popd
+cd - || exit
 
 if ! grep --quiet "stephenmathieson/tabs-to-spaces" tmp/test-save/package.json; then
   echo >&2 "Failed to find stephenmathieson/tabs-to-spaces saved in package.json"

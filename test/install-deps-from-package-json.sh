@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 
 throw() {
-  echo >&2 $1
+  echo >&2 "$1"
   exit 1
 }
 
 rm -rf tmp
 mkdir -p tmp
-cd tmp
+cd tmp || exit
 
 # see https://github.com/clibs/clib/issues/45
 cat > package.json << EOF
@@ -24,5 +24,5 @@ clib install > /dev/null 2>&1
 
 [ $? -eq 1 ] || throw "expecting exit code of 1";
 
-cd - > /dev/null
+cd - > /dev/null || exit
 rm -rf ./tmp
