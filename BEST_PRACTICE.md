@@ -2,12 +2,12 @@
 
 This page will cover:
 
- - [How to use libraries](#how-to-use-installed-librarys.)
- - [Example Makefile](#example-makefile.)
- - [Example `package.json` for executables](#example-package.json-for-exacutables.)
- - [Making your own library package](#making-your-own-libraries.)
- - [Example `package.json` for libraries](#example-package.json-for-libraries.)
- - [How to install/uninstall executables](#install-and-uninstall-executables.)
+ - [How to use libraries](#how-to-use-installed-librarys).
+ - [Example Makefile](#example-makefile).
+ - [Example `package.json` for executables](#example-package.json-for-exacutables).
+ - [Making your own library package](#making-your-own-libraries).
+ - [Example `package.json` for libraries](#example-package.json-for-libraries).
+ - [How to install/uninstall executables](#install-and-uninstall-executables).
 
 For instructions on installation, click [here]().
 
@@ -233,13 +233,13 @@ as your version specified in your `package.json`.*
 Installing executables is best done as root (with `sudo`), here is a typical install command:
 
 ```bash
-$ clib install visionmedia/mon
+$ sudo clib install visionmedia/mon
 ```
 
 To uninstall a package, (as of today) your need to install `clib-uninstall`:
 
 ```bash
-$ clib install clib-uninstall
+$ sudo clib install clib-uninstall
 ```
 
 ***TIP:** If you don't specify a username when installing a package or library, clib will
@@ -248,10 +248,10 @@ download that package in the default location: `https://github.com/clibs/`.*
 After you install `clib-uninstall` you can use it like so:
 
 ```bash
-$ clib-uninstall <username/package-name>
+$ sudo clib-uninstall <username/package-name>
 
 # for example:
-$ clib-uninstall visionmedia/mon
+$ sudo clib-uninstall visionmedia/mon
 ```
 
 <br>
