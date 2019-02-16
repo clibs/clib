@@ -2,12 +2,12 @@
 
 This page will cover:
 
- - (How to use libraries)[#how-to-use-installed-librarys].
- - (Example Makefile)[#example-makefile].
- - (Example `package.json` for executables)[#example-package.json-for-exacutables].
- - (Making your own library package)[#making-your-own-libraries].
- - (Example `package.json` for libraries)[#example-package.json-for-libraries].
- - (How to install/uninstall executables)[#install-and-uninstall-executables].
+ - [How to use libraries](#how-to-use-installed-librarys.)
+ - [Example Makefile](#example-makefile.)
+ - [Example `package.json` for executables](#example-package.json-for-exacutables.)
+ - [Making your own library package](#making-your-own-libraries.)
+ - [Example `package.json` for libraries](#example-package.json-for-libraries.)
+ - [How to install/uninstall executables](#install-and-uninstall-executables.)
 
 For instructions on installation, click [here]().
 
@@ -126,7 +126,7 @@ at a example `package.json` file for your project: (executable package)
 
 ### Example package.json for exacutables:
 
-```json
+```
 {
   "name": "executable-name",
   "version": "1.0.0",
@@ -148,6 +148,10 @@ Starting from the top, `"name"` is your package name. `"version"` is your packag
 requiers more then one command to install it, like need to run `./configure`, before `make`,
 then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command
 to uninstall your project, more on that later.
+
+***NOTE:** Make sure you have a relese as the same version in your `package.json` file, otherwise
+the download will fail. If you allwasy want your package at the latest version, then put `master`
+as your version.*
 
 ## Making your own libraries:
 
@@ -192,7 +196,7 @@ used for testing.
 
 #### Example package.json for libraries:
 
-```json
+```
 {
   "name": "your-lib-name",
   "version": "1.0.0",
@@ -220,6 +224,9 @@ this is where your make library source code is, your can change it, but src is p
 
 **TIP:** In the `"dependencies"` section, if you define `"*"` as the version, clib will install
 the latest version of that library.
+
+***NOTE:** Just like your executable package, you will want to tag a relese with the same name
+as your version specified in your `package.json`.*
 
 ## Install and uninstall executables:
 
