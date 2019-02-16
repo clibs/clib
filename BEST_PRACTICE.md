@@ -4,9 +4,9 @@ This page will cover:
 
  - [How to use libraries](#how-to-use-installed-libraries).
  - [Example Makefile](#example-makefile).
- - [Example `package.json` for executables](#example-package-json-for-exacutables).
+ - [Example `package.json` for executables](#example-packagejson-for-exacutables).
  - [Making your own library package](#making-your-own-libraries).
- - [Example `package.json` for libraries](#example-package-json-for-libraries).
+ - [Example `package.json` for libraries](#example-packagejson-for-libraries).
  - [How to install/uninstall executables](#install-and-uninstall-executables).
 
 For instructions on installation, click [here](https://github.com/clibs/clib#installation).
@@ -52,9 +52,9 @@ your-project-c/
 └── test.sh
 ```
 
-`test.sh` is your test script.<br>
-`src` is the directory where you source code is in. And<br>
-`deps` is the directory where you libraries will be downloaded when you run `clib install <username/library>`.
+`test.sh` is your test script. `src` is the directory where you source
+code is in. And `deps` is the directory where you libraries will be
+downloaded when you run `clib install <username/library>`.
 
 Knowing all of that, lets have a look at an example Makefile.
 
@@ -118,7 +118,7 @@ test:
 This is a basic Makefile, and should work for most of your projects.
 
 You *could* have your Makefile install the libraries upon running it, but you
-would only need to do that to get the latest version of that library, in this
+would only need to do that to get the latest version of the library(s), in this
 case you proboly don't want that. You typicly want yo get the lates stable version
 for that library. By having a `package.json` file in your project repo, you can
 specify what packages you need, and what version of that package. Now have a look
@@ -147,7 +147,7 @@ Starting from the top, `"name"` is your package name. `"version"` is your packag
 `"install"` is the command to install your program (ran as root), (tip: if your project
 requiers more then one command to install it, like need to run `./configure`, before `make`,
 then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command
-to uninstall your project, more on that later.
+to uninstall your project, [more on that later](#install-and-uninstall-executables).
 
 ***NOTE:** Make sure you have a relese as the same version in your `package.json` file, otherwise
 the download will fail. If you allwasy want your package at the latest version, then put `master`
