@@ -68,6 +68,8 @@ $ sudo make install
 
 ## Examples
 
+ For full example/best practice, click [here](https://github.com/clibs/clib/blob/master/BEST_PRACTICE.md).
+
  Install a few dependencies to `./deps`:
 
 ```sh
