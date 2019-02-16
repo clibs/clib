@@ -2,14 +2,14 @@
 
 This page will cover:
 
- - [How to use libraries](#how-to-use-installed-librarys).
+ - [How to use libraries](#how-to-use-installed-libraries).
  - [Example Makefile](#example-makefile).
- - [Example `package.json` for executables](#example-package.json-for-exacutables).
+ - [Example `package.json` for executables](#example-package-json-for-exacutables).
  - [Making your own library package](#making-your-own-libraries).
- - [Example `package.json` for libraries](#example-package.json-for-libraries).
+ - [Example `package.json` for libraries](#example-package-json-for-libraries).
  - [How to install/uninstall executables](#install-and-uninstall-executables).
 
-For instructions on installation, click [here]().
+For instructions on installation, click [here](https://github.com/clibs/clib#installation).
 
 <br>
 
