@@ -11,14 +11,12 @@ This page will cover:
 
 For instructions on installation, click [here](https://github.com/clibs/clib#installation).
 
-<br>
-
-## How to use installed libraries:
+## How to use installed libraries for your project
 
 Lets say you have your project, with a typical directory tree like this:
 
 ```
-your-project-c/
+your-project/
 │
 ├── deps/
 │   ├── trim.c/
@@ -47,7 +45,8 @@ your-project-c/
 ├── src/
 │   ├── main.c
 │   ├── function.c
-│   └── function.h
+│   ├── function.h
+│   └── etc...
 │
 └── test.sh
 ```
@@ -58,10 +57,9 @@ downloaded when you run `clib install <username/library>`.
 
 Knowing all of that, lets have a look at an example Makefile.
 
-## Example Makefile:
+### Example Makefile
 
 ```makefile
-
 # your c compiler
 CC = gcc
 
@@ -71,48 +69,39 @@ PREFIX = /usr/local/bin
 # your output file
 TARGET = project-name
 
-# locate all the c files
-SRC  = $(wildcard src/*.c)
-DEPS = $(wildcard deps/*/*.c)
+# your project name
+TARGET = your-project
 
-# get all c file names, then replace .c to .o
-# and store that in OBJS
-ALLFILE = $(nodir $(SRC) $(DEPS))
-OBJS = $(ALLFILE:.c=.o)
+CFLAGS = -Ideps -Wall
+
+# all the source files
+SRC = $(wildcard src/*.c)
+SRC += $(wildcard deps/*/*.c)
+
+OBJS = $(SRC:.c=.o)
 
 .PHONY:
 all: $(TARGET)
 
-# compile all object files into TARGET
 .PHONY:
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAG) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-# loop thrught all c files, turning them into object files
 .PHONY:
-$(OBJS): $(SRC) $(DEPS)
-	$(foreach srcfile, $(SRC), $(CC) $(CFLAGS) -c $(srcfile);)
-	$(foreach depfile, $(DEP), $(CC) $(CFLAGS) -c $(depfile);)
+%.o: %.c
+	$(CC) $(DEP_FLAG) $(CFLAGS) $(LDFLAGS) -o $@ -c $<
 
-# install TARGET to PREFIX
-.PHONY:
-install: $(BINS)
-	cp -f $(TARGET) $(PREFIX)
-
-# clean, remove all .o (object files)
 .PHONY:
 clean:
-	rm -f *.o
+	rm -f $(OBJS)
 
-# uninstall TARGET from PREFIX
 .PHONY:
-uninstall:
+install: $(TARGET)
+	cp -f $(TARGET) $(PREFIX)
+
+.PHONY:
+uninstall: $(PREFIX)/$(TARGET)
 	rm -f $(PREFIX)/$(TARGET)
-
-# run your tests
-.PHONY:
-test:
-	@./test.sh
 ```
 
 This is a basic Makefile, and should work for most of your projects.
@@ -124,7 +113,7 @@ for that library. By having a `package.json` file in your project repo, you can
 specify what packages you need, and what version of that package. Now have a look
 at a example `package.json` file for your project: (executable package)
 
-### Example package.json for exacutables:
+### Example package.json for exacutable project
 
 ```
 {
@@ -153,7 +142,7 @@ to uninstall your project, [more on that later](#install-and-uninstall-executabl
 the download will fail. If you allwasy want your package at the latest version, then put `master`
 as your version.*
 
-## Making your own libraries:
+## Making your own libraries
 
 Now that your know how to use libraries, heres how to make your own:
 
@@ -183,7 +172,8 @@ your-library-c/
 │
 ├── src/
 │   ├── library.c
-│   └── library.h
+│   ├── library.h
+│   └── etc...
 │
 └── test.sh
 ```
@@ -194,7 +184,7 @@ dependencies). Your `Makefile` in this case it is only for the `test.sh`, not ne
 `src/` contains your make code (usally the same name as your library). And you have your `test.sh`
 used for testing.
 
-#### Example package.json for libraries:
+### Example package.json for libraries
 
 ```
 {
@@ -228,7 +218,7 @@ the latest version of that library.
 ***NOTE:** Just like your executable package, you will want to tag a relese with the same name
 as your version specified in your `package.json`.*
 
-## Install and uninstall executables:
+## Install and uninstall executables packages
 
 Installing executables is best done as root (with `sudo`), here is a typical install command:
 
