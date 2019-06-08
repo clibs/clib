@@ -2,14 +2,14 @@
 
 This page will cover:
 
- - [How to use libraries](#how-to-use-installed-libraries).
+ - [How to use libraries](#how-to-use-installed-libraries-for-your-project).
  - [Example Makefile](#example-makefile).
- - [Example `package.json` for executables](#example-packagejson-for-exacutables).
+ - [Example `package.json` for executables](#example-packagejson-for-exacutable-project).
  - [Making your own library package](#making-your-own-libraries).
  - [Example `package.json` for libraries](#example-packagejson-for-libraries).
- - [How to install/uninstall executables](#install-and-uninstall-executables).
+ - [How to install/uninstall executables](#install-and-uninstall-executables-packages).
 
-For instructions on installation, click [here](https://github.com/clibs/clib#installation).
+For instructions on installation, check out the [README](https://github.com/clibs/clib#installation).
 
 ## How to use installed libraries for your project
 
@@ -42,18 +42,14 @@ your-project/
 │
 ├── package.json
 │
-├── src/
-│   ├── main.c
-│   ├── function.c
-│   ├── function.h
-│   └── etc...
-│
-└── test.sh
+└── src/
+    ├── main.c
+    ├── function.c
+    ├── function.h
+    └── etc...
 ```
 
-`test.sh` is your test script. `src` is the directory where you source
-code is in. And `deps` is the directory where you libraries will be
-downloaded when you run `clib install <username/library>`.
+`src` is the directory where you source code is in. And `deps` is the directory where you libraries will be downloaded when you run `clib install <username/library>`.
 
 Knowing all of that, lets have a look at an example Makefile.
 
@@ -65,9 +61,6 @@ CC = gcc
 
 # where to install
 PREFIX = /usr/local/bin
-
-# your output file
-TARGET = project-name
 
 # your project name
 TARGET = your-project
@@ -108,14 +101,14 @@ This is a basic Makefile, and should work for most of your projects.
 
 You *could* have your Makefile install the libraries upon running it, but you
 would only need to do that to get the latest version of the library(s), in this
-case you proboly don't want that. You typicly want yo get the lates stable version
+case you probably don't want that. You typically want yo get the latest stable version
 for that library. By having a `package.json` file in your project repo, you can
 specify what packages you need, and what version of that package. Now have a look
 at a example `package.json` file for your project: (executable package)
 
 ### Example package.json for exacutable project
 
-```
+```json
 {
   "name": "executable-name",
   "version": "1.0.0",
@@ -130,17 +123,9 @@ at a example `package.json` file for your project: (executable package)
 }
 ```
 
-Starting from the top, `"name"` is your package name. `"version"` is your package version.
-`"repo"` is the location of your project, (not including the `https://github.com/`).
-`"dependencies"` is all the dependencies your project requiers, along with there version.
-`"install"` is the command to install your program (ran as root), (tip: if your project
-requiers more then one command to install it, like need to run `./configure`, before `make`,
-then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command
-to uninstall your project, [more on that later](#install-and-uninstall-executables).
-
-***NOTE:** Make sure you have a relese as the same version in your `package.json` file, otherwise
-the download will fail. If you allwasy want your package at the latest version, then put `master`
-as your version.*
+Starting from the top, `"name"` is your package name. `"version"` is your package version. `"repo"` is the location of your project, (not including the `https://github.com/`). `"dependencies"` is all the dependencies your project requires, along with there version. `"install"` is the command to install your program (ran as root), (tip: if your project requires more then one command to install it, like need to run `./configure`, before `make`, then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command to uninstall your project, [more on that later](#install-and-uninstall-executables).
+ 
+_**NOTE:** Make sure you have a relese as the same version in your `package.json` file, otherwise the download will fail. If you always want your package at the latest version, then put `master` as your version._
 
 ## Making your own libraries
 
@@ -209,14 +194,14 @@ used for testing.
 }
 ```
 
-The main difrances (between this, and the executable `package.json`), is now there is `"src"`,
-this is where your make library source code is, your can change it, but src is pritty standard.
+The main differences (between this, and the executable `package.json`), is now there is `"src"`,
+this is where your make library source code is, your can change it, but src is petty standard.
 
 **TIP:** In the `"dependencies"` section, if you define `"*"` as the version, clib will install
 the latest version of that library.
 
-***NOTE:** Just like your executable package, you will want to tag a relese with the same name
-as your version specified in your `package.json`.*
+_**NOTE:** Just like your executable package, you will want to tag a relese with the same name
+as your version specified in your `package.json`._
 
 ## Install and uninstall executables packages
 
@@ -232,8 +217,8 @@ To uninstall a package, (as of today) your need to install `clib-uninstall`:
 $ sudo clib install clib-uninstall
 ```
 
-***TIP:** If you don't specify a username when installing a package or library, clib will
-download that package in the default location: `https://github.com/clibs/`.*
+_**TIP:** If you don't specify a username when installing a package or library, clib will
+download that package in the default location: `https://github.com/clibs/`._
 
 After you install `clib-uninstall` you can use it like so:
 
