@@ -2,9 +2,9 @@ CC     ?= cc
 PREFIX ?= /usr/local
 
 ifdef EXE
-	BINS = clib.exe clib-install.exe clib-search.exe
+	BINS = clib.exe clib-install.exe clib-search.exe clib-init.exe
 else
-	BINS = clib clib-install clib-search
+	BINS = clib clib-install clib-search clib-init
 endif
 CP      = cp -f
 RM      = rm -f
