@@ -30,6 +30,14 @@ $(BINS): $(SRC) $(OBJS)
 %.o: %.c
 	$(CC) $< -c -o $@ $(CFLAGS)
 
+deps/list/list_iterator.o deps/list/list.o deps/list/list_node.o: deps/list/list.h
+deps/substr/substr.o: deps/substr/substr.h deps/strdup/strdup.h
+deps/parson/parson.o: deps/parson/parson.h
+deps/str-replace/str-replace.o: deps/str-replace/str-replace.h deps/occurrences/occurrences.h deps/strdup/strdup.h
+deps/path-join/path-join.o: deps/str-ends-with/str-ends-with.h deps/str-starts-with/str-starts-with.h deps/path-join/path-join.h deps/strdup/strdup.h
+deps/str-flatten/str-flatten.o: deps/str-flatten/str-flatten.h
+deps/http-get/http-get.o: deps/http-get/http-get.h
+
 clean:
 	$(foreach c, $(BINS), $(RM) $(c);)
 	$(RM) $(OBJS)
