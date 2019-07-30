@@ -34,6 +34,12 @@ struct options {
 
 static struct options opts;
 
+static const char *package_names[] = {
+  "clib.json",
+  "package.json",
+  NULL
+};
+
 /**
  * Option setters.
  */
@@ -68,18 +74,15 @@ setopt_savedev(command_t *self) {
   debug(&debugger, "set savedev flag");
 }
 
-/**
- * Install dependency packages at `pwd`.
- */
 static int
-install_local_packages() {
-  if (-1 == fs_exists("./package.json")) {
-    logger_error("error", "Missing package.json");
+install_local_packages_with_package_name(const char *file) {
+  if (-1 == fs_exists(file)) {
+    logger_error("error", "Missing package.json or clib.json");
     return 1;
   }
 
-  debug(&debugger, "reading local package.json");
-  char *json = fs_read("./package.json");
+  debug(&debugger, "reading local package.json or clib.json");
+  char *json = fs_read(file);
   if (NULL == json) return 1;
 
   clib_package_t *pkg = clib_package_new(json, opts.verbose);
@@ -102,6 +105,23 @@ e2:
 e1:
   free(json);
   return 1;
+}
+
+/**
+ * Install dependency packages at `pwd`.
+ */
+static int
+install_local_packages() {
+  const char *name = NULL;
+  unsigned int i = 0;
+  int rc = 0;
+
+  do {
+    name = package_names[i];
+    rc = install_local_packages_with_package_name(name);
+  } while (NULL != package_names[++i] && 0 != rc);
+
+  return rc;
 }
 
 #define E_FORMAT(...) ({      \
@@ -188,12 +208,9 @@ cleanup:
 
 #undef E_FORMAT
 
-/**
- * Writes out a dependency to package.json
- */
 static int
-write_dependency(clib_package_t *pkg, char* prefix) {
-  JSON_Value *packageJson = json_parse_file("package.json");
+write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char *file) {
+  JSON_Value *packageJson = json_parse_file(file);
   JSON_Object *packageJsonObject = json_object(packageJson);
   JSON_Value *newDepSectionValue = NULL;
 
@@ -211,13 +228,30 @@ write_dependency(clib_package_t *pkg, char* prefix) {
   json_object_set_string(depSection, pkg->repo, pkg->version);
 
   // Flush package.json
-  int retCode = json_serialize_to_file_pretty(packageJson, "package.json");
+  int rc = json_serialize_to_file_pretty(packageJson, file);
   json_value_free(packageJson);
-  return retCode;
+  return rc;
 }
 
 /**
- * Save a dependency to package.json.
+ * Writes out a dependency to package.json or clib.json
+ */
+static int
+write_dependency(clib_package_t *pkg, char* prefix) {
+  const char *name = NULL;
+  unsigned int i = 0;
+  int rc = 0;
+
+  do {
+    name = package_names[i];
+    rc = write_dependency_with_package_name(pkg, prefix, name);
+  } while (NULL != package_names[++i] && 0 != rc);
+
+  return rc;
+}
+
+/**
+ * Save a dependency to package.json or clib.json.
  */
 static int
 save_dependency(clib_package_t *pkg) {
@@ -226,7 +260,7 @@ save_dependency(clib_package_t *pkg) {
 }
 
 /**
- * Save a development dependency to package.json.
+ * Save a development dependency to package.json or clib.json.
  */
 static int
 save_dev_dependency(clib_package_t *pkg) {
@@ -317,12 +351,12 @@ main(int argc, char *argv[]) {
   command_option(&program
     , "-S"
     , "--save"
-    , "save dependency in package.json"
+    , "save dependency in package.json or clib.json"
     , setopt_save);
   command_option(&program
       , "-D"
       , "--save-dev"
-      , "save development dependency in package.json"
+      , "save development dependency in package.json or clib.json"
       , setopt_savedev);
   command_parse(&program, argc, argv);
 
