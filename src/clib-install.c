@@ -77,11 +77,11 @@ setopt_savedev(command_t *self) {
 static int
 install_local_packages_with_package_name(const char *file) {
   if (-1 == fs_exists(file)) {
-    logger_error("error", "Missing package.json or clib.json");
+    logger_error("error", "Missing clib.json or package.json");
     return 1;
   }
 
-  debug(&debugger, "reading local package.json or clib.json");
+  debug(&debugger, "reading local clib.json or package.json");
   char *json = fs_read(file);
   if (NULL == json) return 1;
 
@@ -234,7 +234,7 @@ write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char
 }
 
 /**
- * Writes out a dependency to package.json or clib.json
+ * Writes out a dependency to clib.json or package.json
  */
 static int
 write_dependency(clib_package_t *pkg, char* prefix) {
@@ -251,7 +251,7 @@ write_dependency(clib_package_t *pkg, char* prefix) {
 }
 
 /**
- * Save a dependency to package.json or clib.json.
+ * Save a dependency to clib.json or package.json.
  */
 static int
 save_dependency(clib_package_t *pkg) {
@@ -260,7 +260,7 @@ save_dependency(clib_package_t *pkg) {
 }
 
 /**
- * Save a development dependency to package.json or clib.json.
+ * Save a development dependency to clib.json or package.json.
  */
 static int
 save_dev_dependency(clib_package_t *pkg) {
@@ -351,12 +351,12 @@ main(int argc, char *argv[]) {
   command_option(&program
     , "-S"
     , "--save"
-    , "save dependency in package.json or clib.json"
+    , "save dependency in clib.json or package.json"
     , setopt_save);
   command_option(&program
       , "-D"
       , "--save-dev"
-      , "save development dependency in package.json or clib.json"
+      , "save development dependency in clib.json or package.json"
       , setopt_savedev);
   command_parse(&program, argc, argv);
 
