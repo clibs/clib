@@ -19,7 +19,8 @@
     "Constellation/console-colors.c": "1.0.1",
     "littlstar/asprintf.c": "0.0.3",
     "logger": "0.0.1",
-    "clibs/parson": "1.0.2"
+    "clibs/parson": "1.0.2",
+    "clibs/clib-package": "0.6.0"
   },
   "install": "make install"
 }

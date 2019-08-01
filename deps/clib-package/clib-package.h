@@ -29,10 +29,20 @@ typedef struct {
   char *url;
   char *version;
   char *makefile;
+  char *filename; // `package.json` or `clib.json`
   list_t *dependencies;
   list_t *development;
   list_t *src;
 } clib_package_t;
+
+typedef struct
+{
+    int skip_cache;
+} clib_package_opts_t;
+
+
+void
+clib_package_set_opts(clib_package_opts_t opts);
 
 clib_package_t *
 clib_package_new(const char *, int);
