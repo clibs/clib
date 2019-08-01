@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+const clib = require('../clib.json')
+const pkg = require('../package.json')
+const fs = require('fs')
+
+fs.writeFileSync(require.resolve('../clib.json'),
+  JSON.stringify(Object.assign(clib, { version: pkg.version }), null, '  '))
