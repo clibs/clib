@@ -2,9 +2,6 @@
   "name": "clib",
   "version": "1.8.1",
   "repo": "clibs/clib",
-  "scripts": {
-    "version": "which node >/dev/null && ./scripts/update-clib-json && git add clib.json"
-  },
   "dependencies": {
     "stephenmathieson/trim.c": "0.0.2",
     "which": "0.1.3",
