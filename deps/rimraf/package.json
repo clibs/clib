@@ -1,0 +1,15 @@
+{
+  "name": "rimraf",
+  "version": "0.1.0",
+  "repo": "stephenmathieson/rimraf.c",
+  "description": "rm -rf",
+  "keywords": [ "rm", "rimraf", "unlink" ],
+  "license": "MIT",
+  "src": [
+    "src/rimraf.c",
+    "src/rimraf.h"
+  ],
+  "dependencies": {
+    "stephenmathieson/path-join.c": "master"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "tinydir",
+  "description": "Lightweight, portable and easy to integrate C directory and file reader",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "dir",
+    "directory",
+    "file",
+    "reader",
+    "filesystem"
+  ],
+  "src": [
+    "tinydir.h"
+  ],
+  "version": "1.2.4",
+  "repo": "cxong/tinydir"
+}

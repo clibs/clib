@@ -1,6 +1,6 @@
 {
   "name": "clib-package",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "repo": "clibs/clib-package",
   "src": [
     "src/clib-package.h",
