@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "repo": "clibs/clib",
   "scripts": {
     "version": "which node >/dev/null && ./scripts/update-clib-json && git add clib.json"
