@@ -1,0 +1,25 @@
+{
+  "name": "clib-cache",
+  "description": "Caching for clib packages",
+  "version": "0.2.0",
+  "repo": "clibs/clib-cache",
+  "dependencies": {
+    "isty001/copy": "0.0.0",
+    "jwerle/fs.c": "0.2.0",
+    "stephenmathieson/mkdirp.c": "0.1.5",
+    "stephenmathieson/rimraf.c": "0.1.0"
+  },
+  "development": {
+    "jlcordeiro/minunit": "*"
+  },
+  "keywords": [
+    "clib",
+    "cache",
+    "package"
+  ],
+  "src": [
+    "src/cache.h",
+    "src/cache.c"
+  ],
+  "license": "MIT"
+}

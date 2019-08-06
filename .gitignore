@@ -4,3 +4,4 @@ clib-install
 clib-search
 *.o
 tmp/
+/clib-init
