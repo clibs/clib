@@ -168,6 +168,17 @@ executable(clib_package_t *pkg) {
   E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
   E_FORMAT(&tarball, "%s/%s", tmp, file);
   rc = http_get_file(url, tarball);
+
+  if (0 != rc) {
+    logger_error("error"
+      , "download failed for '%s@%s' - HTTP GET '%s'"
+      , pkg->repo
+      , pkg->version
+      , url);
+
+    goto cleanup;
+  }
+
   E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
 
   debug(&debugger, "download url: %s", url);
