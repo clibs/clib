@@ -114,8 +114,7 @@ main(int argc, char *argv[]) {
 
   debug_init(&debugger, "clib-search");
 
-  // 15 days
-  clib_cache_init(15 * 24 *60 * 60);
+  clib_cache_init(CLIB_SEARCH_CACHE_TIME);
 
   command_t program;
   command_init(&program, "clib-search", CLIB_VERSION);
