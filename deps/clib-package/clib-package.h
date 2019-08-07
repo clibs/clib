@@ -33,10 +33,11 @@ typedef struct {
   list_t *dependencies;
   list_t *development;
   list_t *src;
+  void *lock; // might be a `clib_package_lock_t (or pthread_mutex_t)`
+  void *data; // user data
 } clib_package_t;
 
-typedef struct
-{
+typedef struct {
     int skip_cache;
 } clib_package_opts_t;
 
