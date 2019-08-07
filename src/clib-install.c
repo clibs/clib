@@ -21,6 +21,9 @@
 #include "str-concat/str-concat.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
+#include "clib-cache/cache.h"
+
+#define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
 debug_t debugger;
 
@@ -39,6 +42,8 @@ static const char *package_names[] = {
   "package.json",
   NULL
 };
+
+static clib_package_opts_t package_opts;
 
 /**
  * Option setters.
@@ -72,6 +77,12 @@ static void
 setopt_savedev(command_t *self) {
   opts.savedev = 1;
   debug(&debugger, "set savedev flag");
+}
+
+static void
+setopt_skip_cache(command_t *self) {
+  package_opts.skip_cache = 1;
+  debug(&debugger, "set skip cache flag");
 }
 
 static int
@@ -336,6 +347,9 @@ main(int argc, char *argv[]) {
 
   debug_init(&debugger, "clib-install");
 
+  //30 days expiration
+  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+
   command_t program;
 
   command_init(&program
@@ -369,7 +383,16 @@ main(int argc, char *argv[]) {
       , "--save-dev"
       , "save development dependency in clib.json or package.json"
       , setopt_savedev);
+  command_option(
+    &program
+    , "-c"
+    , "--skip-cache"
+    , "skip the search cache"
+    , setopt_skip_cache);
+
   command_parse(&program, argc, argv);
+
+  clib_package_set_opts(package_opts);
 
   debug(&debugger, "%d arguments", program.argc);
 

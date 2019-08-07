@@ -23,10 +23,10 @@
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "version.h"
+#include "clib-cache/cache.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
-#define CLIB_SEARCH_CACHE "clib-search.cache"
-#define CLIB_SEARCH_CACHE_TIME 1000 * 60 * 60 * 5
+#define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
 
 debug_t debugger;
 
@@ -79,57 +79,21 @@ fail:
 }
 
 static char *
-clib_search_file(void) {
-  char *file = NULL;
-  char *temp = NULL;
-
-  temp = gettempdir();
-  if (NULL == temp) {
-    logger_error("error", "gettempdir() out of memory");
-    return NULL;
-  }
-
-  debug(&debugger, "tempdir: %s", temp);
-  int rc = asprintf(&file, "%s/%s", temp, CLIB_SEARCH_CACHE);
-  if (-1 == rc) {
-    logger_error("error", "asprintf() out of memory");
-    free(temp);
-    return NULL;
-  }
-
-  free(temp);
-  debug(&debugger, "search file: %s", file);
-  return file;
-}
-
-static char *
 wiki_html_cache() {
-  char *cache_file = clib_search_file();
-  if (NULL == cache_file) return NULL;
 
-  if (0 == opt_cache) {
-    debug(&debugger, "skipping cache file (%s)", cache_file);
+  if (clib_cache_has_search() && opt_cache) {
+    char *data = clib_cache_read_search();
+
+    if (data) {
+        return data;
+    }
+
     goto set_cache;
   }
 
-  fs_stats *stats = fs_stat(cache_file);
-  if (NULL == stats) goto set_cache;
+set_cache:
 
-  long now = (long) time(NULL);
-  long modified = stats->st_mtime;
-  long delta = now - modified;
-
-  debug(&debugger, "cache delta %d (%d - %d)", delta, now, modified);
-  free(stats);
-
-  if (delta < CLIB_SEARCH_CACHE_TIME) {
-    char *data = fs_read(cache_file);
-    free(cache_file);
-    return data;
-  }
-
-set_cache:;
-  debug(&debugger, "setting cache (%s) from %s", cache_file, CLIB_WIKI_URL);
+  debug(&debugger, "setting cache from %s", CLIB_WIKI_URL);
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
   if (!res->ok) return NULL;
 
@@ -138,9 +102,8 @@ set_cache:;
   http_get_free(res);
 
   if (NULL == html) return html;
-  fs_write(cache_file, html);
-  debug(&debugger, "wrote cache (%s)", cache_file);
-  free(cache_file);
+  clib_cache_save_search(html);
+  debug(&debugger, "wrote cach");
   return html;
 }
 
@@ -150,6 +113,9 @@ main(int argc, char *argv[]) {
   opt_cache = 1;
 
   debug_init(&debugger, "clib-search");
+
+  // 15 days
+  clib_cache_init(15 * 24 *60 * 60);
 
   command_t program;
   command_init(&program, "clib-search", CLIB_VERSION);
