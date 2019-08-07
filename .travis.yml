@@ -37,7 +37,7 @@ jobs:
         - deps/curl/bin/curl-config --cflags
         - deps/curl/bin/curl-config --static-libs
         - deps/curl/bin/curl-config --libs
-        - dockcross-windows-x64 make STATIC=true EXE=true
+        - dockcross-windows-x64 make NO_PTHREADS=1 STATIC=true EXE=true
         - ls
       script:
         - echo 'The tests passed on Linux, so I'"'"'m sure it works fine on Windows.'
@@ -47,6 +47,7 @@ jobs:
           secure: SVyVZapiTAHN/WdV91pbLFXDW4NkqsowFD1HRnZArmFk8i8cljfabwrUKUcsNL52l6tWttJyK4RxaS9A9WXo8ftjmStq/wpeL2so85kOmblrFX2AmmAfeXn6sVtxoHgXZMPmlXd2nyUEGxTHGlyzRE64M0DYs5KdFOww0KgvBoY=
         file:
           - clib.exe
+          - clib-init.exe
           - clib-install.exe
           - clib-search.exe
         skip_cleanup: true

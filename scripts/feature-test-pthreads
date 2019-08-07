@@ -1,0 +1,7 @@
+#!/bin/bash
+
+{
+  echo '#include <pthread.h>' &&
+  echo 'void *f(void *a) { return 0; } int main(void) { pthread_t t; return pthread_create(&t, 0, f, 0); }';
+} | $CC -o /dev/null -xc -pthread - 2>/dev/null
+exit $?
