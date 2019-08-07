@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "asprintf/asprintf.h"
 #include "fs/fs.h"
 #include "tempdir/tempdir.h"
@@ -26,17 +27,18 @@
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
-debug_t debugger;
+debug_t debugger = { 0 };
 
 struct options {
   const char *dir;
+  const char *prefix;
   int verbose;
   int dev;
   int save;
   int savedev;
 };
 
-static struct options opts;
+static struct options opts = { 0 };
 
 static const char *package_names[] = {
   "clib.json",
@@ -54,6 +56,12 @@ static void
 setopt_dir(command_t *self) {
   opts.dir = (char *) self->arg;
   debug(&debugger, "set dir: %s", opts.dir);
+}
+
+static void
+setopt_prefix(command_t *self) {
+  opts.prefix = (char *) self->arg;
+  debug(&debugger, "set prefix: %s", opts.prefix);
 }
 
 static void
@@ -191,7 +199,18 @@ executable(clib_package_t *pkg) {
     goto cleanup;
   }
 
-  E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
+  if (0 == opts.save && 0 == opts.savedev) {
+    E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
+  } else {
+    E_FORMAT(&command
+        , "mkdir -p deps/%s && gzip -dc %s/%s | tar -C deps/%s -x %s-%s/ --strip-components 1"
+        , pkg->name
+        , tmp
+        , file
+        , pkg->name
+        , pkg->name
+        , pkg->version);
+  }
 
   debug(&debugger, "download url: %s", url);
   debug(&debugger, "file: %s", file);
@@ -202,7 +221,12 @@ executable(clib_package_t *pkg) {
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
+  if (0 == opts.save && 0 == opts.savedev) {
+    E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
+  } else {
+    E_FORMAT(&dir, "deps/%s", pkg->name);
+  }
+
   debug(&debugger, "dir: %s", dir);
 
   if (pkg->dependencies) {
@@ -215,7 +239,15 @@ executable(clib_package_t *pkg) {
   free(command);
   command = NULL;
 
+  if (NULL != opts.prefix) {
+    char path[PATH_MAX] = { 0 };
+    realpath(opts.prefix, path);
+    debug(&debugger, "env: PREFIX: %s", path);
+    setenv("PREFIX", path, 1);
+  }
+
   E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
+
   debug(&debugger, "command: %s", command);
   rc = system(command);
 
@@ -302,19 +334,30 @@ install_package(const char *slug) {
   clib_package_t *pkg = clib_package_new_from_slug(slug, opts.verbose);
   if (NULL == pkg) return -1;
 
-  if (pkg->install) {
-    rc = executable(pkg);
-    goto check_save;
+
+  if (pkg->install && (opts.save || opts.savedev)) {
+    rc = clib_package_install(pkg, opts.dir, opts.verbose);
+    if (0 != rc) {
+      goto cleanup;
+    }
+
+    if (0 == rc && opts.dev) {
+      rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
+      if (0 != rc) {
+        goto cleanup;
+      }
+    }
   }
 
-  rc = clib_package_install(pkg, opts.dir, opts.verbose);
-  if (0 == rc && opts.dev) {
-    rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
+  if (pkg->install) {
+    rc = executable(pkg);
   }
 
 check_save:
   if (opts.save) save_dependency(pkg);
   if (opts.savedev) save_dev_dependency(pkg);
+
+cleanup:
   clib_package_free(pkg);
   return rc;
 }
@@ -364,6 +407,11 @@ main(int argc, char *argv[]) {
     , "--out <dir>"
     , "change the output directory [deps]"
     , setopt_dir);
+  command_option(&program
+    , "-P"
+    , "--prefix <dir>"
+    , "change the prefix directory (usually '/usr/local')"
+    , setopt_prefix);
   command_option(&program
     , "-q"
     , "--quiet"
