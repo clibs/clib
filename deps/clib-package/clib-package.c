@@ -24,6 +24,10 @@
 #include "clib-package.h"
 #include "clib-cache/cache.h"
 
+#ifdef HAVE_PTHREADS
+#include <pthread.h>
+#endif
+
 #ifndef DEFAULT_REPO_VERSION
 #define DEFAULT_REPO_VERSION "master"
 #endif
@@ -33,6 +37,25 @@
 #endif
 
 #define GITHUB_CONTENT_URL "https://raw.githubusercontent.com/"
+
+#ifdef HAVE_PTHREADS
+typedef struct fetch_package_file_thread_data fetch_package_file_thread_data_t;
+struct fetch_package_file_thread_data {
+  clib_package_t *pkg;
+  const char *dir;
+  char *file;
+  int verbose;
+  pthread_t thread;
+  pthread_attr_t attr;
+  void *data;
+};
+
+typedef struct clib_package_lock clib_package_lock_t;
+struct clib_package_lock {
+  pthread_mutex_t mutex;
+  clib_package_t *pkg;
+};
+#endif
 
 debug_t _debugger;
 
@@ -119,7 +142,7 @@ clib_package_file_url(const char *url, const char *file) {
 
   char *res = malloc(size);
   if (res) {
-    memset(res, '\0', size);
+    memset(res, 0, size);
     sprintf(res, "%s/%s", url, file);
   }
   return res;
@@ -278,7 +301,7 @@ clib_package_new(const char *json, int verbose) {
   }
   if (!(pkg = malloc(sizeof(clib_package_t)))) goto cleanup;
 
-  memset(pkg, '\0', sizeof(clib_package_t));
+  memset(pkg, 0, sizeof(clib_package_t));
 
   pkg->json = strdup(json);
   pkg->name = json_object_get_string_safe(json_object, "name");
@@ -429,7 +452,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
   }
 
   // force package author (don't know how this could fail)
-  if (pkg->author) {
+  if (author && pkg->author) {
     if (0 != strcmp(author, pkg->author)) {
       free(pkg->author);
       pkg->author = author;
@@ -597,22 +620,21 @@ clib_package_dependency_new(const char *repo, const char *version) {
   return dep;
 }
 
-/**
- * Fetch a file associated with the given `pkg`.
- *
- * Returns 0 on success.
- */
-
 static int
-fetch_package_file(
-      clib_package_t *pkg
-    , const char *dir
-    , char *file
-    , int verbose
-  ) {
+fetch_package_file_work(
+    clib_package_t *pkg
+  , const char *dir
+  , char *file
+  , int verbose
+) {
   char *url = NULL;
   char *path = NULL;
   int rc = 0;
+
+#ifdef HAVE_PTHREADS
+  clib_package_lock_t *lock = pkg->lock;
+  pthread_mutex_lock(&lock->mutex);
+#endif
 
   _debug("fetch file: %s/%s", pkg->repo, file);
 
@@ -629,7 +651,17 @@ fetch_package_file(
 
   if (verbose) logger_info("fetch", "%s:%s", pkg->repo, file);
 
-  if (-1 == http_get_file(url, path)) {
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock->mutex);
+#endif
+
+  rc = http_get_file(url, path);
+
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock->mutex);
+#endif
+
+  if (-1 == rc) {
     logger_error("error", "unable to fetch %s:%s", pkg->repo, file);
     rc = 1;
     goto cleanup;
@@ -637,10 +669,94 @@ fetch_package_file(
 
   if (verbose) logger_info("save", path);
 
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock->mutex);
+#endif
+
 cleanup:
   free(url);
   free(path);
   return rc;
+}
+
+#ifdef HAVE_PTHREADS
+static void *
+fetch_package_file_thread(void *arg) {
+  fetch_package_file_thread_data_t *data = arg;
+  int rc = fetch_package_file_work(
+      data->pkg
+    , data->dir
+    , data->file
+    , data->verbose);
+  pthread_exit((void *) &rc);
+  return NULL;
+}
+#endif
+
+/**
+ * Fetch a file associated with the given `pkg`.
+ *
+ * Returns 0 on success.
+ */
+
+static int
+fetch_package_file(
+    clib_package_t *pkg
+  , const char *dir
+  , char *file
+  , int verbose
+  , void **data
+) {
+#ifndef HAVE_PTHREADS
+  return fetch_package_file_work(pkg, dir, file, verbose);
+#else
+  fetch_package_file_thread_data_t *fetch = malloc(sizeof(*fetch));
+  int rc = 0;
+
+  if (0 == fetch) {
+    return -1;
+  }
+
+  *data = 0;
+
+  memset(fetch, 0, sizeof(*fetch));
+
+  fetch->pkg = pkg;
+  fetch->dir = dir;
+  fetch->file = file;
+  fetch->verbose = verbose;
+
+  rc = pthread_attr_init(&fetch->attr);
+
+  if (0 != rc) {
+    free(fetch);
+    return rc;
+  }
+
+  rc = pthread_create(
+      &fetch->thread
+    , NULL
+    , fetch_package_file_thread
+    , fetch);
+
+  if (0 != rc) {
+    pthread_attr_destroy(&fetch->attr);
+    free(fetch);
+    return rc;
+  }
+
+  rc = pthread_attr_destroy(&fetch->attr);
+
+  if (0 != rc) {
+    pthread_cancel(fetch->thread);
+    free(fetch);
+    return rc;
+  }
+
+  *data = fetch;
+
+  return rc;
+#endif
 }
 
 /**
@@ -649,13 +765,22 @@ cleanup:
 
 int
 clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
-  char *pkg_dir = NULL;
-  char *package_json = NULL;
   list_iterator_t *iterator = NULL;
+  char *package_json = NULL;
+  char *pkg_dir = NULL;
   int rc = -1;
 
   if (!pkg || !dir) goto cleanup;
   if (!(pkg_dir = path_join(dir, pkg->name))) goto cleanup;
+
+#ifdef HAVE_PTHREADS
+  clib_package_lock_t *lock = malloc(sizeof(clib_package_lock_t));
+  lock->pkg = pkg;
+  pkg->lock = lock;
+  pthread_mutex_init(lock, NULL);
+#else
+  pkg->lock = NULL;
+#endif
 
   _debug("mkdir -p %s", pkg_dir);
   // create directory for pkg
@@ -665,6 +790,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     pkg->url = clib_package_url(pkg->author
       , pkg->repo_name
       , pkg->version);
+
     if (NULL == pkg->url) goto cleanup;
   }
 
@@ -679,9 +805,19 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   // fetch makefile
   if (pkg->makefile) {
     _debug("fetch: %s/%s", pkg->repo, pkg->makefile);
-    if (0 != fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose)) {
+    void *fetch = 0;
+    int rc = fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose, &fetch);
+    if (0 != rc) {
       goto cleanup;
     }
+
+#ifdef HAVE_PTHREADS
+    if (0 != fetch) {
+      fetch_package_file_thread_data_t *data = fetch;
+      pthread_join(data->thread, (void **) &rc);
+      free(fetch);
+    }
+#endif
   }
 
   // if no sources are listed, just install
@@ -692,24 +828,51 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
         clib_cache_delete_package(pkg->author, pkg->name, pkg->version);
         goto download;
     }
+
     if (0 != clib_cache_load_package(pkg->author, pkg->name, pkg->version, pkg_dir)){
       goto download;
     }
+
     logger_info("cache", pkg->repo);
     goto install;
   }
-  download:
+
+download:
     iterator = list_iterator_new(pkg->src, LIST_HEAD);
     list_node_t *source;
 
+#ifdef HAVE_PTHREADS
+    void **fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    int max = 8;
+    int i = 0;
+#endif
+
     while ((source = list_iterator_next(iterator))) {
-      if (0 != fetch_package_file(pkg, pkg_dir, source->val, verbose)) {
+      void *fetch = NULL;
+      int rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
+      if (0 != rc) {
         list_iterator_destroy(iterator);
         iterator = NULL;
         rc = -1;
         goto cleanup;
       }
+
+#ifdef HAVE_PTHREADS
+      fetchs[i++] = fetch;
+      if (i == max) {
+        while (--i >= 0) {
+          fetch_package_file_thread_data_t *data = fetchs[i];
+          int rc = 0;
+          pthread_join(data->thread, (void **) &rc);
+          free(data);
+        }
+
+        i = 0;
+      }
+#endif
     }
+
     clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
 
 install:
@@ -719,6 +882,14 @@ cleanup:
   if (pkg_dir) free(pkg_dir);
   if (package_json) free(package_json);
   if (iterator) list_iterator_destroy(iterator);
+#ifdef HAVE_PTHREADS
+  pthread_mutex_destroy(&lock->mutex);
+  free(lock);
+  lock = NULL;
+  pkg->lock = NULL;
+  if (fetchs) free(fetchs);
+  fetchs = NULL;
+#endif
   return rc;
 }
 
