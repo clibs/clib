@@ -61,6 +61,7 @@ $ sudo make install
 
   Commands:
 
+    init               Start a new project.
     install [name...]  Install one or more packages
     search [query]     Search for packages
     help <cmd>         Display help for cmd
