@@ -27,6 +27,11 @@
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
+#define E_FORMAT(...) ({      \
+  rc = asprintf(__VA_ARGS__); \
+  if (-1 == rc) goto cleanup; \
+});
+
 debug_t debugger = { 0 };
 
 struct options {
@@ -144,11 +149,6 @@ install_local_packages() {
   return rc;
 }
 
-#define E_FORMAT(...) ({      \
-  rc = asprintf(__VA_ARGS__); \
-  if (-1 == rc) goto cleanup; \
-});
-
 static int
 executable(clib_package_t *pkg) {
   int rc;
@@ -177,7 +177,9 @@ executable(clib_package_t *pkg) {
   reponame = strrchr(pkg->repo, '/');
   if (reponame && *reponame != '\0') reponame++;
   else {
-    logger_error("error", "malformed repo field, must be in the form user/pkg");
+    logger_error(
+      "error",
+      "malformed repo field, must be in the form user/pkg");
     return -1;
   }
 
@@ -185,8 +187,16 @@ executable(clib_package_t *pkg) {
     , "https://github.com/%s/archive/%s.tar.gz"
     , pkg->repo
     , pkg->version);
-  E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
-  E_FORMAT(&tarball, "%s/%s", tmp, file);
+
+  E_FORMAT(&file
+    , "%s-%s.tar.gz"
+    , reponame
+    , pkg->version);
+
+  E_FORMAT(&tarball
+    , "%s/%s"
+    , tmp, file);
+
   rc = http_get_file(url, tarball);
 
   if (0 != rc) {
@@ -199,18 +209,7 @@ executable(clib_package_t *pkg) {
     goto cleanup;
   }
 
-  if (0 == opts.save && 0 == opts.savedev) {
-    E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
-  } else {
-    E_FORMAT(&command
-        , "mkdir -p deps/%s && gzip -dc %s/%s | tar -C deps/%s -x %s-%s/ --strip-components 1"
-        , pkg->name
-        , tmp
-        , file
-        , pkg->name
-        , pkg->name
-        , pkg->version);
-  }
+  E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
 
   debug(&debugger, "download url: %s", url);
   debug(&debugger, "file: %s", file);
@@ -221,11 +220,7 @@ executable(clib_package_t *pkg) {
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  if (0 == opts.save && 0 == opts.savedev) {
-    E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
-  } else {
-    E_FORMAT(&dir, "deps/%s", pkg->name);
-  }
+  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
 
   debug(&debugger, "dir: %s", dir);
 
@@ -260,8 +255,6 @@ cleanup:
   free(url);
   return rc;
 }
-
-#undef E_FORMAT
 
 static int
 write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char *file) {
@@ -329,23 +322,29 @@ save_dev_dependency(clib_package_t *pkg) {
 
 static int
 install_package(const char *slug) {
+  clib_package_t *pkg = clib_package_new_from_slug(slug, opts.verbose);
   int rc;
 
-  clib_package_t *pkg = clib_package_new_from_slug(slug, opts.verbose);
   if (NULL == pkg) return -1;
 
+  char *dir = (char *) opts.dir;
 
-  if (pkg->install && (opts.save || opts.savedev)) {
-    rc = clib_package_install(pkg, opts.dir, opts.verbose);
+  if (0 == opts.save && 0 == opts.savedev && pkg->install) {
+    dir = gettempdir();
+    char *name = pkg->name;
+    E_FORMAT(&pkg->name, "%s-%s", pkg->name, pkg->version);
+    free(name);
+  }
+
+  rc = clib_package_install(pkg, dir, opts.verbose);
+  if (0 != rc) {
+    goto cleanup;
+  }
+
+  if (0 == rc && opts.dev) {
+    rc = clib_package_install_development(pkg, dir, opts.verbose);
     if (0 != rc) {
       goto cleanup;
-    }
-
-    if (0 == rc && opts.dev) {
-      rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
-      if (0 != rc) {
-        goto cleanup;
-      }
     }
   }
 
@@ -353,7 +352,6 @@ install_package(const char *slug) {
     rc = executable(pkg);
   }
 
-check_save:
   if (opts.save) save_dependency(pkg);
   if (opts.savedev) save_dev_dependency(pkg);
 
