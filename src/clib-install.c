@@ -6,6 +6,7 @@
 // MIT licensed
 //
 
+#include <curl/curl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -373,9 +374,15 @@ main(int argc, char *argv[]) {
 
   debug(&debugger, "%d arguments", program.argc);
 
+  if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
+    logger_error("error", "Failed to initialize cURL");
+  }
+
   int code = 0 == program.argc
     ? install_local_packages()
     : install_packages(program.argc, program.argv);
+
+  curl_global_cleanup();
 
   command_free(&program);
   return code;
