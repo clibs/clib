@@ -9,6 +9,7 @@
 #ifndef CLIB_PACKAGE_H
 #define CLIB_PACKAGE_H 1
 
+#include <curl/curl.h>
 #include "list/list.h"
 
 typedef struct {
@@ -41,6 +42,7 @@ typedef struct {
     int skip_cache;
 } clib_package_opts_t;
 
+extern CURLSH *clib_package_curl_share;
 
 void
 clib_package_set_opts(clib_package_opts_t opts);
