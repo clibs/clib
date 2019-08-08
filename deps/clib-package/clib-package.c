@@ -870,18 +870,17 @@ download:
 
 #ifdef HAVE_PTHREADS
     fetch_package_file_thread_data_t **fetchs = 0;
-      fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-      memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    int pending = 0;
     int max = 16;
     int i = 0;
 #endif
 
     while ((source = list_iterator_next(iterator))) {
       void *fetch = NULL;
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-      usleep(10000);
-#endif
       rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
+
       if (0 != rc) {
         list_iterator_destroy(iterator);
         iterator = NULL;
@@ -890,32 +889,62 @@ download:
       }
 
 #ifdef HAVE_PTHREADS
-      if (pkg->src->len > 0) {
-        if (i < 0) {
-          i = 0;
-        }
-        fetchs[i++] = fetch;
-        if (i == max || pkg->src->len < max) {
-          while (--i >= 0) {
-            fetch_package_file_thread_data_t *data = fetchs[i];
-            int *status = 0;
+      fetchs[i] = fetch;
 
-            pthread_join(data->thread, (void **) rc);
+      (void) pending++;
 
-            fetchs[i] = 0;
-            data = 0 ;
-            i = 0;
+      if (++i >= max) {
+        while (--i >= 0) {
+          fetch_package_file_thread_data_t *data = fetchs[i];
+          int *status = 0;
+          pthread_join(data->thread, (void **) status);
+          fetchs[i] = NULL;
 
-            if (0 != status) {
-              rc = *status;
-              free(status);
-              status = 0;
-            }
+          (void) pending--;
+
+          if (0 != status) {
+            rc = *status;
+            free(status);
+            status = 0;
           }
+
+          if (0 != rc) {
+            rc = -1;
+            goto cleanup;
+          }
+
         }
       }
+
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+      usleep(1000);
+#endif
 #endif
     }
+
+#ifdef HAVE_PTHREADS
+    while (--i >= 0) {
+      fetch_package_file_thread_data_t *data = fetchs[i];
+      int *status = 0;
+
+      pthread_join(data->thread, (void **) status);
+
+      (void) pending--;
+
+      fetchs[i] = NULL;
+
+      if (0 != status) {
+        rc = *status;
+        free(status);
+        status = 0;
+      }
+
+      if (0 != rc) {
+        rc = -1;
+        goto cleanup;
+      }
+    }
+#endif
 
     clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
 
@@ -927,10 +956,6 @@ cleanup:
   if (package_json) free(package_json);
   if (iterator) list_iterator_destroy(iterator);
 #ifdef HAVE_PTHREADS
-  if (0 != fetchs){
-    free(fetchs);
-  }
-  //pthread_mutex_destroy(&lock);
   fetchs = NULL;
 #endif
   return rc;
