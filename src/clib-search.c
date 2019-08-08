@@ -42,40 +42,48 @@ static void
 setopt_nocache(command_t *self) {
     opt_cache = 0;
 }
+#define COMPARE(v) {                \
+  if (NULL == v) {                  \
+    rc = 0;                         \
+    goto cleanup;                   \
+  }                                 \
+  case_lower(v);                    \
+  for (int i = 0; i < count; i++) { \
+    if (strstr(v, args[i])) {       \
+      rc = 1;                       \
+      break;                        \
+    }                               \
+  }                                 \
+}
 
 static int
 matches(int count, char *args[], wiki_package_t *pkg) {
   // Display all packages if there's no query
   if (0 == count) return 1;
 
-  char *name = NULL;
   char *description = NULL;
+  char *name = NULL;
+  char *repo = NULL;
+  char *href = NULL;
+  int rc = 0;
+
 
   name = clib_package_parse_name(pkg->repo);
-  if (NULL == name) goto fail;
-  case_lower(name);
-  for (int i = 0; i < count; i++) {
-    if (strstr(name, args[i])) {
-      free(name);
-      return 1;
-    }
-  }
+  COMPARE(name);
 
   description = strdup(pkg->description);
-  if (NULL == description) goto fail;
-  case_lower(description);
-  for (int i = 0; i < count; i++) {
-    if (strstr(description, args[i])) {
-      free(description);
-      free(name);
-      return 1;
-    }
-  }
+  COMPARE(description);
 
-fail:
+  repo = strdup(pkg->repo);
+  COMPARE(repo);
+
+  href = strdup(pkg->href);
+  COMPARE(href);
+
+cleanup:
   free(name);
   free(description);
-  return 0;
+  return rc;
 }
 
 static char *
@@ -197,6 +205,7 @@ main(int argc, char *argv[]) {
 
   list_node_t *node;
   list_iterator_t *it = list_iterator_new(pkgs, LIST_HEAD);
+
   printf("\n");
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
@@ -210,8 +219,10 @@ main(int argc, char *argv[]) {
     } else {
       debug(&debugger, "skipped package %s", pkg->repo);
     }
+
     wiki_package_free(pkg);
   }
+
   list_iterator_destroy(it);
   list_destroy(pkgs);
   command_free(&program);
