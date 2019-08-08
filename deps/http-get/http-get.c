@@ -78,8 +78,8 @@ http_get_response_t *http_get(const char *url) {
  */
 
 static size_t http_get_file_cb(void *ptr, size_t size, size_t nmemb, void *stream) {
-  fflush(stream);
   size_t n = fwrite(ptr, size, nmemb, stream);
+  fflush(stream);
   return n;
 }
 

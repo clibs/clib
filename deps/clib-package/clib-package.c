@@ -76,7 +76,8 @@ debug_t _debugger;
 })
 
 static clib_package_opts_t opts = {
-   .skip_cache = 0
+   .skip_cache = 1,
+   .force = 0,
 };
 
 /**
@@ -108,6 +109,7 @@ install_packages(list_t *, const char *, int);
 void
 clib_package_set_opts(clib_package_opts_t o) {
   opts.skip_cache = o.skip_cache;
+  opts.force = o.force;
 }
 
 /**
@@ -461,7 +463,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
     }
     log = "cache";
   } else {
-    download:
+download:
     if (retries-- <= 0) {
       goto error;
     } else {
@@ -478,10 +480,10 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
         logger_warn("warning", "unable to fetch %s/%s:%s", author, name, file);
         goto download;
       }
-      clib_cache_save_json(author, name, version, json);
       log = "fetch";
     }
   }
+
   if (verbose) {
     logger_info(log, "%s/%s:%s", author, name, file);
   }
@@ -695,6 +697,7 @@ fetch_package_file_work(
 ) {
   char *url = NULL;
   char *path = NULL;
+  int saved = 0;
   int rc = 0;
 
   _debug("fetch file: %s/%s", pkg->repo, file);
@@ -718,18 +721,28 @@ fetch_package_file_work(
     goto cleanup;
   }
 
-  if (verbose) {
 #ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock.mutex);
+      pthread_mutex_lock(&lock.mutex);
 #endif
-    logger_info("fetch", "%s:%s", pkg->repo, file);
-    fflush(stdout);
+
+  if (1 == opts.force || -1 == fs_exists(path)) {
+    if (verbose) {
+      logger_info("fetch", "%s:%s", pkg->repo, file);
+      fflush(stdout);
+    }
+
 #ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock.mutex);
+      pthread_mutex_unlock(&lock.mutex);
+#endif
+
+    rc = http_get_file_shared(url, path, clib_package_curl_share);
+    saved = 1;
+  } else {
+#ifdef HAVE_PTHREADS
+      pthread_mutex_unlock(&lock.mutex);
 #endif
   }
 
-  rc = http_get_file_shared(url, path, clib_package_curl_share);
 
   if (-1 == rc) {
 #ifdef HAVE_PTHREADS
@@ -744,15 +757,17 @@ fetch_package_file_work(
     goto cleanup;
   }
 
-  if (verbose) {
+  if (saved) {
+    if (verbose) {
 #ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock.mutex);
+      pthread_mutex_lock(&lock.mutex);
 #endif
-    logger_info("save", path);
-    fflush(stdout);
+      logger_info("save", path);
+      fflush(stdout);
 #ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock.mutex);
+      pthread_mutex_unlock(&lock.mutex);
 #endif
+    }
   }
 
 cleanup:
@@ -855,6 +870,24 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   char *pkg_dir = NULL;
   int rc = -1;
 
+#ifdef HAVE_PTHREADS
+    fetch_package_file_thread_data_t **fetchs = 0;
+    if (NULL != pkg && NULL != pkg->src) {
+      if (pkg->src->len > 0) {
+        fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+      }
+    }
+
+    if (!fetchs) {
+      goto cleanup;
+    }
+
+    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+    int pending = 0;
+    int max = 4;
+    int i = 0;
+#endif
+
   if (!pkg || !dir) goto cleanup;
   if (!(pkg_dir = path_join(dir, pkg->name))) goto cleanup;
 
@@ -904,7 +937,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   if (NULL == pkg->src) goto install;
 
   if (clib_cache_has_package(pkg->author, pkg->name, pkg->version)) {
-    if (opts.skip_cache){
+    if (opts.skip_cache) {
         clib_cache_delete_package(pkg->author, pkg->name, pkg->version);
         goto download;
     }
@@ -921,15 +954,6 @@ download:
     iterator = list_iterator_new(pkg->src, LIST_HEAD);
     list_node_t *source;
 
-#ifdef HAVE_PTHREADS
-    fetch_package_file_thread_data_t **fetchs = 0;
-    fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-    int pending = 0;
-    int max = 4;
-    int i = 0;
-#endif
-
     while ((source = list_iterator_next(iterator))) {
       void *fetch = NULL;
       rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
@@ -941,6 +965,10 @@ download:
         goto cleanup;
       }
 
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+      usleep(1024 * 10);
+#endif
+
 #ifdef HAVE_PTHREADS
       if (i < 0) {
         i = 0;
@@ -950,7 +978,9 @@ download:
 
       (void) pending++;
 
-      if (++i >= max) {
+      if (i < max) {
+        (void) i++;
+      } else {
         while (--i >= 0) {
           fetch_package_file_thread_data_t *data = fetchs[i];
           int *status = 0;
@@ -969,12 +999,12 @@ download:
             rc = -1;
             goto cleanup;
           }
-        }
-      }
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-      usleep(100);
+          usleep(1024 * 10);
 #endif
+        }
+      }
 #endif
     }
 
@@ -986,7 +1016,7 @@ download:
       pthread_join(data->thread, (void **) status);
 
       (void) pending--;
-
+      free(data);
       fetchs[i] = NULL;
 
       if (0 != status) {
@@ -1013,7 +1043,9 @@ cleanup:
 #ifdef HAVE_PTHREADS
   if (NULL != pkg && NULL != pkg->src) {
     if (pkg->src->len > 0) {
-      free(fetchs);
+      if (fetchs) {
+        free(fetchs);
+      }
     }
   }
   fetchs = NULL;

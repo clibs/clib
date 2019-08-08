@@ -40,6 +40,7 @@ typedef struct {
 
 typedef struct {
     int skip_cache;
+    int force;
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;
