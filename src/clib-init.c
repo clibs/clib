@@ -51,8 +51,6 @@ static
 char* find_basepath() {
   char cwd[512] = { 0 };
   getcwd(cwd, 512);
-  debug(&debugger, "%s cwd", cwd);
-
   char* walk = cwd + strlen(cwd);
   while(*(--walk) != '/');
   char* basepath = malloc((size_t)(walk - cwd));
@@ -72,41 +70,50 @@ void getinput(char* buffer, size_t s) {
 }
 
 static
-void ask_for(JSON_Object* root, const char* key,
+void ask_for(JSON_Object* root,
+             const char* key,
              const char* default_value,
              const char* question) {
   static char buffer[512] = { 0 };
   memset(buffer, '\0', 512);
-  printf(question);
+  printf("%s", question);
   getinput(buffer, 512);
   char* value = (char*)(strlen(buffer) > 0 ? buffer : default_value);
   json_object_set_string(root, key, value);
 }
 
+static inline size_t
+write_to_file(const char* manifest, const char* str, size_t length) {
+  size_t wrote = 0;
+
+  FILE* file = fopen(manifest, "w+");
+  if (!file) {
+    debug(&debugger, "Cannot open %s file.", manifest);
+    return 0;
+  }
+
+  wrote = fwrite(str, sizeof(char), length, file);
+  fclose(file);
+
+  return wrote == length;
+}
+
 static int
 write_package_file(const char* manifest, JSON_Value* pkg) {
-  const char* package = json_serialize_to_string_pretty(pkg);
-  FILE* package_file = fopen(manifest, "w+");
-  if (!package_file) {
-    debug(&debugger, "Cannot open %s file.", manifest);
-    return 1;
+  int rc = 1;
+  char* package = json_serialize_to_string_pretty(pkg);
+
+  if (!(rc = write_to_file(manifest, package, strlen(package)))) {
+    logger_error("Failed to write to %s", manifest);
+    goto e1;
   }
 
-  size_t len = strlen(package);
-  const size_t wrote = fwrite(package, sizeof(char), len, package_file);
+  debug(&debugger, "Wrote %s file.", manifest);
 
-  char* package_name = NULL;
-  int rc = asprintf(&package_name, "Wrote %s file.", manifest);
-  if (-1 == rc) {
-    logger_error("error", "asprintf() out of memory");
-    free(package_name);
-    return 1;
-  }
-  debug(&debugger, package_name);
+ e1:
+  json_free_serialized_string(package);
 
-  fclose(package_file);
-
-  return wrote == len ? 0 : 1;
+  return rc;
 }
 
 /**
@@ -115,6 +122,7 @@ write_package_file(const char* manifest, JSON_Value* pkg) {
 
 int
 main(int argc, char *argv[]) {
+  int exit_code = 0;
   opts.verbose = 1;
   opts.manifest = "package.json";
 
@@ -151,18 +159,20 @@ main(int argc, char *argv[]) {
   int rc = asprintf(&package_name, "package name (%s): ", basepath);
   if (-1 == rc) {
     logger_error("error", "asprintf() out of memory");
-    free(package_name);
     goto end;
   }
 
   ask_for(root, "name", basepath, package_name);
   ask_for(root, "version", "0.0.1", "version (default: 0.0.1): ");
 
-  int code = write_package_file(opts.manifest, json);
+  exit_code = write_package_file(opts.manifest, json);
 
  end:
+  free(package_name);
   free(basepath);
+
+  json_value_free(json);
   command_free(&program);
 
-  return code;
+  return exit_code;
 }
