@@ -32,6 +32,8 @@
   if (-1 == rc) goto cleanup; \
 });
 
+extern CURLSH *clib_package_curl_share;
+
 debug_t debugger = { 0 };
 
 struct options {
@@ -197,7 +199,7 @@ executable(clib_package_t *pkg) {
     , "%s/%s"
     , tmp, file);
 
-  rc = http_get_file(url, tarball);
+  rc = http_get_file_shared(url, tarball, clib_package_curl_share);
 
   if (0 != rc) {
     logger_error("error"
