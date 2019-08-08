@@ -222,7 +222,12 @@ executable(clib_package_t *pkg) {
   rc = system(command);
   if (0 != rc) goto cleanup;
 
-  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, pkg->version);
+  char *version = pkg->version;
+  if ('v' == version[0]) {
+    (void) version++;
+  }
+
+  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, version);
 
   debug(&debugger, "dir: %s", dir);
 
@@ -334,7 +339,13 @@ install_package(const char *slug) {
   if (0 == opts.save && 0 == opts.savedev && pkg->install) {
     dir = gettempdir();
     char *name = pkg->name;
-    E_FORMAT(&pkg->name, "%s-%s", pkg->name, pkg->version);
+    char *version = pkg->version;
+
+    if ('v' == version[0]) {
+      (void) version++;
+    }
+
+    E_FORMAT(&pkg->name, "%s-%s", pkg->name, version);
     free(name);
   }
 
