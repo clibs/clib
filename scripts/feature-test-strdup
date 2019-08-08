@@ -1,7 +1,0 @@
-#!/bin/bash
-
-{
-  echo '#include <string.h>' &&
-  echo 'int main(void) { strdup("hello"); return 0; }';
-} | ${CC:-cc} -o /dev/null -xc -pthread - 2>/dev/null
-exit $?

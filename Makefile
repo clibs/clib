@@ -24,8 +24,6 @@ else
 	LDFLAGS = $(shell curl-config --libs)
 endif
 
-CFLAGS += $(shell ./scripts/feature-test-strdup && echo "-DHAVE_STRDUP=1" || echo "-DHAVE_STRDUP=0")
-
 ifneq (0,$(PTHREADS))
 ifndef NO_PTHREADS
 	CFLAGS += $(shell ./scripts/feature-test-pthreads && echo "-DHAVE_PTHREADS=1 -pthread" || echo "-DHAVE_PTHREADS=0")
