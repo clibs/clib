@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <curl/curl.h>
 #include "strdup/strdup.h"
 #include "parson/parson.h"
 #include "substr/substr.h"
@@ -58,16 +59,15 @@ struct fetch_package_file_thread_data {
 typedef struct clib_package_lock clib_package_lock_t;
 struct clib_package_lock {
   pthread_mutex_t mutex;
-  clib_package_t *pkg;
 };
 
 static clib_package_lock_t lock = {
-  PTHREAD_MUTEX_INITIALIZER,
-  0
+  PTHREAD_MUTEX_INITIALIZER
 };
 
 #endif
 
+CURLSH *clib_package_curl_share;
 debug_t _debugger;
 
 #define _debug(...) ({                                           \
@@ -291,9 +291,44 @@ cleanup:
     clib_package_t *pkg = node->val;
     if (pkg) clib_package_free(pkg);
   }
+  list_iterator_destroy(iterator);
   list_destroy(freelist);
   return rc;
 }
+
+#ifdef HAVE_PTHREADS
+static void
+curl_lock_callback(
+    CURL *handle
+  , curl_lock_data data
+  , curl_lock_access access
+  , void *userptr
+) {
+  pthread_mutex_lock(&lock.mutex);
+}
+
+static void
+curl_unlock_callback(
+    CURL *handle
+  , curl_lock_data data
+  , curl_lock_access access
+  , void *userptr
+) {
+  pthread_mutex_unlock(&lock.mutex);
+}
+
+static void
+init_curl_share() {
+  if (0 == clib_package_curl_share) {
+    pthread_mutex_lock(&lock.mutex);
+    clib_package_curl_share = curl_share_init();
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_LOCKFUNC, curl_lock_callback);
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_UNLOCKFUNC, curl_unlock_callback);
+    pthread_mutex_unlock(&lock.mutex);
+  }
+}
+#endif
 
 /**
  * Create a new clib package from the given `json`
@@ -399,6 +434,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
   char *log = NULL;
   http_get_response_t *res = NULL;
   clib_package_t *pkg = NULL;
+  int retries = 3;
 
   // parse chunks
   if (!slug) goto error;
@@ -426,16 +462,25 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
     log = "cache";
   } else {
     download:
+    if (retries-- <= 0) {
+      goto error;
+    } else {
+#ifdef HAVE_PTHREADS
+      init_curl_share();
       _debug("GET %s", json_url);
+      res = http_get_shared(json_url, clib_package_curl_share);
+#else
       res = http_get(json_url);
+#endif
       json = res->data;
       _debug("status: %d", res->status);
       if (!res || !res->ok) {
         logger_warn("warning", "unable to fetch %s/%s:%s", author, name, file);
-        goto error;
+        goto download;
       }
       clib_cache_save_json(author, name, version, json);
       log = "fetch";
+    }
   }
   if (verbose) {
     logger_info(log, "%s/%s:%s", author, name, file);
@@ -674,31 +719,43 @@ fetch_package_file_work(
   }
 
   if (verbose) {
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
     logger_info("fetch", "%s:%s", pkg->repo, file);
     fflush(stdout);
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
   }
 
-#ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock);
-#endif
-
-  rc = http_get_file(url, path);
+  rc = http_get_file_shared(url, path, clib_package_curl_share);
 
   if (-1 == rc) {
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
     logger_error("error", "unable to fetch %s:%s", pkg->repo, file);
+    fflush(stderr);
     rc = 1;
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
     goto cleanup;
   }
 
   if (verbose) {
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
     logger_info("save", path);
+    fflush(stdout);
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
   }
 
 cleanup:
-
-#ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock);
-#endif
 
   free(url);
   free(path);
@@ -709,16 +766,14 @@ cleanup:
 static void *
 fetch_package_file_thread(void *arg) {
   fetch_package_file_thread_data_t *data = arg;
-  int *rc = malloc(sizeof(*rc));
-  *rc = fetch_package_file_work(
+  int rc = fetch_package_file_work(
       data->pkg
     , data->dir
     , data->file
     , data->verbose);
   (void) data->pkg->refs--;
   pthread_exit((void *) rc);
-  free(data);
-  return NULL;
+  return (void *) rc;
 }
 #endif
 
@@ -839,10 +894,8 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       pthread_join(data->thread, (void **) &status);
       if (0 != status) {
         rc = *status;
-        free(status);
         status = 0;
       }
-      free(fetch);
     }
 #endif
   }
@@ -873,7 +926,7 @@ download:
     fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
     memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
     int pending = 0;
-    int max = 16;
+    int max = 4;
     int i = 0;
 #endif
 
@@ -889,6 +942,10 @@ download:
       }
 
 #ifdef HAVE_PTHREADS
+      if (i < 0) {
+        i = 0;
+      }
+
       fetchs[i] = fetch;
 
       (void) pending++;
@@ -898,13 +955,13 @@ download:
           fetch_package_file_thread_data_t *data = fetchs[i];
           int *status = 0;
           pthread_join(data->thread, (void **) status);
+          free(data);
           fetchs[i] = NULL;
 
           (void) pending--;
 
           if (0 != status) {
             rc = *status;
-            free(status);
             status = 0;
           }
 
@@ -912,12 +969,11 @@ download:
             rc = -1;
             goto cleanup;
           }
-
         }
       }
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-      usleep(1000);
+      usleep(100);
 #endif
 #endif
     }
@@ -935,7 +991,6 @@ download:
 
       if (0 != status) {
         rc = *status;
-        free(status);
         status = 0;
       }
 
@@ -956,6 +1011,11 @@ cleanup:
   if (package_json) free(package_json);
   if (iterator) list_iterator_destroy(iterator);
 #ifdef HAVE_PTHREADS
+  if (NULL != pkg && NULL != pkg->src) {
+    if (pkg->src->len > 0) {
+      free(fetchs);
+    }
+  }
   fetchs = NULL;
 #endif
   return rc;
