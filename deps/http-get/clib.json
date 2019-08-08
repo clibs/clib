@@ -1,0 +1,12 @@
+{
+  "name": "http-get",
+  "version": "next",
+  "repo": "clibs/http-get.c",
+  "description": "@stephenmathieson's http-get.c - Simple HTTP GET requests backed by libcurl",
+  "keywords": [ "http", "curl", "get", "download", "next" ],
+  "license": "MIT",
+  "src": [
+    "src/http-get.c",
+    "src/http-get.h"
+  ]
+}
