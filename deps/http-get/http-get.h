@@ -10,6 +10,10 @@
 #ifndef HTTP_GET_H
 #define HTTP_GET_H 1
 
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#include <unistd.h>
+#endif
+
 #define HTTP_GET_VERSION "0.1.0"
 
 typedef struct {
@@ -20,8 +24,10 @@ typedef struct {
 } http_get_response_t;
 
 http_get_response_t *http_get(const char *);
+http_get_response_t *http_get_shared(const char *, void *);
 
 int http_get_file(const char *, const char *);
+int http_get_file_shared(const char *, const char *, void *);
 
 void http_get_free(http_get_response_t *);
 

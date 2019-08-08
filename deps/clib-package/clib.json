@@ -10,7 +10,7 @@
     "list": "*",
     "clibs/parson": "1.0.2",
     "stephenmathieson/substr.c": "0.1.2",
-    "stephenmathieson/http-get.c": "0.1.1",
+    "clibs/http-get.c": "next",
     "stephenmathieson/mkdirp.c": "0.1.5",
     "jwerle/fs.c": "0.2.0",
     "stephenmathieson/path-join.c": "0.0.6",
