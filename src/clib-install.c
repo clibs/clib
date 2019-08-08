@@ -16,6 +16,7 @@
 #include "tempdir/tempdir.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
+#include "clib-cache/cache.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "debug/debug.h"
@@ -43,6 +44,8 @@ struct options {
   int dev;
   int save;
   int savedev;
+  int force;
+  int skip_cache;
 };
 
 static struct options opts = { 0 };
@@ -96,8 +99,14 @@ setopt_savedev(command_t *self) {
 }
 
 static void
+setopt_force(command_t *self) {
+  opts.force = 1;
+  debug(&debugger, "set force flag");
+}
+
+static void
 setopt_skip_cache(command_t *self) {
-  package_opts.skip_cache = 1;
+  opts.skip_cache = 1;
   debug(&debugger, "set skip cache flag");
 }
 
@@ -334,35 +343,21 @@ install_package(const char *slug) {
 
   if (NULL == pkg) return -1;
 
-  char *dir = (char *) opts.dir;
-
-  if (0 == opts.save && 0 == opts.savedev && pkg->install) {
-    dir = gettempdir();
-    char *name = pkg->name;
-    char *version = pkg->version;
-
-    if ('v' == version[0]) {
-      (void) version++;
-    }
-
-    E_FORMAT(&pkg->name, "%s-%s", pkg->name, version);
-    free(name);
+  if (pkg->install) {
+    rc = executable(pkg);
+    goto cleanup;
   }
 
-  rc = clib_package_install(pkg, dir, opts.verbose);
+  rc = clib_package_install(pkg, opts.dir, opts.verbose);
   if (0 != rc) {
     goto cleanup;
   }
 
   if (0 == rc && opts.dev) {
-    rc = clib_package_install_development(pkg, dir, opts.verbose);
+    rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
     if (0 != rc) {
       goto cleanup;
     }
-  }
-
-  if (pkg->install) {
-    rc = executable(pkg);
   }
 
   if (opts.save) save_dependency(pkg);
@@ -443,13 +438,16 @@ main(int argc, char *argv[]) {
       , "--save-dev"
       , "save development dependency in clib.json or package.json"
       , setopt_savedev);
-  command_option(
-    &program
-    , "-c"
-    , "--skip-cache"
-    , "skip the search cache"
-    , setopt_skip_cache);
-
+  command_option(&program
+      , "-f"
+      , "--force"
+      , "force the action of something, like overwriting a file"
+      , setopt_force);
+  command_option(&program
+      , "-c"
+      , "--skip-cache"
+      , "skip cache when installing"
+      , setopt_skip_cache);
   command_parse(&program, argc, argv);
 
   clib_package_set_opts(package_opts);
@@ -458,6 +456,15 @@ main(int argc, char *argv[]) {
 
   if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
     logger_error("error", "Failed to initialize cURL");
+  }
+
+  clib_package_set_opts((clib_package_opts_t) {
+    .skip_cache = 0,
+    .force = opts.force
+  });
+
+  if (1 != opts.skip_cache) {
+    clib_cache_init(time(0));
   }
 
   int code = 0 == program.argc
