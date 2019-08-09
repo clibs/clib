@@ -1,11 +1,12 @@
 CC     ?= cc
 PREFIX ?= /usr/local
 
+BINS = clib clib-install clib-search clib-init
+
 ifdef EXE
-	BINS = clib.exe clib-install.exe clib-search.exe clib-init.exe
-else
-	BINS = clib clib-install clib-search clib-init
+	BINS := $(addsuffix .exe,$(BINS))
 endif
+
 CP      = cp -f
 RM      = rm -f
 MKDIR   = mkdir -p
