@@ -736,7 +736,9 @@ fetch_package_file_work(
     return 1;
   }
 
-  if (!(url = clib_package_file_url(pkg->url, file))) {
+  if (0 == strncmp(file, "http", 4)) {
+    url = strdup(file);
+  } else if (!(url = clib_package_file_url(pkg->url, file))) {
     return 1;
   }
 
@@ -886,13 +888,13 @@ fetch_package_file(
 }
 
 int
-clib_package_install_executable(clib_package_t *pkg , int verbose) {
+clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   int rc;
   char *url = NULL;
   char *file = NULL;
   char *tarball = NULL;
   char *command = NULL;
-  char *dir = NULL;
+  char *unpack_dir = NULL;
   char *deps = NULL;
   char *tmp = NULL;
   char *reponame = NULL;
@@ -961,12 +963,12 @@ clib_package_install_executable(clib_package_t *pkg , int verbose) {
     (void) version++;
   }
 
-  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, version);
+  E_FORMAT(&unpack_dir, "%s/%s-%s", tmp, reponame, version);
 
-  _debug("dir: %s", dir);
+  _debug("dir: %s", unpack_dir);
 
   if (pkg->dependencies) {
-    E_FORMAT(&deps, "%s/deps", dir);
+    E_FORMAT(&deps, "%s/deps", unpack_dir);
     _debug("deps: %s", deps);
     rc = clib_package_install_dependencies(pkg, deps, verbose);
     if (-1 == rc) goto cleanup;
@@ -982,14 +984,22 @@ clib_package_install_executable(clib_package_t *pkg , int verbose) {
     setenv("PREFIX", path, 1);
   }
 
-  E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
+  char dir_path[PATH_MAX] = { 0 };
+  realpath(dir, dir_path);
+  E_FORMAT(&command
+      , "cp %s/%s/%s %s && cd %s && %s"
+      , dir_path
+      , pkg->name
+      , basename(pkg->makefile)
+      , unpack_dir
+      , unpack_dir
+      , pkg->install);
 
   _debug("command: %s", command);
   rc = system(command);
 
 cleanup:
   free(tmp);
-  free(dir);
   free(command);
   free(tarball);
   free(file);
@@ -1052,7 +1062,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   if (pkg->makefile) {
     _debug("fetch: %s/%s", pkg->repo, pkg->makefile);
     void *fetch = 0;
-    int rc = fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose, &fetch);
+    rc = fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose, &fetch);
     if (0 != rc) {
       goto cleanup;
     }
@@ -1172,7 +1182,7 @@ download:
 
 install:
   if (pkg->install) {
-    rc = clib_package_install_executable(pkg, verbose);
+    rc = clib_package_install_executable(pkg, dir, verbose);
   } else {
     rc = 0;
   }
