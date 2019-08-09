@@ -11,12 +11,15 @@
 #include <unistd.h>
 #endif
 
+#include <limits.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 #include <curl/curl.h>
+#include "asprintf/asprintf.h"
+#include "tempdir/tempdir.h"
 #include "strdup/strdup.h"
 #include "parson/parson.h"
 #include "substr/substr.h"
@@ -75,8 +78,14 @@ debug_t _debugger;
   debug(&_debugger, __VA_ARGS__);                                \
 })
 
+#define E_FORMAT(...) ({      \
+  rc = asprintf(__VA_ARGS__); \
+  if (-1 == rc) goto cleanup; \
+});
+
 static clib_package_opts_t opts = {
    .skip_cache = 1,
+   .prefix = 0,
    .force = 0,
 };
 
@@ -108,8 +117,25 @@ install_packages(list_t *, const char *, int);
 
 void
 clib_package_set_opts(clib_package_opts_t o) {
-  opts.skip_cache = o.skip_cache;
-  opts.force = o.force;
+  if (1 == opts.skip_cache && 0 == o.skip_cache) {
+    opts.skip_cache = 0;
+  } else if (0 == opts.skip_cache && 1 == o.skip_cache) {
+    opts.skip_cache = 1;
+  }
+
+  if (1 == opts.force && 0 == o.force) {
+    opts.force = 0;
+  } else if (0 == opts.force && 1 == o.force) {
+    opts.force = 1;
+  }
+
+  if (0 != o.prefix) {
+    if (0 == strlen(o.prefix)) {
+      opts.prefix = 0;
+    } else {
+      opts.prefix = o.prefix;
+    }
+  }
 }
 
 /**
@@ -859,6 +885,118 @@ fetch_package_file(
 #endif
 }
 
+int
+clib_package_install_executable(clib_package_t *pkg , int verbose) {
+  int rc;
+  char *url = NULL;
+  char *file = NULL;
+  char *tarball = NULL;
+  char *command = NULL;
+  char *dir = NULL;
+  char *deps = NULL;
+  char *tmp = NULL;
+  char *reponame = NULL;
+
+  _debug("install executable %s", pkg->repo);
+
+  tmp = gettempdir();
+  if (NULL == tmp) {
+    logger_error("error", "gettempdir() out of memory");
+    return -1;
+  }
+
+  if (!pkg->repo) {
+    logger_error("error", "repo field required to install executable");
+    return -1;
+  }
+
+  reponame = strrchr(pkg->repo, '/');
+  if (reponame && *reponame != '\0') reponame++;
+  else {
+    logger_error(
+      "error",
+      "malformed repo field, must be in the form user/pkg");
+    return -1;
+  }
+
+  E_FORMAT(&url
+    , "https://github.com/%s/archive/%s.tar.gz"
+    , pkg->repo
+    , pkg->version);
+
+  E_FORMAT(&file
+    , "%s-%s.tar.gz"
+    , reponame
+    , pkg->version);
+
+  E_FORMAT(&tarball
+    , "%s/%s"
+    , tmp, file);
+
+  rc = http_get_file_shared(url, tarball, clib_package_curl_share);
+
+  if (0 != rc) {
+    logger_error("error"
+      , "download failed for '%s@%s' - HTTP GET '%s'"
+      , pkg->repo
+      , pkg->version
+      , url);
+
+    goto cleanup;
+  }
+
+  E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
+
+  _debug("download url: %s", url);
+  _debug("file: %s", file);
+  _debug("tarball: %s", tarball);
+  _debug("command: %s", command);
+
+  // cheap untar
+  rc = system(command);
+  if (0 != rc) goto cleanup;
+
+  char *version = pkg->version;
+  if ('v' == version[0]) {
+    (void) version++;
+  }
+
+  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, version);
+
+  _debug("dir: %s", dir);
+
+  if (pkg->dependencies) {
+    E_FORMAT(&deps, "%s/deps", dir);
+    _debug("deps: %s", deps);
+    rc = clib_package_install_dependencies(pkg, deps, verbose);
+    if (-1 == rc) goto cleanup;
+  }
+
+  free(command);
+  command = NULL;
+
+  if (NULL != opts.prefix) {
+    char path[PATH_MAX] = { 0 };
+    realpath(opts.prefix, path);
+    _debug("env: PREFIX: %s", path);
+    setenv("PREFIX", path, 1);
+  }
+
+  E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
+
+  _debug("command: %s", command);
+  rc = system(command);
+
+cleanup:
+  free(tmp);
+  free(dir);
+  free(command);
+  free(tarball);
+  free(file);
+  free(url);
+  return rc;
+}
+
 /**
  * Install the given `pkg` in `dir`
  */
@@ -868,7 +1006,10 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   list_iterator_t *iterator = NULL;
   char *package_json = NULL;
   char *pkg_dir = NULL;
+  int pending = 0;
+  int max = 4;
   int rc = -1;
+  int i = 0;
 
 #ifdef HAVE_PTHREADS
     fetch_package_file_thread_data_t **fetchs = 0;
@@ -878,14 +1019,10 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       }
     }
 
-    if (!fetchs) {
-      goto cleanup;
+    if (fetchs) {
+      memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
     }
 
-    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-    int pending = 0;
-    int max = 4;
-    int i = 0;
 #endif
 
   if (!pkg || !dir) goto cleanup;
@@ -951,89 +1088,99 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
 download:
-    iterator = list_iterator_new(pkg->src, LIST_HEAD);
-    list_node_t *source;
+  iterator = list_iterator_new(pkg->src, LIST_HEAD);
+  list_node_t *source;
 
-    while ((source = list_iterator_next(iterator))) {
-      void *fetch = NULL;
-      rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
+  while ((source = list_iterator_next(iterator))) {
+    void *fetch = NULL;
+    rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
 
-      if (0 != rc) {
-        list_iterator_destroy(iterator);
-        iterator = NULL;
-        rc = -1;
-        goto cleanup;
-      }
+    if (0 != rc) {
+      list_iterator_destroy(iterator);
+      iterator = NULL;
+      rc = -1;
+      goto cleanup;
+    }
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-      usleep(1024 * 10);
+    usleep(1024 * 10);
 #endif
 
 #ifdef HAVE_PTHREADS
-      if (i < 0) {
-        i = 0;
-      }
+    if (i < 0) {
+      i = 0;
+    }
 
-      fetchs[i] = fetch;
+    fetchs[i] = fetch;
 
-      (void) pending++;
+    (void) pending++;
 
-      if (i < max) {
-        (void) i++;
-      } else {
-        while (--i >= 0) {
-          fetch_package_file_thread_data_t *data = fetchs[i];
-          int *status = 0;
-          pthread_join(data->thread, (void **) status);
-          free(data);
-          fetchs[i] = NULL;
+    if (i < max) {
+      (void) i++;
+    } else {
+      while (--i >= 0) {
+        fetch_package_file_thread_data_t *data = fetchs[i];
+        int *status = 0;
+        pthread_join(data->thread, (void **) status);
+        free(data);
+        fetchs[i] = NULL;
 
-          (void) pending--;
+        (void) pending--;
 
-          if (0 != status) {
-            rc = *status;
-            status = 0;
-          }
-
-          if (0 != rc) {
-            rc = -1;
-            goto cleanup;
-          }
-
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-          usleep(1024 * 10);
-#endif
+        if (0 != status) {
+          rc = *status;
+          status = 0;
         }
-      }
+
+        if (0 != rc) {
+          rc = -1;
+          goto cleanup;
+        }
+
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+        usleep(1024 * 10);
 #endif
+      }
     }
+#endif
+  }
 
 #ifdef HAVE_PTHREADS
-    while (--i >= 0) {
-      fetch_package_file_thread_data_t *data = fetchs[i];
-      int *status = 0;
+  while (--i >= 0) {
+    fetch_package_file_thread_data_t *data = fetchs[i];
+    int *status = 0;
 
-      pthread_join(data->thread, (void **) status);
+    pthread_join(data->thread, (void **) status);
 
-      (void) pending--;
-      free(data);
-      fetchs[i] = NULL;
+    (void) pending--;
+    free(data);
+    fetchs[i] = NULL;
 
-      if (0 != status) {
-        rc = *status;
-        status = 0;
-      }
-
-      if (0 != rc) {
-        rc = -1;
-        goto cleanup;
-      }
+    if (0 != status) {
+      rc = *status;
+      status = 0;
     }
+
+    if (0 != rc) {
+      rc = -1;
+      goto cleanup;
+    }
+  }
 #endif
 
-    clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+  clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
 
 install:
+  if (pkg->install) {
+    rc = clib_package_install_executable(pkg, verbose);
+  } else {
+    rc = 0;
+  }
+
+  if (0 != rc) {
+    goto cleanup;
+  }
+
   rc = clib_package_install_dependencies(pkg, dir, verbose);
 
 cleanup:

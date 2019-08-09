@@ -41,6 +41,7 @@ typedef struct {
 typedef struct {
     int skip_cache;
     int force;
+    char *prefix;
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;
@@ -71,6 +72,9 @@ clib_package_parse_name(const char *);
 
 clib_package_dependency_t *
 clib_package_dependency_new(const char *, const char *);
+
+int
+clib_package_install_executable(clib_package_t *pkg, int verbose);
 
 int
 clib_package_install(clib_package_t *, const char *, int);
