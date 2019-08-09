@@ -11,9 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "asprintf/asprintf.h"
 #include "fs/fs.h"
-#include "tempdir/tempdir.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
 #include "clib-cache/cache.h"
@@ -28,18 +26,13 @@
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
-#define E_FORMAT(...) ({      \
-  rc = asprintf(__VA_ARGS__); \
-  if (-1 == rc) goto cleanup; \
-});
-
 extern CURLSH *clib_package_curl_share;
 
 debug_t debugger = { 0 };
 
 struct options {
   const char *dir;
-  const char *prefix;
+  char *prefix;
   int verbose;
   int dev;
   int save;
@@ -121,6 +114,7 @@ install_local_packages_with_package_name(const char *file) {
   char *json = fs_read(file);
   if (NULL == json) return 1;
 
+
   clib_package_t *pkg = clib_package_new(json, opts.verbose);
   if (NULL == pkg) goto e1;
 
@@ -157,118 +151,6 @@ install_local_packages() {
     rc = install_local_packages_with_package_name(name);
   } while (NULL != package_names[++i] && 0 != rc);
 
-  return rc;
-}
-
-static int
-executable(clib_package_t *pkg) {
-  int rc;
-  char *url = NULL;
-  char *file = NULL;
-  char *tarball = NULL;
-  char *command = NULL;
-  char *dir = NULL;
-  char *deps = NULL;
-  char *tmp = NULL;
-  char *reponame = NULL;
-
-  debug(&debugger, "install executable %s", pkg->repo);
-
-  tmp = gettempdir();
-  if (NULL == tmp) {
-    logger_error("error", "gettempdir() out of memory");
-    return -1;
-  }
-
-  if (!pkg->repo) {
-    logger_error("error", "repo field required to install executable");
-    return -1;
-  }
-
-  reponame = strrchr(pkg->repo, '/');
-  if (reponame && *reponame != '\0') reponame++;
-  else {
-    logger_error(
-      "error",
-      "malformed repo field, must be in the form user/pkg");
-    return -1;
-  }
-
-  E_FORMAT(&url
-    , "https://github.com/%s/archive/%s.tar.gz"
-    , pkg->repo
-    , pkg->version);
-
-  E_FORMAT(&file
-    , "%s-%s.tar.gz"
-    , reponame
-    , pkg->version);
-
-  E_FORMAT(&tarball
-    , "%s/%s"
-    , tmp, file);
-
-  rc = http_get_file_shared(url, tarball, clib_package_curl_share);
-
-  if (0 != rc) {
-    logger_error("error"
-      , "download failed for '%s@%s' - HTTP GET '%s'"
-      , pkg->repo
-      , pkg->version
-      , url);
-
-    goto cleanup;
-  }
-
-  E_FORMAT(&command, "cd %s && gzip -dc %s | tar x", tmp, file);
-
-  debug(&debugger, "download url: %s", url);
-  debug(&debugger, "file: %s", file);
-  debug(&debugger, "tarball: %s", tarball);
-  debug(&debugger, "command: %s", command);
-
-  // cheap untar
-  rc = system(command);
-  if (0 != rc) goto cleanup;
-
-  char *version = pkg->version;
-  if ('v' == version[0]) {
-    (void) version++;
-  }
-
-  E_FORMAT(&dir, "%s/%s-%s", tmp, reponame, version);
-
-  debug(&debugger, "dir: %s", dir);
-
-  if (pkg->dependencies) {
-    E_FORMAT(&deps, "%s/deps", dir);
-    debug(&debugger, "deps: %s", deps);
-    rc = clib_package_install_dependencies(pkg, deps, opts.verbose);
-    if (-1 == rc) goto cleanup;
-  }
-
-  free(command);
-  command = NULL;
-
-  if (NULL != opts.prefix) {
-    char path[PATH_MAX] = { 0 };
-    realpath(opts.prefix, path);
-    debug(&debugger, "env: PREFIX: %s", path);
-    setenv("PREFIX", path, 1);
-  }
-
-  E_FORMAT(&command, "cd %s && %s", dir, pkg->install);
-
-  debug(&debugger, "command: %s", command);
-  rc = system(command);
-
-cleanup:
-  free(tmp);
-  free(dir);
-  free(command);
-  free(tarball);
-  free(file);
-  free(url);
   return rc;
 }
 
@@ -343,11 +225,6 @@ install_package(const char *slug) {
 
   if (NULL == pkg) return -1;
 
-  if (pkg->install) {
-    rc = executable(pkg);
-    goto cleanup;
-  }
-
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
   if (0 != rc) {
     goto cleanup;
@@ -360,6 +237,7 @@ install_package(const char *slug) {
     }
   }
 
+save:
   if (opts.save) save_dependency(pkg);
   if (opts.savedev) save_dev_dependency(pkg);
 
@@ -460,6 +338,7 @@ main(int argc, char *argv[]) {
 
   clib_package_set_opts((clib_package_opts_t) {
     .skip_cache = opts.skip_cache,
+    .prefix = opts.prefix,
     .force = opts.force
   });
 
