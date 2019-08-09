@@ -459,7 +459,7 @@ main(int argc, char *argv[]) {
   }
 
   clib_package_set_opts((clib_package_opts_t) {
-    .skip_cache = 0,
+    .skip_cache = opts.skip_cache,
     .force = opts.force
   });
 
