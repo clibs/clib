@@ -37,7 +37,7 @@ struct options {
 
 static struct options opts;
 
-static const char *package_names[] = {
+static const char *manifest_names[] = {
   "clib.json",
   "package.json",
   NULL
@@ -128,9 +128,9 @@ install_local_packages() {
   int rc = 0;
 
   do {
-    name = package_names[i];
+    name = manifest_names[i];
     rc = install_local_packages_with_package_name(name);
-  } while (NULL != package_names[++i] && 0 != rc);
+  } while (NULL != manifest_names[++i] && 0 != rc);
 
   return rc;
 }
@@ -265,9 +265,9 @@ write_dependency(clib_package_t *pkg, char* prefix) {
   int rc = 0;
 
   do {
-    name = package_names[i];
+    name = manifest_names[i];
     rc = write_dependency_with_package_name(pkg, prefix, name);
-  } while (NULL != package_names[++i] && 0 != rc);
+  } while (NULL != manifest_names[++i] && 0 != rc);
 
   return rc;
 }
