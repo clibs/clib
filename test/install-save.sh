@@ -1,5 +1,8 @@
 #!/bin/sh
+
+rm -rf tmp
 mkdir -p tmp/test-save
+
 cp test/data/test-save-package.json tmp/test-save/package.json
 
 cd tmp/test-save || exit

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+rm -rf tmp
+mkdir -p tmp
+cd tmp || exit
+
 clib install --skip-cache stephenmathieson/tabs-to-spaces@1.0.0 > /dev/null || {
   echo >&2 "Failed to install stephenmathieson/tabs-to-spaces"
   exit 1
