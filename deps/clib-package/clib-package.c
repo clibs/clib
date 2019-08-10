@@ -987,7 +987,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   char dir_path[PATH_MAX] = { 0 };
   realpath(dir, dir_path);
   E_FORMAT(&command
-      , "cp %s/%s/%s %s && cd %s && %s"
+      , "cp -fr %s/%s/%s %s && cd %s && %s"
       , dir_path
       , pkg->name
       , basename(pkg->makefile)
