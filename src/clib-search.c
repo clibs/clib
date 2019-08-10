@@ -237,11 +237,11 @@ main(int argc, char *argv[]) {
   }
 
   if (opt_json) {
-      char *serialized = json_serialize_to_string_pretty(json_list_root);
-      puts(serialized);
+    char *serialized = json_serialize_to_string_pretty(json_list_root);
+    puts(serialized);
 
-      json_free_serialized_string(serialized);
-      json_value_free(json_list_root);
+    json_free_serialized_string(serialized);
+    json_value_free(json_list_root);
   }
 
   list_iterator_destroy(it);
