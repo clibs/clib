@@ -10,7 +10,7 @@ N=$(clib search | wc -l)
   exit 1
 }
 
-TRIM=$(clib search trim)
+TRIM=$(clib search trim --skip-cache)
 case "$TRIM" in
   *"stephenmathieson/trim.c"*)
     :

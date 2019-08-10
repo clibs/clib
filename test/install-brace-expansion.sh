@@ -5,7 +5,7 @@ throw() {
   exit 1
 }
 
-clib install -o tmp stephenmathieson/trim.c stephenmathieson/case.c > /dev/null ||
+clib install --skip-cache -o tmp stephenmathieson/trim.c stephenmathieson/case.c > /dev/null ||
   throw "expecting successful exit code"
 
 [ -d ./tmp/case ] && [ -f ./tmp/case/package.json ] ||
