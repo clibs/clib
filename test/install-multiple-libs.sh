@@ -5,6 +5,10 @@ throw() {
   exit 1
 }
 
+rm -rf tmp
+mkdir -p tmp
+cd tmp || exit
+
 clib install --skip-cache -o tmp \
   stephenmathieson/case.c stephenmathieson/trim.c > /dev/null ||
   throw "expecting successful exit code"
