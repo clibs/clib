@@ -24,6 +24,7 @@
 #include "debug/debug.h"
 #include "version.h"
 #include "clib-cache/cache.h"
+#include "parson/parson.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
 #define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
@@ -32,6 +33,7 @@ debug_t debugger;
 
 static int opt_color;
 static int opt_cache;
+static int opt_json;
 
 static void
 setopt_nocolor(command_t *self) {
@@ -42,6 +44,12 @@ static void
 setopt_nocache(command_t *self) {
     opt_cache = 0;
 }
+
+static void
+setopt_json(command_t *self) {
+    opt_json = 1;
+}
+
 #define COMPARE(v) {                \
   if (NULL == v) {                  \
     rc = 0;                         \
@@ -115,6 +123,30 @@ set_cache:
   return html;
 }
 
+static void
+display_package(const wiki_package_t *pkg, cc_color_t fg_color_highlight, cc_color_t fg_color_text) {
+  cc_fprintf(fg_color_highlight, stdout, "  %s\n", pkg->repo);
+  printf("  url: ");
+  cc_fprintf(fg_color_text, stdout, "%s\n", pkg->href);
+  printf("  desc: ");
+  cc_fprintf(fg_color_text, stdout, "%s\n", pkg->description);
+  printf("\n");
+}
+
+static void
+add_package_to_json(const wiki_package_t *pkg, JSON_Array *json_list)
+{
+  JSON_Value *json_pkg_root = json_value_init_object();
+  JSON_Object *json_pkg = json_value_get_object(json_pkg_root);
+
+  json_object_set_string(json_pkg, "repo", pkg->repo);
+  json_object_set_string(json_pkg, "href", pkg->href);
+  json_object_set_string(json_pkg, "description", pkg->description);
+  json_object_set_string(json_pkg, "category", pkg->category);
+
+  json_array_append_value(json_list, json_pkg_root);
+}
+
 int
 main(int argc, char *argv[]) {
   opt_color = 1;
@@ -144,6 +176,14 @@ main(int argc, char *argv[]) {
     , setopt_nocache
   );
 
+  command_option(
+      &program
+    , "-j"
+    , "--json"
+    , "skip the search cache"
+    , setopt_json
+  );
+
   command_parse(&program, argc, argv);
 
   for (int i = 0; i < program.argc; i++) case_lower(program.argv[i]);
@@ -171,21 +211,37 @@ main(int argc, char *argv[]) {
   list_node_t *node;
   list_iterator_t *it = list_iterator_new(pkgs, LIST_HEAD);
 
+  JSON_Array *json_list = NULL;
+  JSON_Value *json_list_root = NULL;
+
+  if (opt_json) {
+    json_list_root = json_value_init_array();
+    json_list = json_value_get_array(json_list_root);
+  }
+
   printf("\n");
+
   while ((node = list_iterator_next(it))) {
     wiki_package_t *pkg = (wiki_package_t *) node->val;
     if (matches(program.argc, program.argv, pkg)) {
-      cc_fprintf(fg_color_highlight, stdout, "  %s\n", pkg->repo);
-      printf("  url: ");
-      cc_fprintf(fg_color_text, stdout, "%s\n", pkg->href);
-      printf("  desc: ");
-      cc_fprintf(fg_color_text, stdout, "%s\n", pkg->description);
-      printf("\n");
+      if (opt_json) {
+        add_package_to_json(pkg, json_list);
+      } else {
+        display_package(pkg, fg_color_highlight, fg_color_text);
+      }
     } else {
       debug(&debugger, "skipped package %s", pkg->repo);
     }
 
     wiki_package_free(pkg);
+  }
+
+  if (opt_json) {
+    char *serialized = json_serialize_to_string_pretty(json_list_root);
+    puts(serialized);
+
+    json_free_serialized_string(serialized);
+    json_value_free(json_list_root);
   }
 
   list_iterator_destroy(it);
