@@ -1,7 +1,7 @@
 #!/bin/sh
 
 color_tests() {
-  cmd="./clib-search $1"
+  cmd="./clib-search --skip-cache $1"
   stdout=$($cmd)
   # lame check for color
   case "$stdout" in
