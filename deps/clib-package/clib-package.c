@@ -391,6 +391,7 @@ clib_package_new(const char *json, int verbose) {
   pkg->version = json_object_get_string_safe(json_object, "version");
   pkg->license = json_object_get_string_safe(json_object, "license");
   pkg->description = json_object_get_string_safe(json_object, "description");
+  pkg->configure = json_object_get_string_safe(json_object, "configure");
   pkg->install = json_object_get_string_safe(json_object, "install");
   pkg->makefile = json_object_get_string_safe(json_object, "makefile");
 
@@ -952,7 +953,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   _debug("download url: %s", url);
   _debug("file: %s", file);
   _debug("tarball: %s", tarball);
-  _debug("command: %s", command);
+  _debug("command(extract): %s", command);
 
   // cheap untar
   rc = system(command);
@@ -995,7 +996,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
       , unpack_dir
       , pkg->install);
 
-  _debug("command: %s", command);
+  _debug("command(install): %s", command);
   rc = system(command);
 
 cleanup:
@@ -1016,6 +1017,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   list_iterator_t *iterator = NULL;
   char *package_json = NULL;
   char *pkg_dir = NULL;
+  char *command = NULL;
   int pending = 0;
   int max = 4;
   int rc = -1;
@@ -1181,6 +1183,19 @@ download:
   clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
 
 install:
+  if (pkg->configure) {
+      E_FORMAT(&command
+        , "cd %s/%s && %s"
+        , dir
+        , pkg->name
+        , pkg->configure);
+
+      _debug("command(configure): %s", command);
+
+      rc = system(command);
+      if (0 != rc) goto cleanup;
+  }
+
   if (pkg->install) {
     rc = clib_package_install_executable(pkg, dir, verbose);
   } else {
@@ -1197,6 +1212,7 @@ cleanup:
   if (pkg_dir) free(pkg_dir);
   if (package_json) free(package_json);
   if (iterator) list_iterator_destroy(iterator);
+  if (command) free(command);
 #ifdef HAVE_PTHREADS
   if (NULL != pkg && NULL != pkg->src) {
     if (pkg->src->len > 0) {
