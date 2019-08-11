@@ -19,6 +19,7 @@
     "littlstar/asprintf.c": "0.0.3",
     "logger": "0.0.1",
     "clibs/parson": "1.0.2",
-    "clibs/http-get.c": "next"
+    "clibs/http-get.c": "next",
+    "semver": "master"
   }
 }
