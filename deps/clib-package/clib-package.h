@@ -22,6 +22,7 @@ typedef struct {
   char *author;
   char *description;
   char *install;
+  char *configure;
   char *json;
   char *license;
   char *name;
