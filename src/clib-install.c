@@ -237,6 +237,9 @@ install_package(const char *slug) {
     }
   }
 
+  if (0 != strcmp(slug, pkg->repo)) {
+    pkg->repo = strdup(slug);
+  }
 save:
   if (opts.save) save_dependency(pkg);
   if (opts.savedev) save_dev_dependency(pkg);
