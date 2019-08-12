@@ -30,10 +30,11 @@ static const char *usage =
   "\n"
   "  Commands:\n"
   "\n"
-  "    init               Start a new project\n"
-  "    install [name...]  Install one or more packages\n"
-  "    search [query]     Search for packages\n"
-  "    help <cmd>         Display help for cmd\n"
+  "    init                 Start a new project\n"
+  "    install [name...]    Install one or more packages\n"
+  "    configure [name...]  Configure one or more packages\n"
+  "    search [query]       Search for packages\n"
+  "    help <cmd>           Display help for cmd\n"
   "";
 
 #define format(...) ({                               \
