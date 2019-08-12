@@ -535,7 +535,7 @@ download:
   pkg = clib_package_new(json, verbose);
 
   // cache json
-  if (pkg->author && pkg->name && pkg->version && json) {
+  if (pkg && pkg->author && pkg->name && pkg->version && json) {
     clib_cache_save_json(pkg->author, pkg->name, pkg->version, json);
   }
 
