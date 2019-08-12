@@ -5,3 +5,4 @@ clib-search
 *.o
 tmp/
 /clib-init
+/clib-configure
