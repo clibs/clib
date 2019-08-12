@@ -22,7 +22,6 @@
 #include "str-concat/str-concat.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
-#include "clib-cache/cache.h"
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
@@ -237,10 +236,10 @@ install_package(const char *slug) {
     }
   }
 
-  if (0 != strcmp(slug, pkg->repo)) {
+  if (0 == pkg->repo || 0 != strcmp(slug, pkg->repo)) {
     pkg->repo = strdup(slug);
   }
-save:
+
   if (opts.save) save_dependency(pkg);
   if (opts.savedev) save_dev_dependency(pkg);
 
