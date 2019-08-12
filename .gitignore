@@ -3,5 +3,6 @@ clib
 clib-install
 clib-search
 *.o
+*.d
 tmp/
 /clib-init
