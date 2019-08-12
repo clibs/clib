@@ -40,11 +40,8 @@ all: $(BINS)
 $(BINS): $(SRC) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
-%.o: %.c %.d
-	$(CC) $< -c -o $@ $(CFLAGS)
-
-%.d: %.c
-	$(CC) $(CFLAGS) -MM -MT"$@ $(@:.d=.o)" -MP -MF $@ $<
+%.o: %.c
+	$(CC) $< -c -o $@ $(CFLAGS) -MMD
 
 clean:
 	$(foreach c, $(BINS), $(RM) $(c);)
