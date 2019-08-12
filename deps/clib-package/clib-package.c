@@ -374,11 +374,15 @@ clib_package_new(const char *json, int verbose) {
 
   if (!json) goto cleanup;
   if (!(root = json_parse_string(json))) {
-    logger_error("error", "unable to parse json");
+    if (verbose) {
+      logger_error("error", "unable to parse json");
+    }
     goto cleanup;
   }
   if (!(json_object = json_value_get_object(root))) {
-    logger_error("error", "invalid clib.json or package.json file");
+    if (verbose) {
+      logger_error("error", "invalid clib.json or package.json file");
+    }
     goto cleanup;
   }
   if (!(pkg = malloc(sizeof(clib_package_t)))) goto cleanup;
@@ -403,7 +407,12 @@ clib_package_new(const char *json, int verbose) {
     // repo name may not be package name (thing.c -> thing)
     pkg->repo_name = parse_repo_name(pkg->repo);
   } else {
-    if (verbose) logger_warn("warning", "missing repo in clib.json or package.json file");
+    if (verbose) {
+      logger_warn(
+        "warning",
+        "missing repo in clib.json or package.json file for %s",
+        pkg->name);
+    }
     pkg->author = NULL;
     pkg->repo_name = NULL;
   }
@@ -504,7 +513,9 @@ download:
       json = res->data;
       _debug("status: %d", res->status);
       if (!res || !res->ok) {
-        logger_warn("warning", "unable to fetch %s/%s:%s", author, name, file);
+        if (verbose) {
+          logger_warn("warning", "unable to fetch %s/%s:%s", author, name, file);
+        }
         goto download;
       }
       log = "fetch";
@@ -522,6 +533,12 @@ download:
 
   // build package
   pkg = clib_package_new(json, verbose);
+
+  // cache json
+  if (pkg->author && pkg->name && pkg->version && json) {
+    clib_cache_save_json(pkg->author, pkg->name, pkg->version, json);
+  }
+
   if (res) {
     http_get_free(res);
   } else {
@@ -774,16 +791,18 @@ fetch_package_file_work(
 
 
   if (-1 == rc) {
+    if (verbose) {
 #ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock.mutex);
+      pthread_mutex_lock(&lock.mutex);
 #endif
-    logger_error("error", "unable to fetch %s:%s", pkg->repo, file);
-    fflush(stderr);
-    rc = 1;
+      logger_error("error", "unable to fetch %s:%s", pkg->repo, file);
+      fflush(stderr);
+      rc = 1;
 #ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock.mutex);
+      pthread_mutex_unlock(&lock.mutex);
 #endif
-    goto cleanup;
+      goto cleanup;
+    }
   }
 
   if (saved) {
@@ -904,21 +923,27 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
 
   tmp = gettempdir();
   if (NULL == tmp) {
-    logger_error("error", "gettempdir() out of memory");
+    if (verbose) {
+      logger_error("error", "gettempdir() out of memory");
+    }
     return -1;
   }
 
   if (!pkg->repo) {
-    logger_error("error", "repo field required to install executable");
+    if (verbose) {
+      logger_error("error", "repo field required to install executable");
+    }
     return -1;
   }
 
   reponame = strrchr(pkg->repo, '/');
   if (reponame && *reponame != '\0') reponame++;
   else {
-    logger_error(
-      "error",
-      "malformed repo field, must be in the form user/pkg");
+    if (verbose) {
+      logger_error(
+        "error",
+        "malformed repo field, must be in the form user/pkg");
+    }
     return -1;
   }
 
@@ -939,11 +964,13 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   rc = http_get_file_shared(url, tarball, clib_package_curl_share);
 
   if (0 != rc) {
-    logger_error("error"
-      , "download failed for '%s@%s' - HTTP GET '%s'"
-      , pkg->repo
-      , pkg->version
-      , url);
+    if (verbose) {
+      logger_error("error"
+        , "download failed for '%s@%s' - HTTP GET '%s'"
+        , pkg->repo
+        , pkg->version
+        , url);
+    }
 
     goto cleanup;
   }
@@ -985,10 +1012,16 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     setenv("PREFIX", path, 1);
   }
 
+  const char *configure = pkg->configure;
+
+  if (0 == configure) {
+    configure = ":";
+  }
+
   char dir_path[PATH_MAX] = { 0 };
   realpath(dir, dir_path);
   E_FORMAT(&command
-      , "cp -fr %s/%s/%s %s && cd %s && %s"
+      , "cp -fr %s/%s/%s %s && cd %s && %s && %s"
       , dir_path
       , pkg->name
       , basename(pkg->makefile)
@@ -1056,7 +1089,9 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   if (!(package_json = path_join(pkg_dir, pkg->filename))) goto cleanup;
   _debug("write: %s", package_json);
   if (-1 == fs_write(package_json, pkg->json)) {
-    logger_error("error", "Failed to write %s", package_json);
+    if (verbose) {
+      logger_error("error", "Failed to write %s", package_json);
+    }
     goto cleanup;
   }
 
@@ -1095,7 +1130,9 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       goto download;
     }
 
-    logger_info("cache", pkg->repo);
+    if (verbose) {
+      logger_info("cache", pkg->repo);
+    }
     goto install;
   }
 
@@ -1268,38 +1305,20 @@ clib_package_free(clib_package_t *pkg) {
     return;
   }
 
-  free(pkg->author);
-  pkg->author = 0;
-
-  free(pkg->description);
-  pkg->description = 0;
-
-  free(pkg->install);
-  pkg->install = 0;
-
-  free(pkg->json);
-  pkg->json = 0;
-
-  free(pkg->license);
-  pkg->license = 0;
-
-  free(pkg->name);
-  pkg->name = 0;
-
-  free(pkg->makefile);
-  pkg->makefile = 0;
-
-  free(pkg->repo);
-  pkg->repo = 0;
-
-  free(pkg->repo_name);
-  pkg->repo_name = 0;
-
-  free(pkg->url);
-  pkg->url = 0;
-
-  free(pkg->version);
-  pkg->version = 0;
+#define FREE(k) if (pkg->k) { free(pkg->k); pkg->k = 0; }
+  FREE(author);
+  FREE(description);
+  FREE(install);
+  FREE(json);
+  FREE(license);
+  FREE(name);
+  FREE(makefile);
+  FREE(configure);
+  FREE(repo);
+  FREE(repo_name);
+  FREE(url);
+  FREE(version);
+#undef FREE
 
   if (pkg->src) list_destroy(pkg->src);
   pkg->src = 0;
