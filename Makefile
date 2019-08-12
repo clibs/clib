@@ -40,12 +40,16 @@ all: $(BINS)
 $(BINS): $(SRC) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
-%.o: %.c
+%.o: %.c %.d
 	$(CC) $< -c -o $@ $(CFLAGS)
+
+%.d: %.c
+	$(CC) $(CFLAGS) -MM -MT"$@ $(@:.d=.o)" -MP -MF $@ $<
 
 clean:
 	$(foreach c, $(BINS), $(RM) $(c);)
 	$(RM) $(OBJS)
+	$(RM) $(AUTODEPS)
 
 install: $(BINS)
 	$(MKDIR) $(PREFIX)/bin
@@ -56,5 +60,12 @@ uninstall:
 
 test:
 	@./test.sh
+
+# create a list of auto dependencies
+AUTODEPS:= $(patsubst %.c,%.d, $(DEPS)) $(patsubst %.c,%.d, $(SRC))
+
+# include by auto dependencies
+-include $(AUTODEPS)
+
 
 .PHONY: test all clean install uninstall
