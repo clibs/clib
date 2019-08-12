@@ -1,7 +1,7 @@
 CC     ?= cc
 PREFIX ?= /usr/local
 
-BINS = clib clib-install clib-search clib-init
+BINS = clib clib-install clib-search clib-init clib-configure
 
 ifdef EXE
 	BINS := $(addsuffix .exe,$(BINS))
@@ -12,8 +12,11 @@ RM      = rm -f
 MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
-DEPS = $(wildcard deps/*/*.c)
+SDEPS = $(wildcard deps/*/*.c)
+ODEPS = $(SDEPS:.c=.o)
+DEPS = $(filter-out $(ODEPS), $(SDEPS))
 OBJS = $(DEPS:.c=.o)
+MAKEFILES = $(wildcard deps/*/Makefile)
 
 export CC
 
@@ -37,8 +40,11 @@ endif
 
 all: $(BINS)
 
-$(BINS): $(SRC) $(OBJS)
+$(BINS): $(SRC) $(MAKEFILES) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
+
+$(MAKEFILES):
+	$(MAKE) -C $@
 
 %.o: %.c
 	$(CC) $< -c -o $@ $(CFLAGS) -MMD
