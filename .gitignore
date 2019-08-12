@@ -6,3 +6,4 @@ clib-search
 *.d
 tmp/
 /clib-init
+/clib-configure
