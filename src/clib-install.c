@@ -353,6 +353,7 @@ main(int argc, char *argv[]) {
     : install_packages(program.argc, program.argv);
 
   curl_global_cleanup();
+  clib_package_cleanup();
 
   command_free(&program);
   return code;
