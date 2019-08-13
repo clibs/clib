@@ -960,22 +960,6 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     return -1;
   }
 
-  char *version = pkg->version;
-  if ('v' == version[0]) {
-    (void) version++;
-  }
-
-  E_FORMAT(&unpack_dir, "%s/%s-%s", tmp, reponame, version);
-
-  _debug("dir: %s", unpack_dir);
-
-  if (pkg->dependencies) {
-    E_FORMAT(&deps, "%s/deps", unpack_dir);
-    _debug("deps: %s", deps);
-    rc = clib_package_install_dependencies(pkg, deps, verbose);
-    if (-1 == rc) goto cleanup;
-  }
-
   E_FORMAT(&url
     , "https://github.com/%s/archive/%s.tar.gz"
     , pkg->repo
@@ -1024,6 +1008,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     realpath(opts.prefix, path);
     _debug("env: PREFIX: %s", path);
     setenv("PREFIX", path, 1);
+    mkdirp(path, 0777);
   }
 
   const char *configure = pkg->configure;
@@ -1034,6 +1019,22 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
 
   memset(dir_path, 0, path_max);
   realpath(dir, dir_path);
+
+  char *version = pkg->version;
+  if ('v' == version[0]) {
+    (void) version++;
+  }
+
+  E_FORMAT(&unpack_dir, "%s/%s-%s", tmp, reponame, version);
+
+  _debug("dir: %s", unpack_dir);
+
+  if (pkg->dependencies) {
+    E_FORMAT(&deps, "%s/deps", unpack_dir);
+    _debug("deps: %s", deps);
+    rc = clib_package_install_dependencies(pkg, deps, verbose);
+    if (-1 == rc) goto cleanup;
+  }
 
   if (pkg->makefile) {
     E_FORMAT(&command
@@ -1079,9 +1080,38 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   char *command = NULL;
   int pending = 0;
   int max = 4;
-  int rc = -1;
+  int rc = 0;
   int i = 0;
 
+#ifdef CLIB_PACKAGE_PREFIX
+  if (0 == opts.prefix) {
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+    opts.prefix = CLIB_PACKAGE_PREFIX;
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
+  }
+#endif
+
+  if (0 == opts.prefix) {
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+#ifdef _GNU_SOURCE
+    char *prefix = secure_getenv("PREFIX");
+#else
+    char *prefix = getenv("PREFIX");
+#endif
+
+    if (prefix) {
+      opts.prefix = prefix;
+    }
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
+  }
 
   if (0 == visited_packages) {
 #ifdef HAVE_PTHREADS
@@ -1128,28 +1158,47 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
 
 #endif
 
-  if (!pkg || !dir) goto cleanup;
-  if (!(pkg_dir = path_join(dir, pkg->name))) goto cleanup;
+  if (!pkg || !dir) {
+    rc = -1;
+    goto cleanup;
+  }
+
+  if (!(pkg_dir = path_join(dir, pkg->name))) {
+    rc = -1;
+    goto cleanup;
+  }
 
   _debug("mkdir -p %s", pkg_dir);
   // create directory for pkg
-  if (-1 == mkdirp(pkg_dir, 0777)) goto cleanup;
+  if (-1 == mkdirp(pkg_dir, 0777)) {
+    rc = -1;
+    goto cleanup;
+  }
 
   if (NULL == pkg->url) {
     pkg->url = clib_package_url(pkg->author
       , pkg->repo_name
       , pkg->version);
 
-    if (NULL == pkg->url) goto cleanup;
+    if (NULL == pkg->url) {
+      rc = -1;
+      goto cleanup;
+    }
   }
 
   // write clib.json or package.json
-  if (!(package_json = path_join(pkg_dir, pkg->filename))) goto cleanup;
+  if (!(package_json = path_join(pkg_dir, pkg->filename))) {
+    rc = -1;
+    goto cleanup;
+  }
+
   _debug("write: %s", package_json);
   if (-1 == fs_write(package_json, pkg->json)) {
     if (verbose) {
       logger_error("error", "Failed to write %s", package_json);
     }
+
+    rc = -1;
     goto cleanup;
   }
 
@@ -1162,10 +1211,6 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     pthread_mutex_unlock(&lock.mutex);
 #endif
   }
-
-  rc = clib_package_install_dependencies(pkg, dir, verbose);
-
-  if (-1 == rc) goto cleanup;
 
   // fetch makefile
   if (pkg->makefile) {
@@ -1305,14 +1350,13 @@ install:
       if (0 != rc) goto cleanup;
   }
 
-  if (pkg->install) {
+
+  if (0 == rc && pkg->install) {
     rc = clib_package_install_executable(pkg, dir, verbose);
-  } else {
-    rc = 0;
   }
 
-  if (0 != rc) {
-    goto cleanup;
+  if (0 == rc) {
+    rc = clib_package_install_dependencies(pkg, dir, verbose);
   }
 
 cleanup:
