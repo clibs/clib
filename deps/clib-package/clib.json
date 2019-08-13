@@ -19,7 +19,8 @@
     "logger": "0.0.1",
     "stephenmathieson/debug.c": "0.0.0",
     "clib-cache": "0.2.0",
-    "stephenmathieson/tempdir.c": "0.0.2"
+    "stephenmathieson/tempdir.c": "0.0.2",
+    "hash": "0.0.1"
   },
   "development": {
     "stephenmathieson/describe.h": "2.0.1",

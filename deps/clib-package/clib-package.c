@@ -32,6 +32,7 @@
 #include "clib-package.h"
 #include "clib-cache/cache.h"
 #include "fs/fs.h"
+#include "hash/hash.h"
 
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
@@ -46,6 +47,8 @@
 #endif
 
 #define GITHUB_CONTENT_URL "https://raw.githubusercontent.com/"
+
+static hash_t *visited_packages = 0;
 
 #ifdef HAVE_PTHREADS
 typedef struct fetch_package_file_thread_data fetch_package_file_thread_data_t;
@@ -1068,6 +1071,38 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   int rc = -1;
   int i = 0;
 
+
+  if (0 == visited_packages) {
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+
+    visited_packages = hash_new();
+    // initial write because sometimes `hash_set()` crashes
+    hash_set(visited_packages, strdup(""), "");
+
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
+  }
+
+  if (0 == opts.force && pkg && pkg->name){
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+
+    if (hash_has(visited_packages, pkg->name)) {
+#ifdef HAVE_PTHREADS
+      pthread_mutex_unlock(&lock.mutex);
+#endif
+      return 0;
+    }
+
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
+  }
+
 #ifdef HAVE_PTHREADS
     fetch_package_file_thread_data_t **fetchs = 0;
     if (NULL != pkg && NULL != pkg->src) {
@@ -1105,6 +1140,16 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
       logger_error("error", "Failed to write %s", package_json);
     }
     goto cleanup;
+  }
+
+  if (pkg->name) {
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+    hash_set(visited_packages, strdup(pkg->name), "t");
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
   }
 
   // fetch makefile
@@ -1352,4 +1397,17 @@ clib_package_dependency_free(void *_dep) {
   free(dep->author);
   free(dep->version);
   free(dep);
+}
+
+void
+clib_package_cleanup() {
+  if (0 != visited_packages) {
+    hash_each(visited_packages, {
+      free((void *) key);
+      (void) val;
+    });
+
+    hash_free(visited_packages);
+    visited_packages = 0;
+  }
 }
