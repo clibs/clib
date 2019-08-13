@@ -390,6 +390,7 @@ main(int argc, char **argv) {
   hash_free(configured);
   command_free(&program);
   curl_global_cleanup();
+  clib_package_cleanup();
 
   if (0 == rc) {
     if (opts.verbose) {
