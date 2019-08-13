@@ -1020,12 +1020,24 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
 
   char dir_path[PATH_MAX] = { 0 };
   realpath(dir, dir_path);
-  E_FORMAT(&command
-      , "cp -fr %s/%s/%s %s && cd %s && %s && %s"
-      , dir_path
-      , pkg->name
-      , basename(pkg->makefile)
-      , unpack_dir
+
+  if (pkg->makefile) {
+    E_FORMAT(&command
+        , "cp -fr %s/%s/%s %s"
+        , dir_path
+        , pkg->name
+        , basename(pkg->makefile)
+        , unpack_dir);
+
+    rc = system(command);
+    if (0 != rc) {
+      goto cleanup;
+    }
+
+    free(command);
+  }
+
+  E_FORMAT(&command, "cd %s && %s"
       , unpack_dir
       , pkg->install);
 
