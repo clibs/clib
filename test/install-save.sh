@@ -1,7 +1,10 @@
 #!/bin/sh
 
+export PREFIX=$PWD/tmp/
 rm -rf tmp
 mkdir -p tmp/test-save
+mkdir -p tmp/bin
+mkdir -p tmp/lib
 
 cp test/data/test-save-package.json tmp/test-save/package.json
 
@@ -10,7 +13,7 @@ cd tmp/test-save || exit
 ../../clib-install --skip-cache -S darthtrevino/str-concat@0.0.2 >/dev/null
 ../../clib-install --skip-cache --save-dev jwerle/fs.c@0.1.1 >/dev/null
 ../../clib-install --skip-cache -D clibs/parson@1.0.2 >/dev/null
-cd - || exit
+cd - >/dev/null || exit
 
 if ! grep --quiet "stephenmathieson/tabs-to-spaces" tmp/test-save/package.json; then
   echo >&2 "Failed to find stephenmathieson/tabs-to-spaces saved in package.json"

@@ -5,8 +5,11 @@ throw() {
   exit 1
 }
 
+export PREFIX=$PWD/tmp/
 rm -rf tmp
 mkdir -p tmp
+mkdir -p tmp/bin
+mkdir -p tmp/lib
 cd tmp || exit
 
 clib install --skip-cache -o tmp stephenmathieson/trim.c stephenmathieson/case.c > /dev/null ||
