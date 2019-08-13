@@ -1,7 +1,10 @@
 #!/bin/sh
 
+export PREFIX=$PWD/tmp/
 rm -rf tmp
 mkdir -p tmp
+mkdir -p tmp/bin
+mkdir -p tmp/lib
 cd tmp || exit
 
 clib install --skip-cache stephenmathieson/tabs-to-spaces@1.0.0 > /dev/null || {

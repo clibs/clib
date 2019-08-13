@@ -5,8 +5,11 @@ throw() {
   exit 1
 }
 
+export PREFIX=$PWD/tmp/
 rm -rf tmp
 mkdir -p tmp
+mkdir -p tmp/bin
+mkdir -p tmp/lib
 cd tmp || exit
 
 # see https://github.com/clibs/clib/issues/45
