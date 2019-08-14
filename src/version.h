@@ -1,11 +1,12 @@
 
+
 //
 // version.h
 //
-// Copyright (c) 2012-2014 clib authors
+// Copyright (c) 2012-2019 clib authors
 // MIT licensed
 //
 
 #ifndef CLIB_VERSION
-#define CLIB_VERSION "2.0.0-next.1"
+#define CLIB_VERSION "2.0.0-next.2"
 #endif
