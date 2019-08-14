@@ -2,7 +2,7 @@
   "name": "clib",
   "version": "1.11.1",
   "repo": "clibs/clib",
-  "install": "make install",
+  "install": "make clean install",
   "scripts": {
     "version": "which node >/dev/null && ./scripts/update-clib-json && git add clib.json"
   }
