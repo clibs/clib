@@ -26,7 +26,7 @@ static const char *usage =
   "  Options:\n"
   "\n"
   "    -h, --help     Output this message\n"
-  "    -v, --version  Output version information\n"
+  "    -V, --version  Output version information\n"
   "\n"
   "  Commands:\n"
   "\n"
@@ -64,8 +64,13 @@ main(int argc, const char **argv) {
     return 0;
   }
 
+  if (0 == strncmp(argv[1], "-v", 2)) {
+    fprintf(stderr, "Deprecated flag: \"-v\". Please use \"-V\"\n");
+    argv[1] = "-V";
+  }
+
   // version
-  if (0 == strncmp(argv[1], "-v", 2)
+  if (0 == strncmp(argv[1], "-V", 2)
    || 0 == strncmp(argv[1], "--version", 9)) {
     printf("%s\n", CLIB_VERSION);
     return 0;
