@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "repo": "clibs/clib",
   "install": "make install",
   "dependencies": {
