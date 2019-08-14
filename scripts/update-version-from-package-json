@@ -6,3 +6,17 @@ const fs = require('fs')
 
 fs.writeFileSync(require.resolve('../clib.json'),
   JSON.stringify(Object.assign(clib, { version: pkg.version }), null, '  '))
+
+fs.writeFileSync(require.resolve('../src/version.h'), `
+
+//
+// version.h
+//
+// Copyright (c) 2012-2019 clib authors
+// MIT licensed
+//
+
+#ifndef CLIB_VERSION
+#define CLIB_VERSION "${pkg.version}"
+#endif
+`)
