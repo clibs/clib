@@ -37,6 +37,7 @@ struct options {
   int save;
   int savedev;
   int force;
+  int global;
   int skip_cache;
 };
 
@@ -94,6 +95,12 @@ static void
 setopt_force(command_t *self) {
   opts.force = 1;
   debug(&debugger, "set force flag");
+}
+
+static void
+setopt_global(command_t *self) {
+  opts.global = 1;
+  debug(&debugger, "set global flag");
 }
 
 static void
@@ -328,6 +335,11 @@ main(int argc, char *argv[]) {
       , "--skip-cache"
       , "skip cache when installing"
       , setopt_skip_cache);
+  command_option(&program
+      , "-g"
+      , "--global"
+      , "global install, don't write to output dir (default: deps/)"
+      , setopt_global);
   command_parse(&program, argc, argv);
 
   clib_package_set_opts(package_opts);
@@ -341,6 +353,7 @@ main(int argc, char *argv[]) {
   clib_package_set_opts((clib_package_opts_t) {
     .skip_cache = opts.skip_cache,
     .prefix = opts.prefix,
+    .global = opts.global,
     .force = opts.force
   });
 
