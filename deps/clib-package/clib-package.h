@@ -42,6 +42,7 @@ typedef struct {
 typedef struct {
     int skip_cache;
     int force;
+    int global;
     char *prefix;
 } clib_package_opts_t;
 
