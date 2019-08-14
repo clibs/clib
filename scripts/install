@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if $(which clib >/dev/null); then
+  clib install -fc $($npm_config_dev && echo '--dev')
+fi

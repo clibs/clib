@@ -1,10 +1,37 @@
 {
-  "name": "clib",
+  "name": "@clibs/clib",
   "version": "2.0.0-next.1",
   "repo": "clibs/clib",
   "install": "make clean install",
+  "main": "index.js",
+  "bin": {
+    "clib": "clib",
+    "clib-install": "clib-install",
+    "clib-configure": "clib-configure",
+    "clib-init": "clib-init",
+    "clib-search": "clib-search"
+  },
+  "files": [
+    "src/*.{h,c}",
+    "deps/*/*.{h,c}",
+    "scripts/*",
+    "Makefile",
+    "clib.json"
+  ],
   "scripts": {
-    "install": "clib install -fc $($npm_config_dev && echo '--dev')",
-    "version": "which node >/dev/null && ./scripts/update-clib-json && git add clib.json"
-  }
+    "postinstall": "make clean && make",
+    "install": "./scripts/install",
+    "version": "which node >/dev/null && ./scripts/update-version-from-package-json && git add clib.json src/version.h"
+  },
+  "description": "Package manager for the C programming language.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clibs/clib.git"
+  },
+  "author": "https://github.com/clibs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/clibs/clib/issues"
+  },
+  "homepage": "https://github.com/clibs/clib#readme"
 }
