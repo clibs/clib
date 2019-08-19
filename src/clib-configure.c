@@ -35,6 +35,7 @@
 #include <logger/logger.h>
 #include <debug/debug.h>
 #include <hash/hash.h>
+#include <trim/trim.h>
 #include <list/list.h>
 #include <fs/fs.h>
 
@@ -42,6 +43,8 @@
 
 #define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
 #define PROGRAM_NAME "clib-configure"
+
+#define S(s) #s
 
 #ifdef HAVE_PTHREADS
 #define MAX_THREADS 4
@@ -55,6 +58,8 @@ struct options {
   int verbose;
   int dev;
   int skip_cache;
+  int flags;
+  int global;
 #ifdef HAVE_PTHREADS
   unsigned int concurrency;
 #endif
@@ -128,27 +133,38 @@ configure_package_with_package_name(const char *dir, const char *file) {
   pthread_mutex_unlock(&mutex);
 #endif
 
-  if (-1 == fs_exists(path)) {
+  if (-1 != fs_exists(path)) {
     rc = -ENOENT;
     goto cleanup;
+
+    debug(&debugger, "read %s", path);
+    json = fs_read(path);
+
+    if (0 == json) {
+      rc = -ENOMEM;
+      goto cleanup;
+    }
+
+    package = clib_package_new(json, 0);
+  } else {
+    package = clib_package_new_from_slug(dir, 0);
   }
-
-  debug(&debugger, "read %s", path);
-  json = fs_read(path);
-
-  if (0 == json) {
-    rc = -ENOMEM;
-    goto cleanup;
-  }
-
-  package = clib_package_new(json, 0);
 
   if (0 == package) {
     rc = -ENOMEM;
     goto cleanup;
   }
 
-  if (0 != package->configure) {
+  if (0 != package->flags && opts.flags) {
+#ifdef HAVE_PTHREADS
+    rc = pthread_mutex_lock(&mutex);
+#endif
+
+    hash_set(configured, path, "t");
+    ok = 1;
+    fprintf(stdout, "%s ", trim(package->flags));
+    fflush(stdout);
+  } else if (0 != package->configure) {
     char *command = 0;
     asprintf(&command, "cd %s && %s", dir, package->configure);
 
@@ -160,14 +176,14 @@ configure_package_with_package_name(const char *dir, const char *file) {
     free(command);
     command = 0;
 #ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&mutex);
+    rc = pthread_mutex_lock(&mutex);
 #endif
 
     hash_set(configured, path, "t");
     ok = 1;
   } else {
 #ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&mutex);
+    rc = pthread_mutex_lock(&mutex);
 #endif
 
     hash_set(configured, path, "f");
@@ -225,7 +241,81 @@ configure_package_with_package_name(const char *dir, const char *file) {
         i = 0;
       }
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-    usleep(1024 * 10);
+      if (!opts.flags) {
+        usleep(1024 * 10);
+      }
+#endif
+#else
+      if (0 == dep_dir) {
+        rc = -ENOMEM;
+        goto cleanup;
+      }
+
+      rc = configure_package(dep_dir);
+
+      free((void *) dep_dir);
+
+      if (0 != rc) {
+        goto cleanup;
+      }
+#endif
+    }
+
+#ifdef HAVE_PTHREADS
+    for (int j = 0; j < i; ++j) {
+      pthread_join(threads[j], 0);
+      free((void *) wraps[j].dir);
+    }
+#endif
+
+    if (0 != iterator) { list_iterator_destroy(iterator); }
+  }
+
+  if (opts.dev && 0 != package->development) {
+    list_iterator_t *iterator = 0;
+    list_node_t *node = 0;
+
+#ifdef HAVE_PTHREADS
+    clib_package_thread_t wraps[opts.concurrency];
+    pthread_t threads[opts.concurrency];
+    unsigned int i = 0;
+#endif
+
+    iterator = list_iterator_new(package->development, LIST_HEAD);
+
+    while ((node = list_iterator_next(iterator))) {
+      clib_package_dependency_t *dep = node->val;
+      char *slug = 0;
+      asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
+
+      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      char *dep_dir = path_join(opts.dir, dependency->name);
+
+      free(slug);
+      clib_package_free(dependency);
+
+#ifdef HAVE_PTHREADS
+      clib_package_thread_t *wrap = &wraps[i];
+      pthread_t *thread = &threads[i];
+      wrap->dir = dep_dir;
+      rc = pthread_create(
+            thread,
+            0,
+            configure_package_with_package_name_thread,
+            wrap);
+
+      if (++i >= opts.concurrency) {
+        for (int j = 0; j < i; ++j) {
+          pthread_join(threads[j], 0);
+          free((void *) wraps[j].dir);
+        }
+
+        i = 0;
+      }
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+      if (!opts.flags) {
+        usleep(1024 * 10);
+      }
 #endif
 #else
       if (0 == dep_dir) {
@@ -284,9 +374,28 @@ setopt_skip_cache(command_t *self) {
 }
 
 static void
+setopt_dev(command_t *self) {
+  opts.dev = 1;
+  debug(&debugger, "set dev flag");
+}
+
+static void
 setopt_force(command_t *self) {
   opts.force = 1;
   debug(&debugger, "set force flag");
+}
+
+static void
+setopt_global(command_t *self) {
+  opts.global = 1;
+  debug(&debugger, "set global flag");
+}
+
+static void
+setopt_flags(command_t *self) {
+  opts.flags = 1;
+  opts.verbose = 0;
+  debug(&debugger, "set flags flag");
 }
 
 static void
@@ -306,6 +415,16 @@ setopt_quiet(command_t *self) {
   opts.verbose = 0;
   debug(&debugger, "set quiet flag");
 }
+
+#ifdef HAVE_PTHREADS
+static void
+setopt_concurrency(command_t *self) {
+  if (self->arg) {
+    opts.concurrency = atol(self->arg);
+    debug(&debugger, "set concurrency: %lu", opts.concurrency);
+  }
+}
+#endif
 
 int
 main(int argc, char **argv) {
@@ -341,6 +460,38 @@ main(int argc, char **argv) {
     "disable verbose output",
     setopt_quiet);
 
+  command_option(&program,
+    "-d",
+    "--dev",
+    "configure development dependencies",
+    setopt_dev);
+
+  command_option(&program,
+    "-f",
+    "--force",
+    "force the action of something, like overwriting a file",
+    setopt_force);
+
+  command_option(&program,
+    "--cflags",
+    "--flags",
+    "output compiler flags instead of configuring",
+    setopt_flags);
+
+  command_option(&program,
+     "-c",
+     "--skip-cache",
+     "skip cache when configuring",
+     setopt_skip_cache);
+
+#ifdef HAVE_PTHREADS
+  command_option(&program,
+     "-C",
+     "--concurrency <concurrency>",
+     "Set concurrency (default: " S(MAX_THREADS) ")",
+     setopt_concurrency);
+#endif
+
   command_parse(&program, argc, argv);
 
   char dir[PATH_MAX] = { 0 };
@@ -351,15 +502,13 @@ main(int argc, char **argv) {
     return 1;
   }
 
+  clib_cache_init(CLIB_SEARCH_CACHE_TIME);
   clib_package_set_opts((clib_package_opts_t) {
     .skip_cache = opts.skip_cache,
     .prefix = opts.prefix,
+    .global = opts.global,
     .force = opts.force
   });
-
-  if (1 != opts.skip_cache) {
-    clib_cache_init(CLIB_SEARCH_CACHE_TIME);
-  }
 
   if (0 == program.argc) {
     rc = configure_package(strdup(CWD));
@@ -374,6 +523,11 @@ main(int argc, char **argv) {
       }
 
       rc = configure_package(dep);
+
+      // try with slug
+      if (0 != rc) {
+        rc = configure_package(program.argv[i]);
+      }
     }
   }
 
@@ -393,6 +547,10 @@ main(int argc, char **argv) {
   clib_package_cleanup();
 
   if (0 == rc) {
+    if (opts.flags && total_configured > 0) {
+      printf("\n");
+    }
+
     if (opts.verbose) {
       if (total_configured > 1){
         logger_info("info", "configured %d packages", total_configured);
