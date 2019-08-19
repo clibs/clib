@@ -427,7 +427,13 @@ clib_package_new(const char *json, int verbose) {
     pkg->repo_name = NULL;
   }
 
-  if ((src = json_object_get_array(json_object, "src"))) {
+  src = json_object_get_array(json_object, "src");
+
+  if (!src) {
+    src = json_object_get_array(json_object, "files");
+  }
+
+  if (src) {
     if (!(pkg->src = list_new())) goto cleanup;
     pkg->src->free = free;
     for (unsigned int i = 0; i < json_array_get_count(src); i++) {
