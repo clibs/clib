@@ -382,20 +382,30 @@ clib_package_new(const char *json, int verbose) {
   JSON_Object *devs = NULL;
   int error = 1;
 
-  if (!json) goto cleanup;
-  if (!(root = json_parse_string(json))) {
+  if (!json) {
     if (verbose) {
-      logger_error("error", "unable to parse json");
+      logger_error("error", "missing JSON to parse");
     }
     goto cleanup;
   }
+
+  if (!(root = json_parse_string(json))) {
+    if (verbose) {
+      logger_error("error", "unable to parse JSON");
+    }
+    goto cleanup;
+  }
+
   if (!(json_object = json_value_get_object(root))) {
     if (verbose) {
       logger_error("error", "invalid clib.json or package.json file");
     }
     goto cleanup;
   }
-  if (!(pkg = malloc(sizeof(clib_package_t)))) goto cleanup;
+
+  if (!(pkg = malloc(sizeof(clib_package_t)))) {
+    goto cleanup;
+  }
 
   memset(pkg, 0, sizeof(clib_package_t));
 
@@ -408,6 +418,41 @@ clib_package_new(const char *json, int verbose) {
   pkg->configure = json_object_get_string_safe(json_object, "configure");
   pkg->install = json_object_get_string_safe(json_object, "install");
   pkg->makefile = json_object_get_string_safe(json_object, "makefile");
+  pkg->flags = json_object_get_string_safe(json_object, "flags");
+
+  if (!pkg->flags) {
+    pkg->flags = json_object_get_string_safe(json_object, "cflags");
+  }
+
+  // try as array
+  if (!pkg->flags) {
+    JSON_Array *flags = json_object_get_array(json_object, "flags");
+
+    if (!flags) {
+      flags = json_object_get_array(json_object, "cflags");
+    }
+
+    if (flags) {
+      for (unsigned int i = 0; i < json_array_get_count(flags); i++) {
+        char *flag = json_array_get_string_safe(flags, i);
+        if (flag) {
+          if (!pkg->flags) {
+            pkg->flags = "";
+          }
+
+          if (-1 == asprintf(&pkg->flags, "%s %s", pkg->flags, flag)){
+            goto cleanup;
+          }
+
+          free(flag);
+        }
+      }
+    }
+  }
+
+  if (!pkg->repo) {
+    asprintf(&pkg->repo, "%s/%s", pkg->author, pkg->name);
+  }
 
   _debug("creating package: %s", pkg->repo);
 
@@ -544,21 +589,11 @@ download:
   free(name);
   name = NULL;
 
-  // build package
-  pkg = clib_package_new(json, verbose);
-
-  // cache json
-  if (pkg && pkg->author && pkg->name && pkg->version && json) {
-    clib_cache_save_json(pkg->author, pkg->name, pkg->version, json);
+  if (json) {
+    // build package
+    pkg = clib_package_new(json, verbose);
   }
 
-  if (res) {
-    http_get_free(res);
-  } else {
-    free(json);
-  }
-
-  res = NULL;
   if (!pkg) goto error;
 
   // force version number
@@ -588,7 +623,13 @@ download:
     pkg->author = author;
   }
 
-  if (!(repo = clib_package_repo(pkg->author, pkg->name))) goto error;
+  if (!pkg->author && author) {
+    pkg->author = strdup(author);
+  }
+
+  if (!(repo = clib_package_repo(pkg->author, pkg->name))) {
+    goto error;
+  }
 
   if (pkg->repo) {
     if (0 != strcmp(repo, pkg->repo)) {
@@ -603,6 +644,31 @@ download:
   }
 
   pkg->url = url;
+
+  // cache json
+  if (pkg && pkg->author && pkg->name && pkg->version) {
+    if (-1 == clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
+      _debug("failed to cache JSON for: %s/%s@%s"
+        , pkg->author
+        , pkg->name
+        , pkg->version);
+    } else {
+      _debug("cached: %s/%s@%s"
+        , pkg->author
+        , pkg->name
+        , pkg->version);
+    }
+  }
+
+  if (res) {
+    http_get_free(res);
+    json = NULL;
+    res = NULL;
+  } else {
+    free(json);
+    json = NULL;
+  }
+
   return pkg;
 
 error:
@@ -618,7 +684,8 @@ error:
   free(url);
   free(json_url);
   free(repo);
-  http_get_free(res);
+  if (!res && json) free(json);
+  if (res) http_get_free(res);
   if (pkg) clib_package_free(pkg);
   return NULL;
 }
@@ -1068,6 +1135,23 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     free(command);
   }
 
+  if (pkg->flags) {
+    char *flags = NULL;
+#ifdef _GNU_SOURCE
+    char *cflags = secure_getenv("CFLAGS");
+#else
+    char *cflags = getenv("CFLAGS");
+#endif
+
+    if (cflags) {
+      asprintf(&flags, "%s %s", cflags, pkg->flags);
+    } else {
+      asprintf(&flags, "%s", pkg->flags);
+    }
+
+    setenv("CFLAGS", cflags, 1);
+  }
+
   E_FORMAT(&command, "cd %s && %s"
       , unpack_dir
       , pkg->install);
@@ -1448,6 +1532,7 @@ clib_package_free(clib_package_t *pkg) {
   FREE(repo_name);
   FREE(url);
   FREE(version);
+  FREE(flags);
 #undef FREE
 
   if (pkg->src) list_destroy(pkg->src);
