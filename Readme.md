@@ -61,10 +61,13 @@ $ sudo make install
 
   Commands:
 
-    init               Start a new project.
-    install [name...]  Install one or more packages
-    search [query]     Search for packages
-    help <cmd>         Display help for cmd
+    init                 Start a new project
+    install [name...]    Install one or more packages
+    configure [name...]  Configure one or more packages
+    build [name...]      Build one or more packages
+    search [query]       Search for packages
+    help <cmd>           Display help for cmd
+
 ```
 
 ## Examples
@@ -93,9 +96,9 @@ $ clib install ms file hash
 $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ```
 
-## package.json
+## clib.json
 
- Example of a package.json explicitly listing the source:
+ Example of a clib.json explicitly listing the source:
 
 ```json
 {
@@ -109,7 +112,7 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 }
 ```
 
- Example of a package.json for an executable:
+ Example of a clib.json for an executable:
 
 ```json
 {
@@ -123,7 +126,7 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 }
 ```
 
- See [explanation of package.json](https://github.com/clibs/clib/wiki/Explanation-of-package.json) for more details.
+ See [explanation of clib.json](https://github.com/clibs/clib/wiki/Explanation-of-package.json) for more details.
 
 ## Contributing
 
