@@ -65,7 +65,6 @@ struct options {
 #endif
 };
 
-char CWD[PATH_MAX] = { 0 };
 command_t program = { 0 };
 debug_t debugger = { 0 };
 hash_t *configured = 0;
@@ -133,21 +132,26 @@ configure_package_with_package_name(const char *dir, const char *file) {
   pthread_mutex_unlock(&mutex);
 #endif
 
-  if (-1 != fs_exists(path)) {
+  if (-1 == fs_exists(path)) {
     rc = -ENOENT;
     goto cleanup;
+  }
 
-    debug(&debugger, "read %s", path);
-    json = fs_read(path);
+  debug(&debugger, "read %s", path);
+  json = fs_read(path);
 
-    if (0 == json) {
-      rc = -ENOMEM;
-      goto cleanup;
-    }
-
+  if (0 != json) {
+#ifdef DEBUG
+    package = clib_package_new(json, 1);
+#else
     package = clib_package_new(json, 0);
+#endif
   } else {
+#ifdef DEBUG
+    package = clib_package_new_from_slug(dir, 1);
+#else
     package = clib_package_new_from_slug(dir, 0);
+#endif
   }
 
   if (0 == package) {
@@ -430,7 +434,19 @@ int
 main(int argc, char **argv) {
   int rc = 0;
 
-  if (0 == getcwd(CWD, PATH_MAX)) {
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
+
+  char CWD[path_max];
+
+  memset(CWD, 0, path_max);
+
+  if (0 == getcwd(CWD, path_max)) {
     return -errno;
   }
 
@@ -494,7 +510,8 @@ main(int argc, char **argv) {
 
   command_parse(&program, argc, argv);
 
-  char dir[PATH_MAX] = { 0 };
+  char dir[path_max];
+  memset(dir, 0, path_max);
   opts.dir = realpath(opts.dir, dir);
 
   if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
@@ -516,7 +533,8 @@ main(int argc, char **argv) {
     for (int i = 0; i < program.argc; ++i) {
       const char *dep = 0;
       if ('.' == program.argv[i][0]) {
-        char dir[PATH_MAX] = { 0 };
+        char dir[path_max];
+        memset(dir, 0, path_max);
         dep = realpath(program.argv[i], dir);
       } else {
         dep = path_join(opts.dir, program.argv[i]);
