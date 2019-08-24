@@ -33,6 +33,7 @@ static const char *usage =
   "    init                 Start a new project\n"
   "    install [name...]    Install one or more packages\n"
   "    configure [name...]  Configure one or more packages\n"
+  "    build [name...]      Build one or more packages\n"
   "    search [query]       Search for packages\n"
   "    help <cmd>           Display help for cmd\n"
   "";

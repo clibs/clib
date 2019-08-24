@@ -8,3 +8,4 @@ tmp/
 /clib-init
 /clib-configure
 package-lock.json
+clib-build
