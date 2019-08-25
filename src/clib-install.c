@@ -26,6 +26,13 @@
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
+#define SX(s) #s
+#define S(s) SX(s)
+
+#ifdef HAVE_PTHREADS
+#define MAX_THREADS 4
+#endif
+
 extern CURLSH *clib_package_curl_share;
 
 debug_t debugger = { 0 };
@@ -40,6 +47,9 @@ struct options {
   int force;
   int global;
   int skip_cache;
+#ifdef HAVE_PTHREADS
+  unsigned int concurrency;
+#endif
 };
 
 static struct options opts = { 0 };
@@ -50,7 +60,8 @@ static const char *manifest_names[] = {
   NULL
 };
 
-static clib_package_opts_t package_opts;
+static clib_package_opts_t package_opts = { 0 };
+static clib_package_t *root_package = NULL;
 
 /**
  * Option setters.
@@ -103,6 +114,16 @@ setopt_global(command_t *self) {
   opts.global = 1;
   debug(&debugger, "set global flag");
 }
+
+#ifdef HAVE_PTHREADS
+static void
+setopt_concurrency(command_t *self) {
+  if (self->arg) {
+    opts.concurrency = atol(self->arg);
+    debug(&debugger, "set concurrency: %lu", opts.concurrency);
+  }
+}
+#endif
 
 static void
 setopt_skip_cache(command_t *self) {
@@ -242,6 +263,22 @@ install_package(const char *slug) {
   long path_max = 4096;
 #endif
 
+  if (!root_package) {
+    const char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+    int rc = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (NULL != manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+    }
+  }
+
   if ('.' == slug[0]) {
     if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
       char dir[path_max];
@@ -272,6 +309,11 @@ install_package(const char *slug) {
   }
 
   if (NULL == pkg) return -1;
+
+  if (root_package && root_package->prefix) {
+    package_opts.prefix = root_package->prefix;
+    clib_package_set_opts(package_opts);
+  }
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
   if (0 != rc) {
@@ -382,9 +424,15 @@ main(int argc, char *argv[]) {
       , "--global"
       , "global install, don't write to output dir (default: deps/)"
       , setopt_global);
+#ifdef HAVE_PTHREADS
+  command_option(&program,
+     "-C",
+     "--concurrency <number>",
+     "Set concurrency (default: " S(MAX_THREADS) ")",
+     setopt_concurrency);
+#endif
   command_parse(&program, argc, argv);
 
-  clib_package_set_opts(package_opts);
 
   debug(&debugger, "%d arguments", program.argc);
 
@@ -392,15 +440,25 @@ main(int argc, char *argv[]) {
     logger_error("error", "Failed to initialize cURL");
   }
 
-  clib_package_set_opts((clib_package_opts_t) {
-    .skip_cache = opts.skip_cache,
-    .prefix = opts.prefix,
-    .global = opts.global,
-    .force = opts.force
-  });
+  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  if (1 != opts.skip_cache) {
-    clib_cache_init(time(0));
+  package_opts.skip_cache = opts.skip_cache;
+  package_opts.prefix = opts.prefix;
+  package_opts.global = opts.global;
+  package_opts.force = opts.force;
+
+#ifdef HAVE_PTHREADS
+  package_opts.concurrency = opts.concurrency;
+#endif
+
+  clib_package_set_opts(package_opts);
+
+  if (opts.prefix) {
+    setenv("CLIB_PREFIX", opts.prefix, 1);
+  }
+
+  if (opts.force) {
+    setenv("CLIB_FORCE", "1", 1);
   }
 
   int code = 0 == program.argc
