@@ -87,10 +87,13 @@ debug_t _debugger;
 });
 
 static clib_package_opts_t opts = {
-   .skip_cache = 1,
-   .prefix = 0,
-   .global = 0,
-   .force = 0,
+#ifdef HAVE_PTHREADS
+  .concurrency = 4,
+#endif
+  .skip_cache = 1,
+  .prefix = 0,
+  .global = 0,
+  .force = 0,
 };
 
 /**
@@ -1188,9 +1191,12 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   char *pkg_dir = NULL;
   char *command = NULL;
   int pending = 0;
-  int max = 4;
   int rc = 0;
   int i = 0;
+
+#ifdef HAVE_PTHREADS
+  int max = opts.concurrency;
+#endif
 
 #ifdef CLIB_PACKAGE_PREFIX
   if (0 == opts.prefix) {

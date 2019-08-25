@@ -42,10 +42,11 @@ typedef struct {
 } clib_package_t;
 
 typedef struct {
-    int skip_cache;
-    int force;
-    int global;
-    char *prefix;
+  int skip_cache;
+  int force;
+  int global;
+  char *prefix;
+  int concurrency;
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;
