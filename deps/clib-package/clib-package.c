@@ -418,6 +418,7 @@ clib_package_new(const char *json, int verbose) {
   pkg->configure = json_object_get_string_safe(json_object, "configure");
   pkg->install = json_object_get_string_safe(json_object, "install");
   pkg->makefile = json_object_get_string_safe(json_object, "makefile");
+  pkg->prefix = json_object_get_string_safe(json_object, "prefix");
   pkg->flags = json_object_get_string_safe(json_object, "flags");
 
   if (!pkg->flags) {
@@ -1085,10 +1086,16 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   free(command);
   command = NULL;
 
-  if (NULL != opts.prefix) {
+  if (NULL != opts.prefix || NULL != pkg->prefix) {
     char path[path_max];
     memset(path, 0, path_max);
-    realpath(opts.prefix, path);
+
+    if (opts.prefix) {
+      realpath(opts.prefix, path);
+    } else {
+      realpath(pkg->prefix, path);
+    }
+
     _debug("env: PREFIX: %s", path);
     setenv("PREFIX", path, 1);
     mkdirp(path, 0777);
