@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <libgen.h>
 #include "fs/fs.h"
 #include "commander/commander.h"
 #include "clib-package/clib-package.h"
@@ -124,6 +125,10 @@ install_local_packages_with_package_name(const char *file) {
   clib_package_t *pkg = clib_package_new(json, opts.verbose);
   if (NULL == pkg) goto e1;
 
+  if (pkg->prefix) {
+    setenv("PREFIX", pkg->prefix, 1);
+  }
+
   int rc = clib_package_install_dependencies(pkg, opts.dir, opts.verbose);
   if (-1 == rc) goto e2;
 
@@ -226,8 +231,45 @@ save_dev_dependency(clib_package_t *pkg) {
 
 static int
 install_package(const char *slug) {
-  clib_package_t *pkg = clib_package_new_from_slug(slug, opts.verbose);
+  clib_package_t *pkg  = NULL;
   int rc;
+
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
+
+  if ('.' == slug[0]) {
+    if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
+      char dir[path_max];
+      realpath(slug, dir);
+      slug = dir;
+      return install_local_packages();
+    }
+  }
+
+  if (0 == fs_exists(slug)) {
+    fs_stats *stats = fs_stat(slug);
+    if (
+      NULL != stats &&
+      (S_IFREG == (stats->st_mode & S_IFMT) ||
+      S_IFLNK == (stats->st_mode & S_IFMT))
+    ) {
+      free(stats);
+      return install_local_packages_with_package_name(slug);
+    }
+
+    if (stats) {
+      free(stats);
+    }
+  }
+
+  if (!pkg) {
+    pkg = clib_package_new_from_slug(slug, opts.verbose);
+  }
 
   if (NULL == pkg) return -1;
 
