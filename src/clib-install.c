@@ -366,6 +366,14 @@ main(int argc, char *argv[]) {
   opts.verbose = 1;
   opts.dev = 0;
 
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
+
   debug_init(&debugger, "clib-install");
 
   //30 days expiration
@@ -438,6 +446,16 @@ main(int argc, char *argv[]) {
 
   if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
     logger_error("error", "Failed to initialize cURL");
+  }
+
+  if (opts.prefix) {
+    char prefix[path_max];
+    memset(prefix, 0, path_max);
+    realpath(opts.prefix, prefix);
+    unsigned long int size = strlen(prefix) + 1;
+    opts.prefix = malloc(size);
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
