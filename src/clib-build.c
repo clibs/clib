@@ -242,18 +242,18 @@ build_package_with_manifest_name(const char *dir, const char *file) {
       package_opts.prefix = root_package->prefix;
       clib_package_set_opts(package_opts);
       setenv("PREFIX", package_opts.prefix, 1);
-    } else {
-      if (package->prefix) {
-        char prefix[path_max];
-        memset(prefix, 0, path_max);
-        realpath(package->prefix, prefix);
-        unsigned long int size = strlen(prefix) + 1;
-        free(package->prefix);
-        package->prefix = malloc(size);
-        memset((void *) package->prefix, 0, size);
-        memcpy((void *) package->prefix, prefix, size);
-        setenv("PREFIX", package->prefix, 1);
-      }
+    } else if (opts.prefix) {
+      setenv("PREFIX", opts.prefix, 1);
+    } else if (package->prefix) {
+      char prefix[path_max];
+      memset(prefix, 0, path_max);
+      realpath(package->prefix, prefix);
+      unsigned long int size = strlen(prefix) + 1;
+      free(package->prefix);
+      package->prefix = malloc(size);
+      memset((void *) package->prefix, 0, size);
+      memcpy((void *) package->prefix, prefix, size);
+      setenv("PREFIX", package->prefix, 1);
     }
 
     setenv("CFLAGS", flags, 1);
@@ -683,6 +683,16 @@ main(int argc, char **argv) {
     memcpy((void *) opts.dir, dir, size);
   }
 
+  if (opts.prefix) {
+    char prefix[path_max];
+    memset(prefix, 0, path_max);
+    realpath(opts.prefix, prefix);
+    unsigned long int size = strlen(prefix) + 1;
+    opts.prefix = malloc(size);
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
+  }
+
   rest_offset = program.argc;
 
   if (argc > 0) {
@@ -795,6 +805,10 @@ main(int argc, char **argv) {
 
   if (opts.dir) {
     free((void *) opts.dir);
+  }
+
+  if (opts.prefix) {
+    free(opts.prefix);
   }
 
   if (rest_argc > 0) {
