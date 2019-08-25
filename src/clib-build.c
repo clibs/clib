@@ -43,10 +43,11 @@
 
 #include "version.h"
 
-#define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
+#define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 #define PROGRAM_NAME "clib-build"
 
-#define S(s) #s
+#define SX(s) #s
+#define S(s) SX(s)
 
 #ifdef HAVE_PTHREADS
 #define MAX_THREADS 4
@@ -75,6 +76,15 @@ struct options {
   unsigned int concurrency;
 #endif
 };
+
+const char *manifest_names[] = {
+  "clib.json",
+  "package.json",
+  0
+};
+
+clib_package_opts_t package_opts = { 0 };
+clib_package_t *root_package = 0;
 
 command_t program = { 0 };
 debug_t debugger = { 0 };
@@ -112,7 +122,7 @@ struct clib_package_thread {
 };
 
 void *
-build_package_with_package_name_thread(void *arg) {
+build_package_with_manifest_name_thread(void *arg) {
   clib_package_thread_t *wrap = arg;
   const char *dir = wrap->dir;
   return (void *) build_package(dir);
@@ -120,11 +130,19 @@ build_package_with_package_name_thread(void *arg) {
 #endif
 
 int
-build_package_with_package_name(const char *dir, const char *file) {
+build_package_with_manifest_name(const char *dir, const char *file) {
   clib_package_t *package = 0;
   char *json = 0;
   int ok = 0;
   int rc = 0;
+
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
 
   char *path = path_join(dir, file);
 
@@ -135,6 +153,33 @@ build_package_with_package_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&mutex);
 #endif
+
+  if (!root_package) {
+    const char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+    int rc = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (NULL != manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+    }
+
+    if (root_package && root_package->prefix) {
+      char prefix[path_max];
+      memset(prefix, 0, path_max);
+      realpath(root_package->prefix, prefix);
+      unsigned long int size = strlen(prefix) + 1;
+      free(root_package->prefix);
+      root_package->prefix = malloc(size);
+      memset((void *) root_package->prefix, 0, size);
+      memcpy((void *) root_package->prefix, prefix, size);
+    }
+  }
 
   if (hash_has(built, path)) {
 #ifdef HAVE_PTHREADS
@@ -172,26 +217,81 @@ build_package_with_package_name(const char *dir, const char *file) {
   }
 
   if (0 != package->makefile) {
+    char *makefile = path_join(dir, package->makefile);
     char *command = 0;
     char *args = rest_argc > 0
         ? str_flatten((const char **) rest_argv, 0, rest_argc)
         : "";
 
-    asprintf(&command,
-        "cd %s && %s %s %s && test -f %s && make -f %s %s %s %s",
-        dir,
-        0 != opts.clean ? "make -f" : ":",
-        0 != opts.clean ? package->makefile : ":",
-        0 != opts.clean ? opts.clean : ":",
-        package->makefile,
-        package->makefile,
-        opts.force ? "-B" : "",
-        opts.test ? opts.test : "",
-        args);
+    char *clean = 0;
+    char *flags = 0;
 
-    if (rest_argc > 0) {
-      free(args);
+#ifdef _GNU_SOURCE
+    char *cflags = secure_getenv("CFLAGS");
+#else
+    char *cflags = getenv("CFLAGS");
+#endif
+
+    if (cflags) {
+      asprintf(&flags, "%s -I %s", cflags, opts.dir);
+    } else {
+      asprintf(&flags, "-I %s", opts.dir);
     }
+
+    if (root_package && root_package->prefix) {
+      package_opts.prefix = root_package->prefix;
+      clib_package_set_opts(package_opts);
+      setenv("PREFIX", package_opts.prefix, 1);
+    } else {
+      if (package->prefix) {
+        char prefix[path_max];
+        memset(prefix, 0, path_max);
+        realpath(package->prefix, prefix);
+        unsigned long int size = strlen(prefix) + 1;
+        free(package->prefix);
+        package->prefix = malloc(size);
+        memset((void *) package->prefix, 0, size);
+        memcpy((void *) package->prefix, prefix, size);
+        setenv("PREFIX", package->prefix, 1);
+      }
+    }
+
+    setenv("CFLAGS", flags, 1);
+
+    if (opts.clean) {
+      char *clean = 0;
+      asprintf(&clean,
+          "make -C %s -f %s %s",
+          dir,
+          makefile,
+          opts.clean);
+    }
+
+    char *make = 0;
+    if (opts.test) {
+      asprintf(&make,
+          "make -n -C %s -f %s %s >/dev/null 2>&1 && make -C %s -f %s %s",
+          dir,
+          makefile,
+          opts.test,
+          dir,
+          makefile,
+          opts.test);
+    } else {
+      asprintf(&make,
+          "make -n -C %s -f %s >/dev/null 2>&1 && make -C %s -f %s",
+          dir,
+          makefile,
+          dir,
+          makefile);
+    }
+
+    asprintf(&command,
+        "%s && %s %s %s",
+        clean ? clean : ":",
+        make,
+        opts.force ? "-B" : "",
+        args);
 
     if (0 != opts.verbose) {
       logger_warn("build", "%s: %s", package->name, package->makefile);
@@ -200,6 +300,19 @@ build_package_with_package_name(const char *dir, const char *file) {
     debug(&debugger, "system: %s", command);
     rc = system(command);
     free(command);
+
+    if (clean) {
+      free(clean);
+    }
+
+    free(makefile);
+    free(make);
+    free(flags);
+
+    if (rest_argc > 0) {
+      free(args);
+    }
+
     command = 0;
 #ifdef HAVE_PTHREADS
     rc = pthread_mutex_lock(&mutex);
@@ -262,7 +375,7 @@ build_package_with_package_name(const char *dir, const char *file) {
       rc = pthread_create(
             thread,
             0,
-            build_package_with_package_name_thread,
+            build_package_with_manifest_name_thread,
             wrap);
 
       if (++i >= opts.concurrency) {
@@ -327,7 +440,7 @@ build_package_with_package_name(const char *dir, const char *file) {
       rc = pthread_create(
             thread,
             0,
-            build_package_with_package_name_thread,
+            build_package_with_manifest_name_thread,
             wrap);
 
       if (++i >= opts.concurrency) {
@@ -378,15 +491,15 @@ cleanup:
 
 int
 build_package(const char *dir) {
-  static const char *package_names[] = { "clib.json", "package.json", 0 };
+  static const char *manifest_names[] = { "clib.json", "package.json", 0 };
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
 
   do {
-    name = package_names[i];
-    rc = build_package_with_package_name(dir, name);
-  } while (NULL != package_names[++i] && 0 != rc);
+    name = manifest_names[i];
+    rc = build_package_with_manifest_name(dir, name);
+  } while (NULL != manifest_names[++i] && 0 != rc);
 
   return rc;
 }
@@ -522,14 +635,14 @@ main(int argc, char **argv) {
 
   command_option(&program,
     "-C",
-    "--clean [clean_target] (default: " DEFAULT_MAKE_CLEAN_TARGET ")",
-    "clean target before building",
+    "--clean [clean_target]",
+    "clean target before building (default: " DEFAULT_MAKE_CLEAN_TARGET ")",
     setopt_clean);
 
   command_option(&program,
     "-T",
-    "--test [test_target] (default: " DEFAULT_MAKE_CHECK_TARGET ")",
-    "test target instead of building",
+    "--test [test_target]",
+    "test target instead of building (default: " DEFAULT_MAKE_CHECK_TARGET ")",
     setopt_test);
 
   command_option(&program,
@@ -553,7 +666,7 @@ main(int argc, char **argv) {
 #ifdef HAVE_PTHREADS
   command_option(&program,
      "-C",
-     "--concurrency <concurrency>",
+     "--concurrency <number>",
      "Set concurrency (default: " S(MAX_THREADS) ")",
      setopt_concurrency);
 #endif
@@ -602,13 +715,14 @@ main(int argc, char **argv) {
     return 1;
   }
 
-  clib_cache_init(CLIB_SEARCH_CACHE_TIME);
-  clib_package_set_opts((clib_package_opts_t) {
-    .skip_cache = opts.skip_cache,
-    .prefix = opts.prefix,
-    .global = opts.global,
-    .force = opts.force
-  });
+  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+
+  package_opts.skip_cache = opts.skip_cache;
+  package_opts.prefix = opts.prefix;
+  package_opts.global = opts.global;
+  package_opts.force = opts.force;
+
+  clib_package_set_opts(package_opts);
 
   if (opts.prefix) {
     setenv("CLIB_PREFIX", opts.prefix, 1);
@@ -645,7 +759,7 @@ main(int argc, char **argv) {
         S_IFLNK == (stats->st_mode & S_IFMT))
       ) {
         dep = basename(dep);
-        rc = build_package_with_package_name(
+        rc = build_package_with_manifest_name(
           dirname(dep),
           basename(dep));
       } else {
@@ -697,6 +811,7 @@ main(int argc, char **argv) {
 
     if (opts.verbose) {
       char *context = "";
+
       if (opts.clean || opts.test) {
         context = 0;
         asprintf(&context,
@@ -708,12 +823,16 @@ main(int argc, char **argv) {
               : "test");
       }
 
-      if (total_built > 1){
-        logger_info("info", "built %d packages%s", context, total_built);
+      if (total_built > 1) {
+        logger_info("info", "built %d packages%s", total_built, context);
       } else if (1 == total_built) {
         logger_info("info", "built 1 package%s", context);
       } else {
         logger_info("info", "built 0 packages%s", context);
+      }
+
+      if (opts.clean || opts.test) {
+        free(context);
       }
     }
   }
