@@ -1341,10 +1341,9 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
         status = 0;
         if (0 != rc) {
           rc = 0;
-          logger_warn("warning", "unabel to fetch Makefile (%s) for '%s'", pkg->makefile, pkg->name);
+          logger_warn("warning", "unable to fetch Makefile (%s) for '%s'", pkg->makefile, pkg->name);
         }
       }
-
     }
 #endif
   }
