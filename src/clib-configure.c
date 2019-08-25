@@ -43,10 +43,11 @@
 
 #include "version.h"
 
-#define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
+#define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 #define PROGRAM_NAME "clib-configure"
 
-#define S(s) #s
+#define SX(s) #s
+#define S(s) SX(s)
 
 #ifdef HAVE_PTHREADS
 #define MAX_THREADS 4
@@ -67,9 +68,18 @@ struct options {
 #endif
 };
 
+const char *manifest_names[] = {
+  "clib.json",
+  "package.json",
+  0
+};
+
+clib_package_opts_t package_opts = { 0 };
+clib_package_t *root_package = 0;
+
+hash_t *configured = 0;
 command_t program = { 0 };
 debug_t debugger = { 0 };
-hash_t *configured = 0;
 
 char **rest_argv = 0;
 int rest_offset = 0;
@@ -103,7 +113,7 @@ struct clib_package_thread {
 };
 
 void *
-configure_package_with_package_name_thread(void *arg) {
+configure_package_with_manifest_name_thread(void *arg) {
   clib_package_thread_t *wrap = arg;
   const char *dir = wrap->dir;
   return (void *) configure_package(dir);
@@ -111,11 +121,19 @@ configure_package_with_package_name_thread(void *arg) {
 #endif
 
 int
-configure_package_with_package_name(const char *dir, const char *file) {
+configure_package_with_manifest_name(const char *dir, const char *file) {
   clib_package_t *package = 0;
   char *json = 0;
   int ok = 0;
   int rc = 0;
+
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
 
   char *path = path_join(dir, file);
 
@@ -126,6 +144,39 @@ configure_package_with_package_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&mutex);
 #endif
+
+  if (!root_package) {
+    const char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+    int rc = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (NULL != manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+    }
+
+    if (root_package && root_package->prefix) {
+      char prefix[path_max];
+      memset(prefix, 0, path_max);
+      realpath(root_package->prefix, prefix);
+      unsigned long int size = strlen(prefix) + 1;
+      free(root_package->prefix);
+      root_package->prefix = malloc(size);
+      memset((void *) root_package->prefix, 0, size);
+      memcpy((void *) root_package->prefix, prefix, size);
+    }
+  }
+
+  if (root_package && root_package->prefix) {
+    package_opts.prefix = root_package->prefix;
+    clib_package_set_opts(package_opts);
+    setenv("PREFIX", package_opts.prefix, 1);
+  }
 
   if (hash_has(configured, path)) {
 #ifdef HAVE_PTHREADS
@@ -249,7 +300,7 @@ configure_package_with_package_name(const char *dir, const char *file) {
       rc = pthread_create(
             thread,
             0,
-            configure_package_with_package_name_thread,
+            configure_package_with_manifest_name_thread,
             wrap);
 
       if (++i >= opts.concurrency) {
@@ -321,7 +372,7 @@ configure_package_with_package_name(const char *dir, const char *file) {
       rc = pthread_create(
             thread,
             0,
-            configure_package_with_package_name_thread,
+            configure_package_with_manifest_name_thread,
             wrap);
 
       if (++i >= opts.concurrency) {
@@ -374,15 +425,14 @@ cleanup:
 
 int
 configure_package(const char *dir) {
-  static const char *package_names[] = { "clib.json", "package.json", 0 };
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
 
   do {
-    name = package_names[i];
-    rc = configure_package_with_package_name(dir, name);
-  } while (NULL != package_names[++i] && 0 != rc);
+    name = manifest_names[i];
+    rc = configure_package_with_manifest_name(dir, name);
+  } while (NULL != manifest_names[++i] && 0 != rc);
 
   return rc;
 }
@@ -519,7 +569,7 @@ main(int argc, char **argv) {
 #ifdef HAVE_PTHREADS
   command_option(&program,
      "-C",
-     "--concurrency <concurrency>",
+     "--concurrency <number>",
      "Set concurrency (default: " S(MAX_THREADS) ")",
      setopt_concurrency);
 #endif
@@ -568,16 +618,18 @@ main(int argc, char **argv) {
     return 1;
   }
 
-  clib_cache_init(CLIB_SEARCH_CACHE_TIME);
-  clib_package_set_opts((clib_package_opts_t) {
-    .skip_cache = opts.skip_cache,
-    .prefix = opts.prefix,
-    .global = opts.global,
-    .force = opts.force,
-  });
+  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+
+  package_opts.skip_cache = opts.skip_cache;
+  package_opts.prefix = opts.prefix;
+  package_opts.global = opts.global;
+  package_opts.force = opts.force;
+
+  clib_package_set_opts(package_opts);
 
   if (opts.prefix) {
     setenv("PREFIX", opts.prefix, 1);
+    setenv("CLIB_PREFIX", opts.prefix, 1);
   }
 
   if (opts.force) {
@@ -611,7 +663,7 @@ main(int argc, char **argv) {
         S_IFLNK == (stats->st_mode & S_IFMT))
       ) {
         dep = basename(dep);
-        rc = configure_package_with_package_name(
+        rc = configure_package_with_manifest_name(
           dirname(dep),
           basename(dep));
       } else {
