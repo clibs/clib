@@ -149,6 +149,16 @@ clib_package_set_opts(clib_package_opts_t o) {
       opts.prefix = o.prefix;
     }
   }
+
+  if (o.concurrency) {
+    opts.concurrency = o.concurrency;
+  } else if (o.concurrency < 0) {
+    opts.concurrency = 0;
+  }
+
+  if (opts.concurrency < 0) {
+    opts.concurrency= 0;
+  }
 }
 
 /**
@@ -1194,6 +1204,14 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   int rc = 0;
   int i = 0;
 
+#ifdef PATH_MAX
+  long path_max = PATH_MAX;
+#elif defined(_PC_PATH_MAX)
+  long path_max = pathconf(dir, _PC_PATH_MAX);
+#else
+  long path_max = 4096;
+#endif
+
 #ifdef HAVE_PTHREADS
   int max = opts.concurrency;
 #endif
@@ -1460,7 +1478,21 @@ download:
 
 install:
   if (pkg->configure) {
-      E_FORMAT(&command
+    if (NULL != opts.prefix || NULL != pkg->prefix) {
+      char path[path_max];
+      memset(path, 0, path_max);
+
+      if (opts.prefix) {
+        realpath(opts.prefix, path);
+      } else {
+        realpath(pkg->prefix, path);
+      }
+
+      _debug("env: PREFIX: %s", path);
+      setenv("PREFIX", path, 1);
+    }
+
+    E_FORMAT(&command
         , "cd %s/%s && %s"
         , dir
         , pkg->name
