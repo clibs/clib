@@ -1,6 +1,6 @@
 {
   "name": "@clibs/clib",
-  "version": "2.0.0-next.9",
+  "version": "2.0.0-next.10",
   "repo": "clibs/clib",
   "install": "make clean install",
   "main": "index.js",
