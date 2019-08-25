@@ -7,6 +7,7 @@
 
 #include <curl/curl.h>
 #include <limits.h>
+#include <libgen.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -29,6 +30,7 @@
 #include <clib-package/clib-package.h>
 #include <clib-cache/cache.h>
 
+#include <str-flatten/str-flatten.h>
 #include <commander/commander.h>
 #include <path-join/path-join.h>
 #include <asprintf/asprintf.h>
@@ -77,6 +79,10 @@ struct options {
 command_t program = { 0 };
 debug_t debugger = { 0 };
 hash_t *built = 0;
+
+char **rest_argv = 0;
+int rest_offset = 0;
+int rest_argc = 0;
 
 options_t opts = {
   .skip_cache = 0,
@@ -141,13 +147,10 @@ build_package_with_package_name(const char *dir, const char *file) {
   pthread_mutex_unlock(&mutex);
 #endif
 
-  if (-1 == fs_exists(path)) {
-    rc = -ENOENT;
-    goto cleanup;
+  if (0 == fs_exists(path)) {
+    debug(&debugger, "read %s", path);
+    json = fs_read(path);
   }
-
-  debug(&debugger, "read %s", path);
-  json = fs_read(path);
 
   if (0 != json) {
 #ifdef DEBUG
@@ -170,20 +173,31 @@ build_package_with_package_name(const char *dir, const char *file) {
 
   if (0 != package->makefile) {
     char *command = 0;
+    char *args = rest_argc > 0
+        ? str_flatten((const char **) rest_argv, 0, rest_argc)
+        : "";
+
     asprintf(&command,
-        "cd %s && %s %s %s && make -f %s %s %s",
+        "cd %s && %s %s %s && test -f %s && make -f %s %s %s %s",
         dir,
         0 != opts.clean ? "make -f" : ":",
         0 != opts.clean ? package->makefile : ":",
         0 != opts.clean ? opts.clean : ":",
         package->makefile,
+        package->makefile,
         opts.force ? "-B" : "",
-        opts.test ? opts.test : "");
+        opts.test ? opts.test : "",
+        args);
+
+    if (rest_argc > 0) {
+      free(args);
+    }
 
     if (0 != opts.verbose) {
       logger_warn("build", "%s: %s", package->name, package->makefile);
     }
 
+    debug(&debugger, "system: %s", command);
     rc = system(command);
     free(command);
     command = 0;
@@ -206,7 +220,6 @@ build_package_with_package_name(const char *dir, const char *file) {
     goto cleanup;
   }
 
-
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&mutex);
 #endif
@@ -226,13 +239,21 @@ build_package_with_package_name(const char *dir, const char *file) {
     while ((node = list_iterator_next(iterator))) {
       clib_package_dependency_t *dep = node->val;
       char *slug = 0;
+      char *dep_dir = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
       clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
-      char *dep_dir = path_join(opts.dir, dependency->name);
+      if (opts.dir && dependency && dependency->name) {
+        dep_dir = path_join(opts.dir, dependency->name);
+      }
 
       free(slug);
       clib_package_free(dependency);
+
+      if (0 == dep_dir) {
+        rc = -ENOMEM;
+        goto cleanup;
+      }
 
 #ifdef HAVE_PTHREADS
       clib_package_thread_t *wrap = &wraps[i];
@@ -256,11 +277,6 @@ build_package_with_package_name(const char *dir, const char *file) {
       usleep(1024 * 10);
 #endif
 #else
-      if (0 == dep_dir) {
-        rc = -ENOMEM;
-        goto cleanup;
-      }
-
       rc = build_package(dep_dir);
 
       free((void *) dep_dir);
@@ -544,9 +560,42 @@ main(int argc, char **argv) {
 
   command_parse(&program, argc, argv);
 
-  char dir[path_max];
-  memset(dir, 0, path_max);
-  opts.dir = realpath(opts.dir, dir);
+  if (opts.dir) {
+    char dir[path_max];
+    memset(dir, 0, path_max);
+    realpath(opts.dir, dir);
+    unsigned long int size = strlen(dir) + 1;
+    opts.dir = malloc(size);
+    memset((void *) opts.dir, 0, size);
+    memcpy((void *) opts.dir, dir, size);
+  }
+
+  rest_offset = program.argc;
+
+  if (argc > 0) {
+    int rest = 0;
+    int i = 0;
+    do {
+      char *arg = program.nargv[i];
+      if (arg && '-' == arg[0] && '-' == arg[1] && 2 == strlen(arg)) {
+        rest = 1;
+        rest_offset = i + 1;
+      } else if (arg && rest) {
+        (void) rest_argc++;
+      }
+    } while (program.nargv[++i]);
+  }
+
+  if (rest_argc > 0) {
+    rest_argv = malloc(rest_argc * sizeof(char *));
+    memset(rest_argv, 0, rest_argc * sizeof(char *));
+
+    int j = 0;
+    int i = rest_offset;
+    do {
+      rest_argv[j++] = program.nargv[i++];
+    } while (program.nargv[i]);
+  }
 
   if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
     logger_error("error", "Failed to initialize cURL");
@@ -561,24 +610,56 @@ main(int argc, char **argv) {
     .force = opts.force
   });
 
-  if (0 == program.argc) {
-    rc = build_package(strdup(CWD));
+  if (opts.prefix) {
+    setenv("CLIB_PREFIX", opts.prefix, 1);
+  }
+
+  if (opts.force) {
+    setenv("CLIB_FORCE", "1", 1);
+  }
+
+  if (0 == program.argc || (argc == rest_offset + rest_argc)) {
+    rc = build_package(CWD);
   } else {
-    for (int i = 0; i < program.argc; ++i) {
-      const char *dep = 0;
-      if ('.' == program.argv[i][0]) {
+    for (int i = 1; i <= rest_offset; ++i) {
+      char *dep = program.nargv[i];
+
+      if ('.' == dep[0]) {
         char dir[path_max];
         memset(dir, 0, path_max);
-        dep = realpath(program.argv[i], dir);
+        dep = realpath(dep, dir);
       } else {
-        dep = path_join(opts.dir, program.argv[i]);
+        fs_stats *stats = fs_stat(dep);
+        if (!stats) {
+          dep = path_join(opts.dir, dep);
+        } else {
+          free(stats);
+        }
       }
 
-      rc = build_package(dep);
+      fs_stats *stats = fs_stat(dep);
 
-      // try with slug
-      if (0 != rc) {
-        rc = build_package(program.argv[i]);
+      if (
+        stats &&
+        (S_IFREG == (stats->st_mode & S_IFMT) ||
+        S_IFLNK == (stats->st_mode & S_IFMT))
+      ) {
+        dep = basename(dep);
+        rc = build_package_with_package_name(
+          dirname(dep),
+          basename(dep));
+      } else {
+        rc = build_package(dep);
+
+        // try with slug
+        if (0 != rc) {
+          rc = build_package(program.nargv[i]);
+        }
+      }
+
+      if (stats) {
+        free(stats);
+        stats = 0;
       }
     }
   }
@@ -598,18 +679,41 @@ main(int argc, char **argv) {
   curl_global_cleanup();
   clib_package_cleanup();
 
+  if (opts.dir) {
+    free((void *) opts.dir);
+  }
+
+  if (rest_argc > 0) {
+    free(rest_argv);
+    rest_offset = 0;
+    rest_argc = 0;
+    rest_argv = 0;
+  }
+
   if (0 == rc) {
     if (total_built > 0) {
       printf("\n");
     }
 
     if (opts.verbose) {
+      char *context = "";
+      if (opts.clean || opts.test) {
+        context = 0;
+        asprintf(&context,
+          " (%s) ",
+          opts.clean && opts.test
+            ? "clean test"
+            : opts.clean
+              ? "clean"
+              : "test");
+      }
+
       if (total_built > 1){
-        logger_info("info", "built %d packages", total_built);
+        logger_info("info", "built %d packages%s", context, total_built);
       } else if (1 == total_built) {
-        logger_info("info", "built 1 package");
+        logger_info("info", "built 1 package%s", context);
       } else {
-        logger_info("info", "built 0 packages");
+        logger_info("info", "built 0 packages%s", context);
       }
     }
   }
