@@ -116,7 +116,8 @@ void *
 configure_package_with_manifest_name_thread(void *arg) {
   clib_package_thread_t *wrap = arg;
   const char *dir = wrap->dir;
-  return (void *) configure_package(dir);
+  configure_package(dir);
+  return 0;
 }
 #endif
 
@@ -149,7 +150,6 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
     const char *name = NULL;
     char *json = NULL;
     unsigned int i = 0;
-    int rc = 0;
 
     do {
       name = manifest_names[i];

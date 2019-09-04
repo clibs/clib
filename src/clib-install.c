@@ -267,7 +267,6 @@ install_package(const char *slug) {
     const char *name = NULL;
     char *json = NULL;
     unsigned int i = 0;
-    int rc = 0;
 
     do {
       name = manifest_names[i];
