@@ -72,6 +72,7 @@ struct options {
   int global;
   char *clean;
   char *test;
+  int explict;
 #ifdef HAVE_PTHREADS
   unsigned int concurrency;
 #endif
@@ -99,6 +100,7 @@ options_t opts = {
   .verbose = 1,
   .force = 0,
   .dev = 0,
+  .explict = 0,
 #ifdef HAVE_PTHREADS
   .concurrency = MAX_THREADS,
 #endif
@@ -157,8 +159,8 @@ build_package_with_manifest_name(const char *dir, const char *file) {
 
   if (!root_package) {
     const char *name = NULL;
-    char *json = NULL;
     unsigned int i = 0;
+    char *json = NULL;
 
     do {
       name = manifest_names[i];
@@ -167,6 +169,7 @@ build_package_with_manifest_name(const char *dir, const char *file) {
 
     if (json) {
       root_package = clib_package_new(json, opts.verbose);
+      free(json);
     }
 
     if (root_package && root_package->prefix) {
@@ -337,7 +340,7 @@ build_package_with_manifest_name(const char *dir, const char *file) {
   pthread_mutex_unlock(&mutex);
 #endif
 
-  if (0 != package->dependencies) {
+  if (0 == opts.explict && 0 != package->dependencies) {
     list_iterator_t *iterator = 0;
     list_node_t *node = 0;
 
@@ -410,7 +413,7 @@ build_package_with_manifest_name(const char *dir, const char *file) {
     if (0 != iterator) { list_iterator_destroy(iterator); }
   }
 
-  if (opts.dev && 0 != package->development) {
+  if (0 == opts.explict && opts.dev && 0 != package->development) {
     list_iterator_t *iterator = 0;
     list_node_t *node = 0;
 
@@ -491,7 +494,6 @@ cleanup:
 
 int
 build_package(const char *dir) {
-  static const char *manifest_names[] = { "clib.json", "package.json", 0 };
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
@@ -693,32 +695,18 @@ main(int argc, char **argv) {
     memcpy((void *) opts.prefix, prefix, size);
   }
 
-  rest_offset = program.argc;
+  rest_offset = argc;
 
-  if (argc > 0) {
-    int rest = 0;
-    int i = 0;
-    do {
-      char *arg = program.nargv[i];
-      if (arg && '-' == arg[0] && '-' == arg[1] && 2 == strlen(arg)) {
-        rest = 1;
-        rest_offset = i + 1;
-      } else if (arg && rest) {
-        (void) rest_argc++;
-      }
-    } while (program.nargv[++i]);
+  for (int i = 0; program.nargv[i]; ++i) {
+    char *arg = program.nargv[i];
+    if (arg && '-' == arg[0] && '-' == arg[1] && 2 == strlen(arg)) {
+      rest_offset = i;
+      break;
+    }
   }
 
-  if (rest_argc > 0) {
-    rest_argv = malloc(rest_argc * sizeof(char *));
-    memset(rest_argv, 0, rest_argc * sizeof(char *));
-
-    int j = 0;
-    int i = rest_offset;
-    do {
-      rest_argv[j++] = program.nargv[i++];
-    } while (program.nargv[i]);
-  }
+  rest_argv = program.argv + (rest_offset - 1);
+  rest_argc = argc - rest_offset - 1;
 
   if (0 != curl_global_init(CURL_GLOBAL_ALL)) {
     logger_error("error", "Failed to initialize cURL");
@@ -742,21 +730,31 @@ main(int argc, char **argv) {
     setenv("CLIB_FORCE", "1", 1);
   }
 
-  if (0 == program.argc || (argc == rest_offset + rest_argc)) {
+  if (0 == program.argc || rest_argc == program.argc) {
     rc = build_package(CWD);
   } else {
-    for (int i = 1; i <= rest_offset; ++i) {
-      char *dep = program.nargv[i];
+    opts.explict = 1;
+    for (int i = 0; i < rest_offset - 1; ++i) {
+      char *dep = program.argv[i];
+
+      if (!dep) {
+        break;
+      }
 
       if ('.' == dep[0]) {
         char dir[path_max];
         memset(dir, 0, path_max);
-        dep = realpath(dep, dir);
+        realpath(dep, dir);
+        unsigned long int size = strlen(dir) + 1;
+        dep = malloc(size);
+        memset((void *) dep, 0, size);
+        memcpy((void *) dep, dir, size);
       } else {
         fs_stats *stats = fs_stat(dep);
         if (!stats) {
           dep = path_join(opts.dir, dep);
         } else {
+          dep = strdup(dep);
           free(stats);
         }
       }
@@ -785,6 +783,8 @@ main(int argc, char **argv) {
         free(stats);
         stats = 0;
       }
+
+      free(dep);
     }
   }
 
@@ -812,7 +812,6 @@ main(int argc, char **argv) {
   }
 
   if (rest_argc > 0) {
-    free(rest_argv);
     rest_offset = 0;
     rest_argc = 0;
     rest_argv = 0;
