@@ -61,4 +61,7 @@ jobs:
         ls /mingw64/lib
     - name: Run Tests
       run: |
-       CFLAGS="-Icurl/include" LDFLAGS="-lnghttp2 -lidn2 -lssh2 -L/mingw64/lib -lssh2 -lws2_32 -lssl -lcrypto -lssl -lcrypto -lgdi32 -lcrypt32 -lwldap32 -lz -lws2_32" make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true all test
+       export CFLAGS="-Icurl/include"
+       export LDFLAGS="-lnghttp2 -lidn2 -lssh2 -L/mingw64/lib -lssh2 -lws2_32 -lssl -lcrypto -lssl -lcrypto -lgdi32 -lcrypt32 -lwldap32 -lz -lws2_32"
+       make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true all test
+
