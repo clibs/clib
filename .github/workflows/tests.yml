@@ -59,4 +59,3 @@ jobs:
       run: |
         ## if builds pass then its passing for now
         ./dockcross-windows-x64 make all NO_PTHREADS=1 STATIC=true EXE=true
-
