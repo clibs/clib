@@ -54,5 +54,5 @@ jobs:
         make mingw32
     - name: Run Tests
       run: |
-        make NO_PTHREADS=1 STATIC=true EXE=true
-        make test
+        make CC=gcc NO_PTHREADS=1 STATIC=true EXE=true
+        make CC=gcc test
