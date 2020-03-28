@@ -52,7 +52,6 @@ jobs:
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
         make mingw32
-        make install
     - name: Run Tests
       run: |
         make NO_PTHREADS=1 STATIC=true EXE=true
