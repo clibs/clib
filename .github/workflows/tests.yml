@@ -48,7 +48,7 @@ jobs:
     - name: System Setup
       shell: bash
       run: |
-        npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win32-mingw.zip > curl.zip
+        npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win64-mingw.zip > curl.zip
         unzip curl.zip
         mv curl-7.69.1-win32-mingw curl
         ls curl
