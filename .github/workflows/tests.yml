@@ -48,10 +48,19 @@ jobs:
     - name: System Setup
       shell: bash
       run: |
+        mkdir -p deps/curl/bin
+        mkdir -p deps/curl/lib
+        mkdir -p /usr/local/bin
+        mkdir -p /usr/local/lib
+        mkdir -p /usr/local/include
         npx simple-get-bin https://curl.haxx.se/download/curl-7.69.1.tar.gz > curl-7.69.1.tar.gz
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
         make mingw32
+        cp curl-config ../deps/curl/bin
+        cp src/.libs/curl /usr/local/bin
+        cp lib/.libs/libcurl.a /usr/local/lib
+        cp -rf include/curl /usr/local/include
     - name: Run Tests
       run: |
         make CC=gcc NO_PTHREADS=1 STATIC=true EXE=true
