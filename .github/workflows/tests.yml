@@ -52,10 +52,10 @@ jobs:
         npx simple-get-bin https://curl.haxx.se/download/curl-7.69.1.tar.gz > curl-7.69.1.tar.gz
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
-        ./configure --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking
+        ./configure --with-winssl --disable-dependency-tracking
         make
         sudo make install
     - name: Run Tests
       run: |
-        make
+        make NO_PTHREADS=1 STATIC=true EXE=true
         sudo make test
