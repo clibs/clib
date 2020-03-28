@@ -53,6 +53,7 @@ jobs:
         mv curl-7.69.1 curl
         cd curl
         make mingw32
+        ls
     - name: Run Tests
       run: |
         make CC=gcc NO_PTHREADS=1 STATIC=true EXE=true

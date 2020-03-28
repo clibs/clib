@@ -18,7 +18,7 @@ OBJS = $(DEPS:.c=.o)
 export CC
 
 ifdef STATIC
-	CFLAGS  = -DCURL_STATICLIB -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ -Icurl/includes
+	CFLAGS  = -DCURL_STATICLIB -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ -Icurl/include
 	LDFLAGS =  -static -Lcurl/lib -lcurl
 else
 	CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
