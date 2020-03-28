@@ -53,6 +53,8 @@ jobs:
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
         ./configure --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking
+        make
+        sudo make install
     - name: Run Tests
       run: |
         make
