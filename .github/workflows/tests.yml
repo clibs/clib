@@ -53,12 +53,12 @@ jobs:
         npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win64-mingw.zip > curl.zip
         chmod +x deps/curl/bin/curl-config
         #unzip curl.zip
-        #mv curl-7.69.1-win64-mingw curl
+        mv curl-7.69.1-win64-mingw curl
         vcpkg install curl
         #cp curl/lib/libcurl.a /mingw64/lib/libcurl.a
         ls /mingw64
         ls /mingw64/lib
     - name: Run Tests
       run: |
-        make CC=gcc NO_PTHREADS=1 EXE=true
+        make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true
         make CC=gcc test
