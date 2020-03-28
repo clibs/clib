@@ -1,11 +1,6 @@
 name: Tests
 
-on:
-  push:
-    branch:
-      - '*'
-    tags:
-      - '*'
+on: push:
 
 jobs:
   linux:
