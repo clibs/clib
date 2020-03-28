@@ -60,5 +60,5 @@ jobs:
         ls /mingw64/lib
     - name: Run Tests
       run: |
-        PATH="C:/vcpkg/packages/curl_x86-windows/share/curl/:$PATH" make CC=gcc NO_PTHREADS=1 EXE=true
-        PATH="C:/vcpkg/packages/curl_x86-windows/share/curl/:$PATH" make CC=gcc test
+        PATH="/vcpkg/packages/curl_x86-windows/share/curl/:$PATH" make CC=gcc NO_PTHREADS=1 EXE=true
+        PATH="/vcpkg/packages/curl_x86-windows/share/curl/:$PATH" make CC=gcc test
