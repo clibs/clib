@@ -1,0 +1,20 @@
+name: Tests
+
+on:
+  push:
+    branch:
+      - '*'
+    tags:
+      - '*'
+
+jobs:
+  linux:
+    name: Linux Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2A
+    - name: System Setup
+      run: |
+        sudo apt update -y
+        sudo apt install -qq libcurl4-gnutls-dev
+        sudo make test
