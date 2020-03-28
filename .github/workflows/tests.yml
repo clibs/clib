@@ -1,15 +1,62 @@
 name: Tests
 
-on: push:
+on: push
 
 jobs:
   linux:
-    name: Linux Tests
+    name: Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2A
+    - uses: actions/checkout@v2
     - name: System Setup
+      shell: bash
       run: |
         sudo apt update -y
         sudo apt install -qq libcurl4-gnutls-dev
+    - name: Run Tests
+      run: |
+        make
         sudo make test
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: System Setup
+      shell: bash
+      run: |
+        wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+        tar xzf curl-*
+        cd curl-*
+        ./configure --with-darwinssl
+        make
+        sudo make install
+    - name: Run Tests
+      run: |
+        make
+        sudo make test
+
+  windows:
+    name: Windows
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: System Setup
+      shell: bash
+      run: |
+        mkdir -p dockcross
+        sudo docker run --rm dockcross/windows-x64 > dockcross-windows-x64
+        cat dockcross-windows-x64
+        chmod +x dockcross-windows-x64
+        wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+        tar xzf curl-*
+        CURL_SRC=curl-*
+        ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking --disable-pthreads --disable-pthreads --enable-threaded-resolver'
+        ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make'
+        ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make install'
+    - name: Run Tests
+      run: |
+        ## if builds pass then its passing for now
+        ./dockcross-windows-x64 make all NO_PTHREADS=1 STATIC=true EXE=true
+
