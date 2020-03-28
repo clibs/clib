@@ -39,7 +39,7 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: linux
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: System Setup
