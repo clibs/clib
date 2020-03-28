@@ -15,18 +15,10 @@ jobs:
     - name: Run Tests
       run: |
         make
-        make test
+        sudo make test
 
   windows:
     name: Windows Tests
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: System Setup
-      run: |
-        sudo apt update -y
-        sudo apt install -qq libcurl4-gnutls-dev
-    - name: Run Tests
-      run: |
-        make
-        sudo make test
