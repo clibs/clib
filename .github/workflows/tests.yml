@@ -42,8 +42,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js
-      uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1
       with:
         node-version: '12.x'
     - name: System Setup
@@ -52,7 +51,7 @@ jobs:
         npx simple-get-bin https://curl.haxx.se/download/curl-7.69.1.tar.gz > curl-7.69.1.tar.gz
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
-        ./configure --with-winssl --disable-dependency-tracking
+        ./configure --prefix="/usr/local" --with-winssl --disable-dependency-tracking
         make
         sudo make install
     - name: Run Tests
