@@ -60,5 +60,5 @@ jobs:
         ls /mingw64/lib
     - name: Run Tests
       run: |
-        make CC=gcc NO_PTHREADS=1 STATIC=true EXE=true
+        make CC=gcc NO_PTHREADS=1 EXE=true
         make CC=gcc test
