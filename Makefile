@@ -22,7 +22,7 @@ ifdef STATIC
 	LDFLAGS =  -static $(shell deps/curl/bin/curl-config --static-libs)
 else
 	CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
-	LDFLAGS = $(shell curl-config --libs)
+	#LDFLAGS = $(shell curl-config --libs)
 endif
 
 ifneq (0,$(PTHREADS))
