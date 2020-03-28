@@ -49,8 +49,9 @@ jobs:
       shell: bash
       run: |
         mkdir -p deps/curl/bin
-        npx simple-get-bin https://raw.githubusercontent.com/git-for-windows/git-sdk-64/master/mingw64/bin/curl-config > deps/curl/bin/curl-config
+        #npx simple-get-bin https://raw.githubusercontent.com/git-for-windows/git-sdk-64/master/mingw64/bin/curl-config > deps/curl/bin/curl-config
         npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win64-mingw.zip > curl.zip
+        touch deps/curl/bin/curl-config
         chmod +x deps/curl/bin/curl-config
         unzip curl.zip
         mv curl-7.69.1-win64-mingw curl
@@ -60,5 +61,4 @@ jobs:
         ls /mingw64/lib
     - name: Run Tests
       run: |
-        make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true
-        make CC=gcc test
+        make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true CFLAGS="-Icurl/include" LDFLAGS="-lnghttp2 -lidn2 -lssh2 -L/mingw64/lib -lssh2 -lws2_32 -lssl -lcrypto -lssl -lcrypto -lgdi32 -lcrypt32 -lwldap32 -lz -lws2_32" all test
