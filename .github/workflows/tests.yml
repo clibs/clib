@@ -54,7 +54,7 @@ jobs:
         mkdir -p /usr/local/lib
         mkdir -p /usr/local/include
         touch deps/curl/bin/curl-config
-        chmod x+ deps/curl/bin/curl-config
+        chmod +x deps/curl/bin/curl-config
         npx simple-get-bin https://curl.haxx.se/download/curl-7.69.1.tar.gz > curl-7.69.1.tar.gz
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
