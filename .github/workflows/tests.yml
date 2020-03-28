@@ -4,7 +4,7 @@ on: push
 
 jobs:
   linux:
-    name: Linux Tests
+    name: Linux
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -19,7 +19,7 @@ jobs:
         sudo make test
 
   macos:
-    name: macOS Tests
+    name: macOS
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
@@ -38,17 +38,18 @@ jobs:
         sudo make test
 
   windows:
-    name: Windows Tests
+    name: Windows
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: System Setup
       shell: bash
       run: |
-        # @TODO(jwerle): Install libcurl
+        wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+        tar xzf curl-*
+        cd curl-*
+        ./configure --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking
     - name: Run Tests
       run: |
-        make
-        sudo make test
         make
         sudo make test
