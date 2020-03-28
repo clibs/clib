@@ -39,29 +39,23 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: linux
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
     - name: System Setup
       shell: bash
       run: |
-        mkdir -p deps/curl/bin
-        #npx simple-get-bin https://raw.githubusercontent.com/git-for-windows/git-sdk-64/master/mingw64/bin/curl-config > deps/curl/bin/curl-config
-        npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win64-mingw.zip > curl.zip
-        touch deps/curl/bin/curl-config
-        chmod +x deps/curl/bin/curl-config
-        unzip curl.zip
-        mv curl-7.69.1-win64-mingw curl
-        vcpkg install curl
-        #cp curl/lib/libcurl.a /mingw64/lib/libcurl.a
-        ls /mingw64
-        ls /mingw64/lib
+        mkdir -p dockcross
+        sudo docker run --rm dockcross/windows-x64 > ./dockcross/dockcross-windows-x64
+        chmod +x ./dockcross/dockcross-windows-x64
+        PATH="$PATH:$PWD/dockcross"
+        wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+        tar xzf curl-*
+        CURL_SRC=curl-*
+        dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking'
+        dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make'
+        dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make install'
     - name: Run Tests
       run: |
-       export CFLAGS="-Icurl/include"
-       export LDFLAGS="-lnghttp2 -lidn2 -lssh2 -L/mingw64/lib -lssh2 -lws2_32 -lssl -lcrypto -lssl -lcrypto -lgdi32 -lcrypt32 -lwldap32 -lz -lws2_32"
-       make CC=gcc NO_PTHREADS=1 EXE=true STATIC=true all test
+        dockcross-windows-x64 make NO_PTHREADS=1 STATIC=true EXE=true
 
