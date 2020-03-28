@@ -57,5 +57,5 @@ jobs:
         ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make install'
     - name: Run Tests
       run: |
-        ./dockcross-windows-x64 make NO_PTHREADS=1 STATIC=true EXE=true
+        ./dockcross-windows-x64 make all test NO_PTHREADS=1 STATIC=true EXE=true
 
