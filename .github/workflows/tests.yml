@@ -7,7 +7,7 @@ jobs:
     name: Linux Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2A
+    - uses: actions/checkout@v2
     - name: System Setup
       run: |
         sudo apt update -y
