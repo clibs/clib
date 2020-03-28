@@ -59,7 +59,6 @@ jobs:
         tar xzf curl-7.69.1.tar.gz
         cd curl-7.69.1
         make mingw32
-        ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking
         cp src/.libs/curl /usr/local/bin
         cp lib/.libs/libcurl.a /usr/local/lib
         cp -rf include/curl /usr/local/include
