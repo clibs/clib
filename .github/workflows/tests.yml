@@ -51,7 +51,7 @@ jobs:
         mkdir -p deps/curl/bin
         npx simple-get-bin https://raw.githubusercontent.com/git-for-windows/git-sdk-64/master/mingw64/bin/curl-config > deps/curl/bin/curl-config
         npx simple-get-bin https://curl.haxx.se/windows/dl-7.69.1/curl-7.69.1-win64-mingw.zip > curl.zip
-        chmod +x deps/bin/curl-config
+        chmod +x deps/curl/bin/curl-config
         unzip curl.zip
         mv curl-7.69.1-win64-mingw curl
         ls curl
