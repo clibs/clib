@@ -50,7 +50,8 @@ jobs:
       run: |
         npx simple-get-bin https://curl.haxx.se/download/curl-7.69.1.tar.gz > curl-7.69.1.tar.gz
         tar xzf curl-7.69.1.tar.gz
-        cd curl-7.69.1
+        mv curl-7.69.1 curl
+        cd curl
         make mingw32
     - name: Run Tests
       run: |
