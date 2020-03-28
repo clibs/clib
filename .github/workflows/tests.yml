@@ -47,8 +47,8 @@ jobs:
       run: |
         mkdir -p dockcross
         sudo docker run --rm dockcross/windows-x64 > dockcross-windows-x64
+        cat dockcross-windows-x64
         chmod +x dockcross-windows-x64
-        PATH="$PATH:$PWD/dockcross"
         wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
         tar xzf curl-*
         CURL_SRC=curl-*
