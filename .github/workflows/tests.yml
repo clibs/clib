@@ -12,4 +12,6 @@ jobs:
       run: |
         sudo apt update -y
         sudo apt install -qq libcurl4-gnutls-dev
+    - name: Run Tests
+      run: |
         sudo make test
