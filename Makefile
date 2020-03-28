@@ -19,7 +19,7 @@ export CC
 
 ifdef STATIC
 	CFLAGS  = -DCURL_STATICLIB -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell deps/curl/bin/curl-config --cflags) -Icurl/include
-	LDFLAGS =  -static $(shell deps/curl/bin/curl-config --static-libs) -Lcurl/lib
+	LDFLAGS = -static $(shell deps/curl/bin/curl-config --static-libs) -Lcurl/lib
 else
 	CFLAGS  = -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ $(shell curl-config --cflags)
 	LDFLAGS = $(shell curl-config --libs)
