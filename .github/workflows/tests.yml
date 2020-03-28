@@ -54,6 +54,7 @@ jobs:
         chmod +x deps/curl/bin/curl-config
         unzip curl.zip
         mv curl-7.69.1-win64-mingw curl
+        cp curl/lib/* /mingw64/lib
         ls curl
     - name: Run Tests
       run: |
