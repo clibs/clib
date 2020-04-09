@@ -686,8 +686,11 @@ main(int argc, char **argv) {
 
       if (
         stats &&
-        (S_IFREG == (stats->st_mode & S_IFMT) ||
-        S_IFLNK == (stats->st_mode & S_IFMT))
+        (S_IFREG == (stats->st_mode & S_IFMT)
+#if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
+      || S_IFLNK == (stats->st_mode & S_IFMT)
+#endif
+        )
       ) {
         dep = basename(dep);
         rc = configure_package_with_manifest_name(
