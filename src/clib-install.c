@@ -33,6 +33,11 @@
 #define MAX_THREADS 4
 #endif
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 extern CURLSH *clib_package_curl_share;
 
 debug_t debugger = { 0 };
@@ -291,8 +296,11 @@ install_package(const char *slug) {
     fs_stats *stats = fs_stat(slug);
     if (
       NULL != stats &&
-      (S_IFREG == (stats->st_mode & S_IFMT) ||
-      S_IFLNK == (stats->st_mode & S_IFMT))
+      (S_IFREG == (stats->st_mode & S_IFMT)
+#if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
+      || S_IFLNK == (stats->st_mode & S_IFMT)
+#endif
+      )
     ) {
       free(stats);
       return install_local_packages_with_package_name(slug);

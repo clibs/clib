@@ -53,6 +53,11 @@
 #define MAX_THREADS 4
 #endif
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 typedef struct options options_t;
 struct options {
   const char *dir;
@@ -681,8 +686,11 @@ main(int argc, char **argv) {
 
       if (
         stats &&
-        (S_IFREG == (stats->st_mode & S_IFMT) ||
-        S_IFLNK == (stats->st_mode & S_IFMT))
+        (S_IFREG == (stats->st_mode & S_IFMT)
+#if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
+      || S_IFLNK == (stats->st_mode & S_IFMT)
+#endif
+        )
       ) {
         dep = basename(dep);
         rc = configure_package_with_manifest_name(

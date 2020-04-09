@@ -29,6 +29,11 @@
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
 #define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 debug_t debugger;
 
 static int opt_color;

@@ -60,6 +60,12 @@ clib_package_new(const char *, int);
 clib_package_t *
 clib_package_new_from_slug(const char *, int);
 
+clib_package_t *
+clib_package_load_from_manifest(const char*, int);
+
+clib_package_t *
+clib_package_load_local_manifest(int);
+
 char *
 clib_package_url(const char *, const char *, const char *);
 

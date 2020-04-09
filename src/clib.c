@@ -17,6 +17,11 @@
 #include "debug/debug.h"
 #include "version.h"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 debug_t debugger;
 
 static const char *usage =

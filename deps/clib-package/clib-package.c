@@ -1,4 +1,3 @@
-
 //
 // clib-package.c
 //
@@ -48,6 +47,11 @@
 
 #define GITHUB_CONTENT_URL "https://raw.githubusercontent.com/"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 static hash_t *visited_packages = 0;
 
 #ifdef HAVE_PTHREADS
@@ -80,6 +84,12 @@ debug_t _debugger;
   if (!(_debugger.name)) debug_init(&_debugger, "clib-package"); \
   debug(&_debugger, __VA_ARGS__);                                \
 })
+
+static const char *manifest_names[] = {
+  "clib.json",
+  "package.json",
+  NULL
+};
 
 #define E_FORMAT(...) ({      \
   rc = asprintf(__VA_ARGS__); \
@@ -231,6 +241,50 @@ clib_package_slug(const char *author, const char *name, const char *version) {
     sprintf(slug, "%s/%s@%s", author, name, version);
   }
   return slug;
+}
+
+/**
+ * Load a local package with a manifest.
+ */
+
+clib_package_t *
+clib_package_load_from_manifest(const char* manifest, int verbose) {
+  clib_package_t *pkg = NULL;
+
+  if (-1 == fs_exists(manifest)) {
+    logger_error("error", "Missing %s", manifest);
+    return NULL;
+  }
+
+  logger_info("info", "reading local %s", manifest);
+
+  char *json = fs_read(manifest);
+  if (NULL == json) goto e1;
+
+  pkg = clib_package_new(json, verbose);
+
+ e1:
+  free(json);
+
+  return pkg;
+}
+
+/**
+ * Load a manifest from the current path.
+ */
+
+clib_package_t *
+clib_package_load_local_manifest(int verbose) {
+  clib_package_t* pkg = NULL;
+  int i = 0;
+
+  do {
+    const char* name = NULL;
+    name = manifest_names[i];
+    pkg = clib_package_load_from_manifest(name, verbose);
+  } while (pkg == NULL && NULL != manifest_names[++i]);
+
+  return pkg;
 }
 
 /**
@@ -714,19 +768,13 @@ clib_package_new_from_slug(const char *slug, int verbose) {
   const char *name = NULL;
   unsigned int i = 0;
 
-  static const char *package_names[] = {
-    "clib.json",
-    "package.json",
-    NULL
-  };
-
   do {
-    name = package_names[i];
+    name = manifest_names[i];
     package = clib_package_new_from_slug_with_package_name(slug, verbose, name);
     if (NULL != package) {
       package->filename = (char *) name;
     }
-  } while (NULL != package_names[++i] && NULL == package);
+  } while (NULL != manifest_names[++i] && NULL == package);
 
   return package;
 }
