@@ -53,6 +53,11 @@
 #define MAX_THREADS 4
 #endif
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 typedef struct options options_t;
 struct options {
   const char *dir;
