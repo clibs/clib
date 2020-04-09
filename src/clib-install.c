@@ -296,8 +296,11 @@ install_package(const char *slug) {
     fs_stats *stats = fs_stat(slug);
     if (
       NULL != stats &&
-      (S_IFREG == (stats->st_mode & S_IFMT) ||
-      S_IFLNK == (stats->st_mode & S_IFMT))
+      (S_IFREG == (stats->st_mode & S_IFMT)
+#if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
+      || S_IFLNK == (stats->st_mode & S_IFMT)
+#endif
+      )
     ) {
       free(stats);
       return install_local_packages_with_package_name(slug);
