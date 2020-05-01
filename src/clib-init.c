@@ -95,16 +95,17 @@ write_to_file(const char* manifest, const char* str, size_t length) {
   wrote = fwrite(str, sizeof(char), length, file);
   fclose(file);
 
-  return wrote == length;
+  return length - wrote;
 }
 
 static int
 write_package_file(const char* manifest, JSON_Value* pkg) {
-  int rc = 1;
+  int rc = 0;
   char* package = json_serialize_to_string_pretty(pkg);
 
-  if (!(rc = write_to_file(manifest, package, strlen(package)))) {
+  if (0 != write_to_file(manifest, package, strlen(package))) {
     logger_error("Failed to write to %s", manifest);
+    rc = 1;
     goto e1;
   }
 

@@ -5,7 +5,7 @@ throw() {
   exit 1
 }
 
-clib install -o tmp \
+clib install -c -o tmp \
   stephenmathieson/case.c stephenmathieson/trim.c > /dev/null ||
   throw "expecting successful exit code"
 

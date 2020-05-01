@@ -1,6 +1,6 @@
 #!/bin/sh
 
-clib install stephenmathieson/tabs-to-spaces@1.0.0 > /dev/null || {
+clib install -c stephenmathieson/tabs-to-spaces@1.0.0 > /dev/null || {
   echo >&2 "Failed to install stephenmathieson/tabs-to-spaces"
   exit 1
 }
