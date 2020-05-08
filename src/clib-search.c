@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
       &program
     , "-j"
     , "--json"
-    , "skip the search cache"
+    , "generate a serialized JSON output"
     , setopt_json
   );
 
