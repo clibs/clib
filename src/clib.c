@@ -36,7 +36,7 @@ static const char *usage =
   "  Commands:\n"
   "\n"
   "    init                 Start a new project\n"
-  "    install [name...]    Install one or more packages\n"
+  "    i, install [name...] Install one or more packages\n"
   "    configure [name...]  Configure one or more packages\n"
   "    build [name...]      Build one or more packages\n"
   "    search [query]       Search for packages\n"
@@ -51,8 +51,8 @@ static const char *usage =
   }                                                  \
 })
 
-int
-main(int argc, const char **argv) {
+int main(int argc, const char **argv) {
+
   char *cmd = NULL;
   char *args = NULL;
   char *command = NULL;
@@ -63,9 +63,7 @@ main(int argc, const char **argv) {
   debug_init(&debugger, "clib");
 
   // usage
-  if (NULL == argv[1]
-   || 0 == strncmp(argv[1], "-h", 2)
-   || 0 == strncmp(argv[1], "--help", 6)) {
+  if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) || 0 == strncmp(argv[1], "--help", 6)) {
     printf("%s\n", usage);
     return 0;
   }
@@ -76,8 +74,7 @@ main(int argc, const char **argv) {
   }
 
   // version
-  if (0 == strncmp(argv[1], "-V", 2)
-   || 0 == strncmp(argv[1], "--version", 9)) {
+  if (0 == strncmp(argv[1], "-v", 2) || 0 == strncmp(argv[1], "--version", 9)) {
     printf("%s\n", CLIB_VERSION);
     return 0;
   }
@@ -108,11 +105,13 @@ main(int argc, const char **argv) {
   } else {
     if (argc >= 3) {
       args = str_flatten(argv, 2, argc);
-      if (NULL == args) goto cleanup;
+      if (NULL == args)
+        goto cleanup;
     }
   }
   debug(&debugger, "args: %s", args);
 
+  cmd = strcmp(cmd, "i") == 0 ? strdup("install") : cmd; // equality of "i" and "install" like npm
 #ifdef _WIN32
   format(&command, "clib-%s.exe", cmd);
 #else
