@@ -655,8 +655,8 @@ main(int argc, char **argv) {
   clib_package_set_opts(package_opts);
 
   if (opts.prefix) {
-    setenv("PREFIX", opts.prefix, 1);
     setenv("CLIB_PREFIX", opts.prefix, 1);
+    setenv("PREFIX", opts.prefix, 1);
   }
 
   if (opts.force) {
