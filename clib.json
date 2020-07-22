@@ -16,7 +16,7 @@
     "stephenmathieson/trim.c": "0.0.2",
     "which": "0.1.3",
     "stephenmathieson/str-flatten.c": "0.0.4",
-    "clib-package": "next",
+    "clib-package": "1.0.0",
     "commander": "1.3.2",
     "stephenmathieson/wiki-registry.c": "0.0.4",
     "stephenmathieson/case.c": "0.1.3",
