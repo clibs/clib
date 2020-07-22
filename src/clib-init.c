@@ -1,7 +1,7 @@
 //
 // clib-init.c
 //
-// Copyright (c) 2012-2019 clib authors
+// Copyright (c) 2012-2020 clib authors
 // MIT licensed
 //
 
