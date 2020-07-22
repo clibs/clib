@@ -9,6 +9,7 @@
 #ifndef CLIB_PACKAGE_H
 #define CLIB_PACKAGE_H 1
 
+#include <curl/curl.h>
 #include "list/list.h"
 
 typedef struct {
@@ -21,6 +22,7 @@ typedef struct {
   char *author;
   char *description;
   char *install;
+  char *configure;
   char *json;
   char *license;
   char *name;
@@ -30,16 +32,24 @@ typedef struct {
   char *version;
   char *makefile;
   char *filename; // `package.json` or `clib.json`
+  char *flags;
+  char *prefix;
   list_t *dependencies;
   list_t *development;
   list_t *src;
+  void *data; // user data
+  unsigned int refs;
 } clib_package_t;
 
-typedef struct
-{
-    int skip_cache;
+typedef struct {
+  int skip_cache;
+  int force;
+  int global;
+  char *prefix;
+  int concurrency;
 } clib_package_opts_t;
 
+extern CURLSH *clib_package_curl_share;
 
 void
 clib_package_set_opts(clib_package_opts_t opts);
@@ -49,6 +59,12 @@ clib_package_new(const char *, int);
 
 clib_package_t *
 clib_package_new_from_slug(const char *, int);
+
+clib_package_t *
+clib_package_load_from_manifest(const char*, int);
+
+clib_package_t *
+clib_package_load_local_manifest(int);
 
 char *
 clib_package_url(const char *, const char *, const char *);
@@ -69,6 +85,9 @@ clib_package_dependency_t *
 clib_package_dependency_new(const char *, const char *);
 
 int
+clib_package_install_executable(clib_package_t *pkg, char *dir, int verbose);
+
+int
 clib_package_install(clib_package_t *, const char *, int);
 
 int
@@ -82,5 +101,8 @@ clib_package_free(clib_package_t *);
 
 void
 clib_package_dependency_free(void *);
+
+void
+clib_package_cleanup();
 
 #endif

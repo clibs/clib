@@ -2,7 +2,7 @@
 //
 // clib.c
 //
-// Copyright (c) 2012-2014 clib authors
+// Copyright (c) 2012-2020 clib authors
 // MIT licensed
 //
 
@@ -17,31 +17,38 @@
 #include "debug/debug.h"
 #include "version.h"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 debug_t debugger;
 
 static const char *usage =
-    "\n"
-    "  clib <command> [options]\n"
-    "\n"
-    "  Options:\n"
-    "\n"
-    "    -h, --help             Output this message\n"
-    "    -v, --version          Output version information\n"
-    "\n"
-    "  Commands:\n"
-    "\n"
-    "    init                   Start a new project\n"
-    "    i, install [name...]   Install one or more packages\n"
-    "    search [query]         Search for packages\n"
-    "    help <cmd>             Display help for cmd\n"
-    "";
+  "\n"
+  "  clib <command> [options]\n"
+  "\n"
+  "  Options:\n"
+  "\n"
+  "    -h, --help     Output this message\n"
+  "    -V, --version  Output version information\n"
+  "\n"
+  "  Commands:\n"
+  "\n"
+  "    init                 Start a new project\n"
+  "    i, install [name...] Install one or more packages\n"
+  "    configure [name...]  Configure one or more packages\n"
+  "    build [name...]      Build one or more packages\n"
+  "    search [query]       Search for packages\n"
+  "    help <cmd>           Display help for cmd\n"
+  "";
 
-#define format(...) ({                              \
-  if (-1 == asprintf(__VA_ARGS__)) {                \
-    rc = 1;                                         \
-    fprintf(stderr, "Memory allocation failure\n"); \
-    goto cleanup;                                   \
-  }                                                 \
+#define format(...) ({                               \
+  if (-1 == asprintf(__VA_ARGS__)) {                 \
+    rc = 1;                                          \
+    fprintf(stderr, "Memory allocation failure\n");  \
+    goto cleanup;                                    \
+  }                                                  \
 })
 
 int main(int argc, const char **argv) {
@@ -59,6 +66,11 @@ int main(int argc, const char **argv) {
   if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) || 0 == strncmp(argv[1], "--help", 6)) {
     printf("%s\n", usage);
     return 0;
+  }
+
+  if (0 == strncmp(argv[1], "-v", 2)) {
+    fprintf(stderr, "Deprecated flag: \"-v\". Please use \"-V\"\n");
+    argv[1] = "-V";
   }
 
   // version
