@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "1.11.4",
+  "version": "1.11.5-0",
   "repo": "clibs/clib",
   "install": "make clean install",
   "scripts": {
