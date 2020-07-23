@@ -520,7 +520,7 @@ main(int argc, char **argv) {
 #ifdef PATH_MAX
   long path_max = PATH_MAX;
 #elif defined(_PC_PATH_MAX)
-  long path_max = pathconf(dir, _PC_PATH_MAX);
+  long path_max = pathconf(opts.dir, _PC_PATH_MAX);
 #else
   long path_max = 4096;
 #endif

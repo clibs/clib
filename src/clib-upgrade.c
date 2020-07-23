@@ -21,6 +21,7 @@
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "parson/parson.h"
+#include "tempdir/tempdir.h"
 #include "str-concat/str-concat.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
@@ -48,6 +49,7 @@ struct options {
   char *token;
   char *slug;
   char *tag;
+  char *dir;
   int verbose;
   int force;
 #ifdef HAVE_PTHREADS
@@ -163,7 +165,17 @@ install_package(const char *slug) {
     pkg->version = opts.tag;
   }
 
-  rc = clib_package_install(pkg, "", opts.verbose);
+  char *tmp = gettempdir();
+
+  if (0 != tmp) {
+    char *dir = 0;
+    asprintf(&dir, "%s/%s-%s", tmp, slug, pkg->version);
+    rc = clib_package_install(pkg, dir, opts.verbose);
+  } else {
+    rc = -1;
+    goto cleanup;
+  }
+
   if (0 != rc) {
     goto cleanup;
   }
