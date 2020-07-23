@@ -48,11 +48,7 @@ struct options {
   char *token;
   int verbose;
   int dev;
-  int save;
-  int savedev;
   int force;
-  int global;
-  int skip_cache;
 #ifdef HAVE_PTHREADS
   unsigned int concurrency;
 #endif
@@ -104,27 +100,9 @@ setopt_dev(command_t *self) {
 }
 
 static void
-setopt_save(command_t *self) {
-  opts.save = 1;
-  debug(&debugger, "set save flag");
-}
-
-static void
-setopt_savedev(command_t *self) {
-  opts.savedev = 1;
-  debug(&debugger, "set savedev flag");
-}
-
-static void
 setopt_force(command_t *self) {
   opts.force = 1;
   debug(&debugger, "set force flag");
-}
-
-static void
-setopt_global(command_t *self) {
-  opts.global = 1;
-  debug(&debugger, "set global flag");
 }
 
 #ifdef HAVE_PTHREADS
@@ -136,12 +114,6 @@ setopt_concurrency(command_t *self) {
   }
 }
 #endif
-
-static void
-setopt_skip_cache(command_t *self) {
-  opts.skip_cache = 1;
-  debug(&debugger, "set skip cache flag");
-}
 
 static int
 install_local_packages_with_package_name(const char *file) {
@@ -221,41 +193,6 @@ write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char
   int rc = json_serialize_to_file_pretty(packageJson, file);
   json_value_free(packageJson);
   return rc;
-}
-
-/**
- * Writes out a dependency to clib.json or package.json
- */
-static int
-write_dependency(clib_package_t *pkg, char* prefix) {
-  const char *name = NULL;
-  unsigned int i = 0;
-  int rc = 0;
-
-  do {
-    name = manifest_names[i];
-    rc = write_dependency_with_package_name(pkg, prefix, name);
-  } while (NULL != manifest_names[++i] && 0 != rc);
-
-  return rc;
-}
-
-/**
- * Save a dependency to clib.json or package.json.
- */
-static int
-save_dependency(clib_package_t *pkg) {
-  debug(&debugger, "saving dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "dependencies");
-}
-
-/**
- * Save a development dependency to clib.json or package.json.
- */
-static int
-save_dev_dependency(clib_package_t *pkg) {
-  debug(&debugger, "saving dev dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "development");
 }
 
 /**
@@ -345,9 +282,6 @@ install_package(const char *slug) {
     pkg->repo = strdup(slug);
   }
 
-  if (opts.save) save_dependency(pkg);
-  if (opts.savedev) save_dev_dependency(pkg);
-
 cleanup:
   clib_package_free(pkg);
   return rc;
@@ -388,7 +322,7 @@ main(int argc, char *argv[]) {
   long path_max = 4096;
 #endif
 
-  debug_init(&debugger, "clib-install");
+  debug_init(&debugger, "clib-update");
 
   //30 days expiration
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
@@ -396,7 +330,7 @@ main(int argc, char *argv[]) {
   command_t program;
 
   command_init(&program
-    , "clib-install"
+    , "clib-update"
     , CLIB_VERSION);
 
   program.usage = "[options] [name ...]";
@@ -422,30 +356,10 @@ main(int argc, char *argv[]) {
     , "install development dependencies"
     , setopt_dev);
   command_option(&program
-    , "-S"
-    , "--save"
-    , "save dependency in clib.json or package.json"
-    , setopt_save);
-  command_option(&program
-      , "-D"
-      , "--save-dev"
-      , "save development dependency in clib.json or package.json"
-      , setopt_savedev);
-  command_option(&program
       , "-f"
       , "--force"
       , "force the action of something, like overwriting a file"
       , setopt_force);
-  command_option(&program
-      , "-c"
-      , "--skip-cache"
-      , "skip cache when installing"
-      , setopt_skip_cache);
-  command_option(&program
-      , "-g"
-      , "--global"
-      , "global install, don't write to output dir (default: deps/)"
-      , setopt_global);
   command_option(&program
       , "-t"
       , "--token <token>"
@@ -479,9 +393,9 @@ main(int argc, char *argv[]) {
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
+  package_opts.skip_cache = 1;
   package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
+  package_opts.global = 0;
   package_opts.force = opts.force;
   package_opts.token = opts.token;
 

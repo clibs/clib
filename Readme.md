@@ -26,7 +26,7 @@ $ make install
 
   Ubuntu:
 
-```sh  
+```sh
 # install libcurl
 $ sudo apt-get install libcurl4-gnutls-dev -qq
 # clone
@@ -62,12 +62,12 @@ $ sudo make install
   Commands:
 
     init                 Start a new project
-    install [name...]    Install one or more packages
+    i, install [name...] Install one or more packages
+    up, update [name...] Update one or more packages
     configure [name...]  Configure one or more packages
     build [name...]      Build one or more packages
     search [query]       Search for packages
     help <cmd>           Display help for cmd
-
 ```
 
 ## Examples

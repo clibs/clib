@@ -9,3 +9,4 @@ tmp/
 /clib-configure
 package-lock.json
 clib-build
+clib-update

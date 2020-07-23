@@ -47,6 +47,7 @@ typedef struct {
   int global;
   char *prefix;
   int concurrency;
+  char *token;
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;

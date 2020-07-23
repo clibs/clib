@@ -130,7 +130,7 @@ int
 main(int argc, char *argv[]) {
   int exit_code = 0;
   opts.verbose = 1;
-  opts.manifest = "package.json";
+  opts.manifest = "clib.json";
 
   debug_init(&debugger, "clib-init");
 
@@ -148,9 +148,9 @@ main(int argc, char *argv[]) {
                  , "disable verbose output"
                  , setopt_quiet);
   command_option(&program
-                 , ""
+                 , "-M"
                  , "--manifest <filename>"
-                 , "give a manifest of the manifest file. (default: package.json)"
+                 , "give a manifest of the manifest file. (default: clib.json)"
                  , setopt_manifest_file);
   command_parse(&program, argc, argv);
 
@@ -169,7 +169,7 @@ main(int argc, char *argv[]) {
   }
 
   ask_for(root, "name", basepath, package_name);
-  ask_for(root, "version", "0.0.1", "version (default: 0.0.1): ");
+  ask_for(root, "version", "0.1.0", "version (default: 0.1.0): ");
 
   exit_code = write_package_file(opts.manifest, json);
 

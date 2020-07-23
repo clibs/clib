@@ -37,6 +37,7 @@ static const char *usage =
   "\n"
   "    init                 Start a new project\n"
   "    i, install [name...] Install one or more packages\n"
+  "    up, update [name...] Update one or more packages\n"
   "    configure [name...]  Configure one or more packages\n"
   "    build [name...]      Build one or more packages\n"
   "    search [query]       Search for packages\n"
@@ -111,7 +112,10 @@ int main(int argc, const char **argv) {
   }
   debug(&debugger, "args: %s", args);
 
-  cmd = strcmp(cmd, "i") == 0 ? strdup("install") : cmd; // equality of "i" and "install" like npm
+  // aliases
+  cmd = strcmp(cmd, "i") == 0 ? strdup("install") : cmd;
+  cmd = strcmp(cmd, "up") == 0 ? strdup("update") : cmd;
+
 #ifdef _WIN32
   format(&command, "clib-%s.exe", cmd);
 #else
