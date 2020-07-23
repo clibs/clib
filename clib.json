@@ -3,6 +3,7 @@
   "version": "2.1.0",
   "repo": "clibs/clib",
   "install": "make clean uninstall build install",
+  "makefile": "Makefile",
   "src": [
     "src/clib-configure.c",
     "src/clib-init.c",
