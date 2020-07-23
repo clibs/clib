@@ -1244,7 +1244,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     if (-1 == rc) goto cleanup;
   }
 
-  if (pkg->makefile) {
+  if (!opts.global && pkg->makefile) {
     E_FORMAT(&command
         , "cp -fr %s/%s/%s %s"
         , dir_path
@@ -1453,7 +1453,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
   // fetch makefile
-  if (pkg->makefile) {
+  if (!opts.global && pkg->makefile) {
     _debug("fetch: %s/%s", pkg->repo, pkg->makefile);
     void *fetch = 0;
     rc = fetch_package_file(pkg, pkg_dir, pkg->makefile, verbose, &fetch);

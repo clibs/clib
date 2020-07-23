@@ -127,14 +127,6 @@ install_package(const char *slug) {
   clib_package_t *pkg  = NULL;
   int rc;
 
-#ifdef PATH_MAX
-  long path_max = PATH_MAX;
-#elif defined(_PC_PATH_MAX)
-  long path_max = pathconf(dir, _PC_PATH_MAX);
-#else
-  long path_max = 4096;
-#endif
-
   if (!root_package) {
     const char *name = NULL;
     char *json = NULL;
@@ -150,7 +142,14 @@ install_package(const char *slug) {
     }
   }
 
-  if (!pkg) {
+  char *extended_slug = 0;
+  if (0 != opts.tag) {
+    asprintf(&extended_slug, "%s@%s", slug, opts.tag);
+  }
+
+  if (0 != extended_slug) {
+    pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
+  } else {
     pkg = clib_package_new_from_slug(slug, opts.verbose);
   }
 
@@ -161,16 +160,10 @@ install_package(const char *slug) {
     clib_package_set_opts(package_opts);
   }
 
-  if (0 != opts.tag) {
-    pkg->version = opts.tag;
-  }
-
   char *tmp = gettempdir();
 
   if (0 != tmp) {
-    char *dir = 0;
-    asprintf(&dir, "%s/%s-%s", tmp, slug, pkg->version);
-    rc = clib_package_install(pkg, dir, opts.verbose);
+    rc = clib_package_install(pkg, tmp, opts.verbose);
   } else {
     rc = -1;
     goto cleanup;
@@ -185,6 +178,9 @@ install_package(const char *slug) {
   }
 
 cleanup:
+  if (0 != extended_slug) {
+    free(extended_slug);
+  }
   clib_package_free(pkg);
   return rc;
 }
@@ -197,13 +193,7 @@ int
 main(int argc, char *argv[]) {
   opts.verbose = 1;
 
-#ifdef PATH_MAX
-  long path_max = PATH_MAX;
-#elif defined(_PC_PATH_MAX)
-  long path_max = pathconf(dir, _PC_PATH_MAX);
-#else
   long path_max = 4096;
-#endif
 
   debug_init(&debugger, "clib-upgrade");
 
