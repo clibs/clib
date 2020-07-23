@@ -619,19 +619,28 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
   _debug("name: %s", name);
   _debug("version: %s", version);
 
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
   // fetch json
   if (clib_cache_has_json(author, name, version)) {
     if (opts.skip_cache) {
       clib_cache_delete_json(author, name, version);
       goto download;
     }
+
     json = clib_cache_read_json(author, name, version);
-    if (!json){
+
+    if (!json) {
       goto download;
     }
+
     log = "cache";
   } else {
 download:
+#ifdef HAVE_PTHREADS
+      pthread_mutex_unlock(&lock.mutex);
+#endif
     if (retries-- <= 0) {
       goto error;
     } else {
@@ -713,6 +722,9 @@ download:
   pkg->url = url;
 
 
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
   // cache json
   if (pkg && pkg->author && pkg->name && pkg->version) {
     if (-1 == clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
@@ -727,6 +739,9 @@ download:
         , pkg->version);
     }
   }
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
 
   if (res) {
     http_get_free(res);
@@ -1427,23 +1442,39 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   // if no sources are listed, just install
   if (opts.global || NULL == pkg->src) goto install;
 
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
+
   if (clib_cache_has_package(pkg->author, pkg->name, pkg->version)) {
     if (opts.skip_cache) {
         clib_cache_delete_package(pkg->author, pkg->name, pkg->version);
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
         goto download;
     }
 
     if (0 != clib_cache_load_package(pkg->author, pkg->name, pkg->version, pkg_dir)){
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
       goto download;
     }
 
     if (verbose) {
       logger_info("cache", pkg->repo);
     }
+
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
+
     goto install;
   }
 
 download:
+
   iterator = list_iterator_new(pkg->src, LIST_HEAD);
   list_node_t *source;
 
@@ -1526,7 +1557,13 @@ download:
   }
 #endif
 
+#ifdef HAVE_PTHREADS
+    pthread_mutex_lock(&lock.mutex);
+#endif
   clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+#ifdef HAVE_PTHREADS
+    pthread_mutex_unlock(&lock.mutex);
+#endif
 
 install:
   if (pkg->configure) {
