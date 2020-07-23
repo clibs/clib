@@ -12,7 +12,7 @@
  */
 
 list_t *
-list_new() {
+list_new(void) {
   list_t *self;
   if (!(self = LIST_MALLOC(sizeof(list_t))))
     return NULL;
