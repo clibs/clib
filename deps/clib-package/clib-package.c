@@ -1404,7 +1404,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     goto cleanup;
   }
 
-  if (!opts.global && NULL != pkg->src) {
+  if (!opts.global) {
     _debug("mkdir -p %s", pkg_dir);
     // create directory for pkg
     if (-1 == mkdirp(pkg_dir, 0777)) {

@@ -10,3 +10,4 @@ tmp/
 package-lock.json
 clib-build
 clib-update
+clib-upgrade

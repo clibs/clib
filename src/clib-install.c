@@ -30,7 +30,7 @@
 #define S(s) SX(s)
 
 #ifdef HAVE_PTHREADS
-#define MAX_THREADS 8
+#define MAX_THREADS 12
 #endif
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)

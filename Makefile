@@ -1,7 +1,7 @@
 CC     ?= cc
 PREFIX ?= /usr/local
 
-BINS = clib clib-install clib-search clib-init clib-configure clib-build clib-update
+BINS = clib clib-install clib-search clib-init clib-configure clib-build clib-update clib-upgrade
 
 ifdef EXE
 	BINS := $(addsuffix .exe,$(BINS))
@@ -38,7 +38,11 @@ ifdef DEBUG
 	CFLAGS += -g -D CLIB_DEBUG=1 -D DEBUG="$(DEBUG)"
 endif
 
+default: all
+
 all: $(BINS)
+
+build: $(BINS)
 
 $(BINS): $(SRC) $(MAKEFILES) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
