@@ -1349,11 +1349,13 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     goto cleanup;
   }
 
-  _debug("mkdir -p %s", pkg_dir);
-  // create directory for pkg
-  if (-1 == mkdirp(pkg_dir, 0777)) {
-    rc = -1;
-    goto cleanup;
+  if (!opts.global && NULL != pkg->src) {
+    _debug("mkdir -p %s", pkg_dir);
+    // create directory for pkg
+    if (-1 == mkdirp(pkg_dir, 0777)) {
+      rc = -1;
+      goto cleanup;
+    }
   }
 
   if (NULL == pkg->url) {
@@ -1373,14 +1375,16 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     goto cleanup;
   }
 
-  _debug("write: %s", package_json);
-  if (-1 == fs_write(package_json, pkg->json)) {
-    if (verbose) {
-      logger_error("error", "Failed to write %s", package_json);
-    }
+  if (!opts.global && NULL != pkg->src) {
+    _debug("write: %s", package_json);
+    if (-1 == fs_write(package_json, pkg->json)) {
+      if (verbose) {
+        logger_error("error", "Failed to write %s", package_json);
+      }
 
-    rc = -1;
-    goto cleanup;
+      rc = -1;
+      goto cleanup;
+    }
   }
 
   if (pkg->name) {
