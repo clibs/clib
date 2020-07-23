@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "2.0.1-beta.1",
+  "version": "2.0.1-beta.2",
   "repo": "clibs/clib",
   "install": "make clean uninstall build install",
   "src": [
