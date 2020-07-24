@@ -48,7 +48,6 @@ struct options {
   char *token;
   int verbose;
   int dev;
-  int force;
 #ifdef HAVE_PTHREADS
   unsigned int concurrency;
 #endif
@@ -97,12 +96,6 @@ static void
 setopt_dev(command_t *self) {
   opts.dev = 1;
   debug(&debugger, "set development flag");
-}
-
-static void
-setopt_force(command_t *self) {
-  opts.force = 1;
-  debug(&debugger, "set force flag");
 }
 
 #ifdef HAVE_PTHREADS
@@ -356,11 +349,6 @@ main(int argc, char *argv[]) {
     , "install development dependencies"
     , setopt_dev);
   command_option(&program
-      , "-f"
-      , "--force"
-      , "force the action of something, like overwriting a file"
-      , setopt_force);
-  command_option(&program
       , "-t"
       , "--token <token>"
       , "Access token used to read private content"
@@ -396,7 +384,7 @@ main(int argc, char *argv[]) {
   package_opts.skip_cache = 1;
   package_opts.prefix = opts.prefix;
   package_opts.global = 0;
-  package_opts.force = opts.force;
+  package_opts.force = 1;
   package_opts.token = opts.token;
 
 #ifdef HAVE_PTHREADS
