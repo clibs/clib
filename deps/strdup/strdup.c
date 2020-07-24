@@ -12,6 +12,8 @@
 #include <string.h>
 #include "strdup.h"
 
+#ifndef strdup
+
 char *
 strdup(const char *str) {
   if (NULL == (char *) str) {
@@ -27,5 +29,7 @@ strdup(const char *str) {
   }
   return buf;
 }
+
+#endif
 
 #endif /* HAVE_STRDUP */

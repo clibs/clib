@@ -24,7 +24,7 @@
     "jwerle/fs.c": "0.2.0",
     "stephenmathieson/str-replace.c": "0.0.6",
     "darthtrevino/str-concat": "0.0.2",
-    "strdup": "0.1.0",
+    "strdup": "*",
     "Constellation/console-colors.c": "1.0.1",
     "littlstar/asprintf.c": "0.0.3",
     "logger": "0.0.1",
