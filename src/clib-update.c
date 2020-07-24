@@ -398,9 +398,7 @@ main(int argc, char *argv[]) {
     setenv("PREFIX", opts.prefix, 1);
   }
 
-  if (opts.force) {
-    setenv("CLIB_FORCE", "1", 1);
-  }
+  setenv("CLIB_FORCE", "1", 1);
 
   int code = 0 == program.argc
     ? install_local_packages()
