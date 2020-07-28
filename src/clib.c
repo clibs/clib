@@ -76,7 +76,7 @@ int main(int argc, const char **argv) {
   }
 
   // version
-  if (0 == strncmp(argv[1], "-v", 2) || 0 == strncmp(argv[1], "--version", 9)) {
+  if (0 == strncmp(argv[1], "-V", 2) || 0 == strncmp(argv[1], "--version", 9)) {
     printf("%s\n", CLIB_VERSION);
     return 0;
   }
