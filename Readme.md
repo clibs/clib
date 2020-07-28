@@ -57,7 +57,7 @@ $ sudo make install
   Options:
 
     -h, --help     Output this message
-    -v, --version  Output version information
+    -V, --version  Output version information
 
   Commands:
 
