@@ -1,0 +1,196 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - '*'
+
+name: Release
+
+env:
+  windows_artifact: clib-win
+  linux_artifact: clib-linux
+  macos_artifact: clib-macos
+
+jobs:
+  linux:
+    name: Release Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Tag Name
+        uses: olegtarasov/get-tag@v2
+        id: tag_name
+
+      - name: System Setup
+        shell: bash
+        run: |
+          sudo apt update -y
+          sudo apt install -qq libcurl4-gnutls-dev
+
+      - name: Build Release
+        run: |
+          make
+
+      - name: Test Release
+        run: |
+          sudo make test
+
+      - name: Setup Release
+        run: |
+          mkdir -p build/bin
+          PREFIX=build make install
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.linux_artifact }}
+          path: build/bin
+
+  macos:
+    name: Release macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Tag Name
+        uses: olegtarasov/get-tag@v2
+        id: tag_name
+
+      - name: System Setup
+        shell: bash
+        run: |
+          wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+          tar xzf curl-*
+          cd curl-*
+          ./configure --with-darwinssl
+          make
+          sudo make install
+
+      - name: Build Release
+        run: |
+          make
+
+      - name: Test Release
+        run: |
+          sudo make test
+
+      - name: Setup Release
+        run: |
+          mkdir -p build/bin
+          PREFIX=build make install
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.macos_artifact }}
+          path: build/bin
+
+  windows:
+    name: Release Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Tag Name
+        uses: olegtarasov/get-tag@v2
+        id: tag_name
+
+      - name: System Setup
+        shell: bash
+        run: |
+          mkdir -p dockcross
+          sudo docker run --rm dockcross/windows-x64 > dockcross-windows-x64
+          cat dockcross-windows-x64
+          chmod +x dockcross-windows-x64
+          wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+          tar xzf curl-*
+          CURL_SRC=curl-*
+          ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking --disable-pthreads --disable-pthreads --enable-threaded-resolver'
+          ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make'
+          ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make install'
+
+      - name: Build Release
+        run: |
+          mkdir -p build/bin
+          ./dockcross-windows-x64 make install NO_PTHREADS=1 STATIC=true EXE=true PREFIX=build
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.windows_artifact }}
+          path: build/bin
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [linux, macos, windows]
+    steps:
+      - name: Get Tag Name
+        uses: olegtarasov/get-tag@v2
+        id: tag_name
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ env.linux_artifact }}
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ env.macos_artifact }}
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ env.windows_artifact }}
+
+      - name: Compress Artifacts
+        run: |
+          zip -r ${{ env.linux_artifact }}-${{ steps.tag_name.outputs.tag }}.zip ${{ env.linux_artifact }}/*
+          zip -r ${{ env.macos_artifact }}-${{ steps.tag_name.outputs.tag }}.zip ${{ env.macos_artifact }}/*
+          zip -r ${{ env.windows_artifact }}-${{ steps.tag_name.outputs.tag }}.zip ${{ env.windows_artifact }}/*
+
+      - name: Upload Linux Release Asset
+        id: upload-linux-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.linux_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_name: ${{ env.linux_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload macOS Release Asset
+        id: upload-macos-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.macos_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_name: ${{ env.macos_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Windows Release Asset
+        id: upload-windows-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.windows_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_name: ${{ env.windows_artifact }}-${{ steps.tag_name.outputs.tag }}.zip
+          asset_content_type: application/zip
