@@ -54,8 +54,8 @@ setopt_manifest_file(command_t *self) {
 
 static
 char* find_basepath() {
-  char cwd[512] = { 0 };
-  getcwd(cwd, 512);
+  char cwd[4096] = { 0 };
+  getcwd(cwd, 4096);
   char* walk = cwd + strlen(cwd);
   while(*(--walk) != '/');
   char* basepath = malloc((size_t)(walk - cwd));
