@@ -4,7 +4,7 @@ This page will cover:
 
  - [How to use libraries](#how-to-use-installed-libraries-for-your-project).
  - [Example Makefile](#example-makefile).
- - [Example `package.json` for executables](#example-packagejson-for-exacutable-project).
+ - [Example `package.json` for executables](#example-packagejson-for-executable-project).
  - [Making your own library package](#making-your-own-libraries).
  - [Example `package.json` for libraries](#example-packagejson-for-libraries).
  - [How to install/uninstall executables](#install-and-uninstall-executables-packages).
@@ -106,7 +106,7 @@ for that library. By having a `package.json` file in your project repo, you can
 specify what packages you need, and what version of that package. Now have a look
 at a example `package.json` file for your project: (executable package)
 
-### Example package.json for exacutable project
+### Example package.json for executable project
 
 ```json
 {
