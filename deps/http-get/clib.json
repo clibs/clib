@@ -1,9 +1,14 @@
 {
   "name": "http-get",
-  "version": "next",
+  "version": "0.2.2",
   "repo": "clibs/http-get.c",
-  "description": "@stephenmathieson's http-get.c - Simple HTTP GET requests backed by libcurl",
-  "keywords": [ "http", "curl", "get", "download", "next" ],
+  "description": "Simple HTTP GET requests backed by libcurl",
+  "keywords": [
+    "http",
+    "curl",
+    "get",
+    "download"
+  ],
   "license": "MIT",
   "src": [
     "src/http-get.c",
