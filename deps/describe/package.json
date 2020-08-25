@@ -1,0 +1,13 @@
+{
+  "name": "describe",
+  "version": "2.0.1",
+  "repo": "stephenmathieson/describe.h",
+  "description": "Simple BDD describe test thingy",
+  "keywords": [ "testing", "bdd", "assert", "describe" ],
+  "license": "MIT",
+  "src": [ "describe.h" ],
+  "dependencies": {
+    "stephenmathieson/assertion-macros.h": "0.2.1",
+    "Constellation/console-colors.c": "1.0.1"
+  }
+}

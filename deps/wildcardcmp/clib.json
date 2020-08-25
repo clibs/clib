@@ -1,9 +1,0 @@
-{
-  "name": "wildcardcmp",
-  "version": "0.0.0",
-  "repo": "clibs/wildcardcmp",
-  "description": "simple wildcard string comparison",
-  "keywords": ["wildcard", "string", "comparison"],
-  "license": "MIT",
-  "src": ["wildcardcmp.c", "wildcardcmp.h"]
-}

@@ -12,6 +12,7 @@ RM      = rm -f
 MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
+COMMON_SRC = $(wildcard src/common/*.c)
 SDEPS = $(wildcard deps/*/*.c)
 ODEPS = $(SDEPS:.c=.o)
 DEPS = $(filter-out $(ODEPS), $(SDEPS))
@@ -45,7 +46,7 @@ all: $(BINS)
 build: $(BINS)
 
 $(BINS): $(SRC) $(MAKEFILES) $(OBJS)
-	$(CC) $(CFLAGS) -o $@ src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(COMMON_SRC) src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
 $(MAKEFILES):
 	$(MAKE) -C $@

@@ -17,4 +17,17 @@ for t in $TESTS; do
 done
 echo
 
+
+printf "\nRunning clib package tests\n\n"
+cd test/package && make clean
+
+if ! make test; then
+    EXIT_CODE=1
+fi
+
+cd ../../
+
+
+print $EXIT_CODE
+
 exit $EXIT_CODE

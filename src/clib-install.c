@@ -14,7 +14,7 @@
 #include <libgen.h>
 #include "fs/fs.h"
 #include "commander/commander.h"
-#include "clib-package/clib-package.h"
+#include "common/clib-package.h"
 #include "clib-cache/cache.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
