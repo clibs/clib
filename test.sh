@@ -28,6 +28,4 @@ fi
 cd ../../
 
 
-print $EXIT_CODE
-
 exit $EXIT_CODE
