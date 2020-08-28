@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-#include <clib-package/clib-package.h>
+#include "common/clib-package.h"
 #include <clib-cache/cache.h>
 
 #include <str-flatten/str-flatten.h>

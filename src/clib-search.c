@@ -17,7 +17,7 @@
 #include "http-get/http-get.h"
 #include "asprintf/asprintf.h"
 #include "wiki-registry/wiki-registry.h"
-#include "clib-package/clib-package.h"
+#include "common/clib-package.h"
 #include "console-colors/console-colors.h"
 #include "strdup/strdup.h"
 #include "logger/logger.h"

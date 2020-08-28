@@ -1,3 +1,6 @@
+2.2.0 / 2020-08-25
+==================
+  * Integrateing the clib-package into the main repo
 
 1.8.1 / 2017-08-21
 ==================

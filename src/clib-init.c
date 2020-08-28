@@ -12,7 +12,7 @@
 #include "fs/fs.h"
 #include "asprintf/asprintf.h"
 #include "commander/commander.h"
-#include "clib-package/clib-package.h"
+#include "common/clib-package.h"
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "parson/parson.h"

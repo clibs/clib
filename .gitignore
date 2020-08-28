@@ -11,3 +11,5 @@ package-lock.json
 clib-build
 clib-update
 clib-upgrade
+test/package/package-*
+!test/package/package-*.c
