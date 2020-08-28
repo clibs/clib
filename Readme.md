@@ -136,7 +136,7 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 
  If you're interested in being part of this initiative let me know and I'll add you to the `clibs` organization so you can create repos here and contribute to existing ones.
  
- If you have any issues, questions or suggestions, plese open an issue [here](https://github.com/clibs/clib/issues). 
+ If you have any issues, questions or suggestions, please open an issue [here](https://github.com/clibs/clib/issues). 
  
  You can also find us on Gitter: https://gitter.im/clibs/clib
 
