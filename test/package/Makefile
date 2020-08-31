@@ -3,7 +3,7 @@ CC ?= cc
 VALGRIND ?= valgrind
 TEST_RUNNER ?=
 
-SRC = ../../src/common/clib-package.c
+SRC = ../../src/common/clib-package.c ../../src/common/clib-cache.c
 DEPS += $(wildcard ../../deps/*/*.c)
 OBJS = $(SRC:.c=.o) $(DEPS:.c=.o)
 TEST_SRC = $(wildcard *.c)
