@@ -10,7 +10,7 @@ printf "\nRunning clib(1) tests\n\n"
 for t in $TESTS; do
   if ! ./"$t"; then
     echo >&2 "  (✖) $t"
-    EXIT_CODE=1
+    exit 1
   else
     echo "  (✓) $t"
   fi
@@ -22,8 +22,7 @@ printf "\nRunning clib package tests\n\n"
 cd test/package && make clean
 
 if ! make test; then
-    EXIT_CODE=1
-    exit $EXIT_CODE
+    exit 1
 fi
 
 cd ../../
@@ -32,8 +31,7 @@ printf "\nRunning clib cache tests\n\n"
 cd test/cache 
 
 if ! make test; then
-    EXIT_CODE=1
-    exit $EXIT_CODE
+    exit 1
 fi
 
 cd ../../
