@@ -23,7 +23,7 @@
 #include "logger/logger.h"
 #include "debug/debug.h"
 #include "version.h"
-#include "clib-cache/cache.h"
+#include "common/clib-cache.h"
 #include "parson/parson.h"
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"

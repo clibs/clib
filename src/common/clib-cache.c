@@ -6,7 +6,7 @@
 #include "rimraf/rimraf.h"
 #include "fs/fs.h"
 #include "copy/copy.h"
-#include "cache.h"
+#include "clib-cache.h"
 
 
 #define GET_PKG_CACHE(a, n, v) char pkg_cache[BUFSIZ]; \

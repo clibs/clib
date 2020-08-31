@@ -16,7 +16,7 @@
 #include "fs/fs.h"
 #include "commander/commander.h"
 #include "common/clib-package.h"
-#include "clib-cache/cache.h"
+#include "common/clib-cache.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "debug/debug.h"
