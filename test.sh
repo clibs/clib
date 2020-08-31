@@ -23,6 +23,7 @@ cd test/package && make clean
 
 if ! make test; then
     EXIT_CODE=1
+    exit $EXIT_CODE
 fi
 
 cd ../../
@@ -32,6 +33,7 @@ cd test/cache
 
 if ! make test; then
     EXIT_CODE=1
+    exit $EXIT_CODE
 fi
 
 cd ../../
