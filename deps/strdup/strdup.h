@@ -18,7 +18,9 @@
  * copy of `str`, or `NULL` on failure.
  */
 
+#ifndef strdup
 char *
 strdup(const char *str);
+#endif
 
 #endif /* HAVE_STRDUP */

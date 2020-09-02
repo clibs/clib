@@ -1,0 +1,26 @@
+{
+  "name": "copy",
+  "description": "Copies files, directories recursively",
+  "version": "0.0.0",
+  "repo": "Isty001/copy",
+  "dependencies": {
+    "cxong/tinydir": "*",
+    "jwerle/fs.c": "0.1.2"
+  },
+  "development": {
+    "jlcordeiro/minunit": "*",
+    "stephenmathieson/rimraf.c": "0.1.0"
+  },
+  "keywords": [
+    "dir",
+    "directory",
+    "file",
+    "copy",
+    "recursive"
+  ],
+  "license": "MIT",
+  "src": [
+    "src/copy.c",
+    "src/copy.h"
+  ]
+}

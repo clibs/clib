@@ -58,6 +58,8 @@ clean:
 	$(foreach c, $(BINS), $(RM) $(c);)
 	$(RM) $(OBJS)
 	$(RM) $(AUTODEPS)
+	cd test/cache && make clean
+	cd test/package && make clean
 
 install: $(BINS)
 	$(MKDIR) $(PREFIX)/bin

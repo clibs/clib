@@ -27,5 +27,13 @@ fi
 
 cd ../../
 
+printf "\nRunning clib cache tests\n\n"
+cd test/cache 
+
+if ! make test; then
+    EXIT_CODE=1
+fi
+
+cd ../../
 
 exit $EXIT_CODE

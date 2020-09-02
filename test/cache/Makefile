@@ -1,16 +1,15 @@
-
 CC ?= cc
 VALGRIND ?= valgrind
 TEST_RUNNER ?=
 
-SRC = ../../src/common/clib-package.c ../../src/common/clib-cache.c
+SRC = ../../src/common/clib-cache.c
 DEPS += $(wildcard ../../deps/*/*.c)
 OBJS = $(SRC:.c=.o) $(DEPS:.c=.o)
 TEST_SRC = $(wildcard *.c)
 TEST_OBJ = $(TEST_SRC:.c=.o)
 TEST_BIN = $(TEST_SRC:.c=)
 
-CFLAGS += -std=c99 -Wall -I../../src/common -I../../deps -DHAVE_PTHREADS -pthread -g
+CFLAGS += -std=c99 -Wall -I../../src/common -I../../deps  -g
 LDFLAGS = -lcurl
 VALGRIND_OPTS ?= --leak-check=full --error-exitcode=3
 
@@ -24,7 +23,7 @@ valgrind: test
 
 example: example.o $(OBJS)
 
-package-%: package-%.o $(OBJS)
+cache-%: cache-%.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:

@@ -29,7 +29,7 @@
 #include "parse-repo/parse-repo.h"
 #include "debug/debug.h"
 #include "clib-package.h"
-#include "clib-cache/cache.h"
+#include "clib-cache.h"
 #include "fs/fs.h"
 #include "hash/hash.h"
 

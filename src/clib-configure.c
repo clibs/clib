@@ -28,7 +28,7 @@
 #endif
 
 #include "common/clib-package.h"
-#include <clib-cache/cache.h>
+#include "common/clib-cache.h"
 
 #include <str-flatten/str-flatten.h>
 #include <commander/commander.h>
