@@ -2,9 +2,9 @@
 // clib-package.c
 //
 // Copyright (c) 2014 Stephen Mathieson
+// Copyright (c) 2014-2020 clib authors
 // MIT license
 //
-
 
 #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
 #include <unistd.h>

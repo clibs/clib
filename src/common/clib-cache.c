@@ -1,3 +1,10 @@
+//
+// clib-cache.c
+//
+// Copyright (c) 2016-2020 clib authors
+// MIT licensed
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
