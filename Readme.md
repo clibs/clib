@@ -140,6 +140,8 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
  
  You can also find us on Gitter: https://gitter.im/clibs/clib
 
+ Before committing to the repository, please run `make commit-hook`. This installs a commit hook which formats `.c` and `.h` files.
+
 ## Articles
 
   - [Introducing Clib](https://medium.com/code-adventures/b32e6e769cb3) - introduction to clib

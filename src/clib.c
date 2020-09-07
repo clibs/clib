@@ -5,18 +5,19 @@
 // MIT licensed
 //
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "trim/trim.h"
 #include "asprintf/asprintf.h"
-#include "which/which.h"
+#include "debug/debug.h"
 #include "str-flatten/str-flatten.h"
 #include "strdup/strdup.h"
-#include "debug/debug.h"
+#include "trim/trim.h"
 #include "version.h"
+#include "which/which.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #define realpath(a, b) _fullpath(a, b, strlen(a))
 #endif
@@ -24,33 +25,34 @@
 debug_t debugger;
 
 static const char *usage =
-  "\n"
-  "  clib <command> [options]\n"
-  "\n"
-  "  Options:\n"
-  "\n"
-  "    -h, --help     Output this message\n"
-  "    -V, --version  Output version information\n"
-  "\n"
-  "  Commands:\n"
-  "\n"
-  "    init                 Start a new project\n"
-  "    i, install [name...] Install one or more packages\n"
-  "    up, update [name...] Update one or more packages\n"
-  "    upgrade [version]    Upgrade clib to a specified or latest version\n"
-  "    configure [name...]  Configure one or more packages\n"
-  "    build [name...]      Build one or more packages\n"
-  "    search [query]       Search for packages\n"
-  "    help <cmd>           Display help for cmd\n"
-  "";
+    "\n"
+    "  clib <command> [options]\n"
+    "\n"
+    "  Options:\n"
+    "\n"
+    "    -h, --help     Output this message\n"
+    "    -V, --version  Output version information\n"
+    "\n"
+    "  Commands:\n"
+    "\n"
+    "    init                 Start a new project\n"
+    "    i, install [name...] Install one or more packages\n"
+    "    up, update [name...] Update one or more packages\n"
+    "    upgrade [version]    Upgrade clib to a specified or latest version\n"
+    "    configure [name...]  Configure one or more packages\n"
+    "    build [name...]      Build one or more packages\n"
+    "    search [query]       Search for packages\n"
+    "    help <cmd>           Display help for cmd\n"
+    "";
 
-#define format(...) ({                               \
-  if (-1 == asprintf(__VA_ARGS__)) {                 \
-    rc = 1;                                          \
-    fprintf(stderr, "Memory allocation failure\n");  \
-    goto cleanup;                                    \
-  }                                                  \
-})
+#define format(...)                                                            \
+  ({                                                                           \
+    if (-1 == asprintf(__VA_ARGS__)) {                                         \
+      rc = 1;                                                                  \
+      fprintf(stderr, "Memory allocation failure\n");                          \
+      goto cleanup;                                                            \
+    }                                                                          \
+  })
 
 int main(int argc, const char **argv) {
 
@@ -64,7 +66,8 @@ int main(int argc, const char **argv) {
   debug_init(&debugger, "clib");
 
   // usage
-  if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) || 0 == strncmp(argv[1], "--help", 6)) {
+  if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) ||
+      0 == strncmp(argv[1], "--help", 6)) {
     printf("%s\n", usage);
     return 0;
   }
@@ -131,7 +134,8 @@ int main(int argc, const char **argv) {
 
 #ifdef _WIN32
   for (char *p = bin; *p; p++)
-    if (*p == '/') *p = '\\';
+    if (*p == '/')
+      *p = '\\';
 #endif
 
   if (args) {
@@ -144,7 +148,8 @@ int main(int argc, const char **argv) {
 
   rc = system(command_with_args);
   debug(&debugger, "returned %d", rc);
-  if (rc > 255) rc = 1;
+  if (rc > 255)
+    rc = 1;
 
 cleanup:
   free(cmd);

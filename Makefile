@@ -13,6 +13,7 @@ MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
 COMMON_SRC = $(wildcard src/common/*.c)
+ALL_SRC = $(wildcard src/*.c src/*.h src/common/*.c src/common/*.h)
 SDEPS = $(wildcard deps/*/*.c)
 ODEPS = $(SDEPS:.c=.o)
 DEPS = $(filter-out $(ODEPS), $(SDEPS))
@@ -77,5 +78,16 @@ AUTODEPS:= $(patsubst %.c,%.d, $(DEPS)) $(patsubst %.c,%.d, $(SRC))
 # include by auto dependencies
 -include $(AUTODEPS)
 
+# Format all source files in the repository.
+fmt:
+	@if ! command -v clang-format &> /dev/null; then \
+		echo "clang-format not found"; \
+		exit; \
+	fi
+	clang-format -i -style=LLVM $(ALL_SRC)
 
-.PHONY: test all clean install uninstall
+# Install the commit hook.
+commit-hook: scripts/pre-commit-hook.sh
+	cp -f scripts/pre-commit-hook.sh .git/hooks/pre-commit
+
+.PHONY: test all clean install uninstall fmt
