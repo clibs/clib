@@ -1,3 +1,10 @@
+//
+// clib-cache.h
+//
+// Copyright (c) 2016-2020 clib authors
+// MIT licensed
+//
+
 #ifndef CLIB_CACHE_H
 #define CLIB_CACHE_H
 

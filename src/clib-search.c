@@ -1,4 +1,3 @@
-
 //
 // clib-search.c
 //

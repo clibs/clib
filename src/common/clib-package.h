@@ -1,8 +1,8 @@
-
 //
 // clib-package.h
 //
 // Copyright (c) 2014 Stephen Mathieson
+// Copyright (c) 2014-2020 clib authors
 // MIT license
 //
 
