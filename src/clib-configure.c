@@ -6,13 +6,13 @@
 //
 
 #include <curl/curl.h>
-#include <limits.h>
-#include <libgen.h>
-#include <string.h>
 #include <errno.h>
+#include <libgen.h>
+#include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
 #endif
 
@@ -27,19 +27,19 @@
 #include <unistd.h>
 #endif
 
-#include "common/clib-package.h"
 #include "common/clib-cache.h"
+#include "common/clib-package.h"
 
-#include <str-flatten/str-flatten.h>
-#include <commander/commander.h>
-#include <path-join/path-join.h>
 #include <asprintf/asprintf.h>
-#include <logger/logger.h>
+#include <commander/commander.h>
 #include <debug/debug.h>
-#include <hash/hash.h>
-#include <trim/trim.h>
-#include <list/list.h>
 #include <fs/fs.h>
+#include <hash/hash.h>
+#include <list/list.h>
+#include <logger/logger.h>
+#include <path-join/path-join.h>
+#include <str-flatten/str-flatten.h>
+#include <trim/trim.h>
 
 #include "version.h"
 
@@ -53,7 +53,8 @@
 #define MAX_THREADS 4
 #endif
 
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #define realpath(a, b) _fullpath(a, b, strlen(a))
 #endif
@@ -73,42 +74,36 @@ struct options {
 #endif
 };
 
-const char *manifest_names[] = {
-  "clib.json",
-  "package.json",
-  0
-};
+const char *manifest_names[] = {"clib.json", "package.json", 0};
 
-clib_package_opts_t package_opts = { 0 };
+clib_package_opts_t package_opts = {0};
 clib_package_t *root_package = 0;
 
 hash_t *configured = 0;
-command_t program = { 0 };
-debug_t debugger = { 0 };
+command_t program = {0};
+debug_t debugger = {0};
 
 char **rest_argv = 0;
 int rest_offset = 0;
 int rest_argc = 0;
 
-options_t opts = {
-  .skip_cache = 0,
-  .verbose = 1,
-  .force = 0,
-  .dev = 0,
+options_t opts = {.skip_cache = 0,
+                  .verbose = 1,
+                  .force = 0,
+                  .dev = 0,
 #ifdef HAVE_PTHREADS
-  .concurrency = MAX_THREADS,
+                  .concurrency = MAX_THREADS,
 #endif
 
 #ifdef _WIN32
-  .dir = ".\\deps"
+                  .dir = ".\\deps"
 #else
-  .dir = "./deps"
+                  .dir = "./deps"
 #endif
 
 };
 
-int
-configure_package(const char *dir);
+int configure_package(const char *dir);
 
 #ifdef HAVE_PTHREADS
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -117,8 +112,7 @@ struct clib_package_thread {
   const char *dir;
 };
 
-void *
-configure_package_with_manifest_name_thread(void *arg) {
+void *configure_package_with_manifest_name_thread(void *arg) {
   clib_package_thread_t *wrap = arg;
   const char *dir = wrap->dir;
   configure_package(dir);
@@ -126,8 +120,7 @@ configure_package_with_manifest_name_thread(void *arg) {
 }
 #endif
 
-int
-configure_package_with_manifest_name(const char *dir, const char *file) {
+int configure_package_with_manifest_name(const char *dir, const char *file) {
   clib_package_t *package = 0;
   char *json = 0;
   int ok = 0;
@@ -172,8 +165,8 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
       unsigned long int size = strlen(prefix) + 1;
       free(root_package->prefix);
       root_package->prefix = malloc(size);
-      memset((void *) root_package->prefix, 0, size);
-      memcpy((void *) root_package->prefix, prefix, size);
+      memset((void *)root_package->prefix, 0, size);
+      memcpy((void *)root_package->prefix, prefix, size);
     }
   }
 
@@ -224,14 +217,10 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
   } else if (0 != package->configure) {
     char *command = 0;
     char *args = rest_argc > 0
-        ? str_flatten((const char **) rest_argv, 0, rest_argc)
-        : "";
+                     ? str_flatten((const char **)rest_argv, 0, rest_argc)
+                     : "";
 
-    asprintf(&command,
-      "cd %s && %s %s",
-      dir,
-      package->configure,
-      args);
+    asprintf(&command, "cd %s && %s %s", dir, package->configure, args);
 
     if (root_package && root_package->prefix) {
       package_opts.prefix = root_package->prefix;
@@ -246,8 +235,8 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
       unsigned long int size = strlen(prefix) + 1;
       free(package->prefix);
       package->prefix = malloc(size);
-      memset((void *) package->prefix, 0, size);
-      memcpy((void *) package->prefix, prefix, size);
+      memset((void *)package->prefix, 0, size);
+      memcpy((void *)package->prefix, prefix, size);
       setenv("PREFIX", package->prefix, 1);
     }
 
@@ -282,7 +271,6 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
     goto cleanup;
   }
 
-
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&mutex);
 #endif
@@ -314,21 +302,18 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
       clib_package_thread_t *wrap = &wraps[i];
       pthread_t *thread = &threads[i];
       wrap->dir = dep_dir;
-      rc = pthread_create(
-            thread,
-            0,
-            configure_package_with_manifest_name_thread,
-            wrap);
+      rc = pthread_create(thread, 0,
+                          configure_package_with_manifest_name_thread, wrap);
 
       if (++i >= opts.concurrency) {
         for (int j = 0; j < i; ++j) {
           pthread_join(threads[j], 0);
-          free((void *) wraps[j].dir);
+          free((void *)wraps[j].dir);
         }
 
         i = 0;
       }
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
       if (!opts.flags) {
         usleep(1024 * 10);
       }
@@ -341,7 +326,7 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
 
       rc = configure_package(dep_dir);
 
-      free((void *) dep_dir);
+      free((void *)dep_dir);
 
       if (0 != rc) {
         goto cleanup;
@@ -352,11 +337,13 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
     for (int j = 0; j < i; ++j) {
       pthread_join(threads[j], 0);
-      free((void *) wraps[j].dir);
+      free((void *)wraps[j].dir);
     }
 #endif
 
-    if (0 != iterator) { list_iterator_destroy(iterator); }
+    if (0 != iterator) {
+      list_iterator_destroy(iterator);
+    }
   }
 
   if (opts.dev && 0 != package->development) {
@@ -386,21 +373,18 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
       clib_package_thread_t *wrap = &wraps[i];
       pthread_t *thread = &threads[i];
       wrap->dir = dep_dir;
-      rc = pthread_create(
-            thread,
-            0,
-            configure_package_with_manifest_name_thread,
-            wrap);
+      rc = pthread_create(thread, 0,
+                          configure_package_with_manifest_name_thread, wrap);
 
       if (++i >= opts.concurrency) {
         for (int j = 0; j < i; ++j) {
           pthread_join(threads[j], 0);
-          free((void *) wraps[j].dir);
+          free((void *)wraps[j].dir);
         }
 
         i = 0;
       }
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
       if (!opts.flags) {
         usleep(1024 * 10);
       }
@@ -413,7 +397,7 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
 
       rc = configure_package(dep_dir);
 
-      free((void *) dep_dir);
+      free((void *)dep_dir);
 
       if (0 != rc) {
         goto cleanup;
@@ -424,24 +408,31 @@ configure_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
     for (int j = 0; j < i; ++j) {
       pthread_join(threads[j], 0);
-      free((void *) wraps[j].dir);
+      free((void *)wraps[j].dir);
     }
 #endif
 
-    if (0 != iterator) { list_iterator_destroy(iterator); }
+    if (0 != iterator) {
+      list_iterator_destroy(iterator);
+    }
   }
 
 cleanup:
-  if (0 != package) { clib_package_free(package); }
-  if (0 != json) { free(json); }
+  if (0 != package) {
+    clib_package_free(package);
+  }
+  if (0 != json) {
+    free(json);
+  }
   if (0 == ok) {
-    if (0 != path) { free(path); }
+    if (0 != path) {
+      free(path);
+    }
   }
   return rc;
 }
 
-int
-configure_package(const char *dir) {
+int configure_package(const char *dir) {
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
@@ -454,58 +445,49 @@ configure_package(const char *dir) {
   return rc;
 }
 
-static void
-setopt_skip_cache(command_t *self) {
+static void setopt_skip_cache(command_t *self) {
   opts.skip_cache = 1;
   debug(&debugger, "set skip cache flag");
 }
 
-static void
-setopt_dev(command_t *self) {
+static void setopt_dev(command_t *self) {
   opts.dev = 1;
   debug(&debugger, "set dev flag");
 }
 
-static void
-setopt_force(command_t *self) {
+static void setopt_force(command_t *self) {
   opts.force = 1;
   debug(&debugger, "set force flag");
 }
 
-static void
-setopt_global(command_t *self) {
+static void setopt_global(command_t *self) {
   opts.global = 1;
   debug(&debugger, "set global flag");
 }
 
-static void
-setopt_flags(command_t *self) {
+static void setopt_flags(command_t *self) {
   opts.flags = 1;
   opts.verbose = 0;
   debug(&debugger, "set flags flag");
 }
 
-static void
-setopt_prefix(command_t *self) {
-  opts.prefix = (char *) self->arg;
+static void setopt_prefix(command_t *self) {
+  opts.prefix = (char *)self->arg;
   debug(&debugger, "set prefix: %s", opts.prefix);
 }
 
-static void
-setopt_dir(command_t *self) {
-  opts.dir = (char *) self->arg;
+static void setopt_dir(command_t *self) {
+  opts.dir = (char *)self->arg;
   debug(&debugger, "set dir: %s", opts.dir);
 }
 
-static void
-setopt_quiet(command_t *self) {
+static void setopt_quiet(command_t *self) {
   opts.verbose = 0;
   debug(&debugger, "set quiet flag");
 }
 
 #ifdef HAVE_PTHREADS
-static void
-setopt_concurrency(command_t *self) {
+static void setopt_concurrency(command_t *self) {
   if (self->arg) {
     opts.concurrency = atol(self->arg);
     debug(&debugger, "set concurrency: %lu", opts.concurrency);
@@ -513,8 +495,7 @@ setopt_concurrency(command_t *self) {
 }
 #endif
 
-int
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
   int rc = 0;
 
 #ifdef PATH_MAX
@@ -536,59 +517,38 @@ main(int argc, char **argv) {
   configured = hash_new();
   hash_set(configured, strdup("__" PROGRAM_NAME "__"), CLIB_VERSION);
 
-  command_init(&program , PROGRAM_NAME, CLIB_VERSION);
+  command_init(&program, PROGRAM_NAME, CLIB_VERSION);
   debug_init(&debugger, PROGRAM_NAME);
 
   program.usage = "[options] [name ...]";
 
-  command_option(&program,
-    "-o",
-    "--out <dir>",
-    "change the output directory [deps]",
-    setopt_dir);
+  command_option(&program, "-o", "--out <dir>",
+                 "change the output directory [deps]", setopt_dir);
 
-  command_option(&program,
-    "-P",
-    "--prefix <dir>",
-    "change the prefix directory (usually '/usr/local')",
-    setopt_prefix);
+  command_option(&program, "-P", "--prefix <dir>",
+                 "change the prefix directory (usually '/usr/local')",
+                 setopt_prefix);
 
-  command_option(&program,
-    "-q",
-    "--quiet",
-    "disable verbose output",
-    setopt_quiet);
+  command_option(&program, "-q", "--quiet", "disable verbose output",
+                 setopt_quiet);
 
-  command_option(&program,
-    "-d",
-    "--dev",
-    "configure development dependencies",
-    setopt_dev);
+  command_option(&program, "-d", "--dev", "configure development dependencies",
+                 setopt_dev);
 
-  command_option(&program,
-    "-f",
-    "--force",
-    "force the action of something, like overwriting a file",
-    setopt_force);
+  command_option(&program, "-f", "--force",
+                 "force the action of something, like overwriting a file",
+                 setopt_force);
 
-  command_option(&program,
-    "--cflags",
-    "--flags",
-    "output compiler flags instead of configuring",
-    setopt_flags);
+  command_option(&program, "--cflags", "--flags",
+                 "output compiler flags instead of configuring", setopt_flags);
 
-  command_option(&program,
-     "-c",
-     "--skip-cache",
-     "skip cache when configuring",
-     setopt_skip_cache);
+  command_option(&program, "-c", "--skip-cache", "skip cache when configuring",
+                 setopt_skip_cache);
 
 #ifdef HAVE_PTHREADS
-  command_option(&program,
-     "-C",
-     "--concurrency <number>",
-     "Set concurrency (default: " S(MAX_THREADS) ")",
-     setopt_concurrency);
+  command_option(&program, "-C", "--concurrency <number>",
+                 "Set concurrency (default: " S(MAX_THREADS) ")",
+                 setopt_concurrency);
 #endif
 
   command_parse(&program, argc, argv);
@@ -599,8 +559,8 @@ main(int argc, char **argv) {
     realpath(opts.dir, dir);
     unsigned long int size = strlen(dir) + 1;
     opts.dir = malloc(size);
-    memset((void *) opts.dir, 0, size);
-    memcpy((void *) opts.dir, dir, size);
+    memset((void *)opts.dir, 0, size);
+    memcpy((void *)opts.dir, dir, size);
   }
 
   if (opts.prefix) {
@@ -609,8 +569,8 @@ main(int argc, char **argv) {
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *) opts.prefix, 0, size);
-    memcpy((void *) opts.prefix, prefix, size);
+    memset((void *)opts.prefix, 0, size);
+    memcpy((void *)opts.prefix, prefix, size);
   }
 
   rest_offset = program.argc;
@@ -624,7 +584,7 @@ main(int argc, char **argv) {
         rest = 1;
         rest_offset = i + 1;
       } else if (arg && rest) {
-        (void) rest_argc++;
+        (void)rest_argc++;
       }
     } while (program.nargv[++i]);
   }
@@ -684,18 +644,13 @@ main(int argc, char **argv) {
 
       fs_stats *stats = fs_stat(dep);
 
-      if (
-        stats &&
-        (S_IFREG == (stats->st_mode & S_IFMT)
+      if (stats && (S_IFREG == (stats->st_mode & S_IFMT)
 #if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
-      || S_IFLNK == (stats->st_mode & S_IFMT)
+                    || S_IFLNK == (stats->st_mode & S_IFMT)
 #endif
-        )
-      ) {
+                        )) {
         dep = basename(dep);
-        rc = configure_package_with_manifest_name(
-          dirname(dep),
-          basename(dep));
+        rc = configure_package_with_manifest_name(dirname(dep), basename(dep));
       } else {
         rc = configure_package(dep);
 
@@ -715,10 +670,10 @@ main(int argc, char **argv) {
   int total_configured = 0;
   hash_each(configured, {
     if (0 == strncmp("t", val, 1)) {
-      (void) total_configured++;
+      (void)total_configured++;
     }
     if (0 != key) {
-      free((void *) key);
+      free((void *)key);
     }
   });
 
@@ -728,7 +683,7 @@ main(int argc, char **argv) {
   clib_package_cleanup();
 
   if (opts.dir) {
-    free((void *) opts.dir);
+    free((void *)opts.dir);
   }
 
   if (opts.prefix) {
@@ -748,7 +703,7 @@ main(int argc, char **argv) {
     }
 
     if (opts.verbose) {
-      if (total_configured > 1){
+      if (total_configured > 1) {
         logger_info("info", "configured %d packages", total_configured);
       } else if (1 == total_configured) {
         logger_info("info", "configured 1 package");
