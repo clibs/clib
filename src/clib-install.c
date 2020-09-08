@@ -1,4 +1,3 @@
-
 //
 // clib-install.c
 //
@@ -6,23 +5,23 @@
 // MIT licensed
 //
 
-#include <curl/curl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <libgen.h>
-#include "fs/fs.h"
 #include "commander/commander.h"
-#include "common/clib-package.h"
 #include "common/clib-cache.h"
+#include "common/clib-package.h"
+#include "debug/debug.h"
+#include "fs/fs.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
-#include "debug/debug.h"
 #include "parson/parson.h"
 #include "str-concat/str-concat.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
+#include <curl/curl.h>
+#include <libgen.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
 
@@ -33,14 +32,15 @@
 #define MAX_THREADS 12
 #endif
 
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #define realpath(a, b) _fullpath(a, b, strlen(a))
 #endif
 
 extern CURLSH *clib_package_curl_share;
 
-debug_t debugger = { 0 };
+debug_t debugger = {0};
 
 struct options {
   const char *dir;
@@ -58,78 +58,64 @@ struct options {
 #endif
 };
 
-static struct options opts = { 0 };
+static struct options opts = {0};
 
-static const char *manifest_names[] = {
-  "clib.json",
-  "package.json",
-  NULL
-};
+static const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
-static clib_package_opts_t package_opts = { 0 };
+static clib_package_opts_t package_opts = {0};
 static clib_package_t *root_package = NULL;
 
 /**
  * Option setters.
  */
 
-static void
-setopt_dir(command_t *self) {
-  opts.dir = (char *) self->arg;
+static void setopt_dir(command_t *self) {
+  opts.dir = (char *)self->arg;
   debug(&debugger, "set dir: %s", opts.dir);
 }
 
-static void
-setopt_prefix(command_t *self) {
-  opts.prefix = (char *) self->arg;
+static void setopt_prefix(command_t *self) {
+  opts.prefix = (char *)self->arg;
   debug(&debugger, "set prefix: %s", opts.prefix);
 }
 
-static void
-setopt_token(command_t *self) {
-  opts.token = (char *) self->arg;
+static void setopt_token(command_t *self) {
+  opts.token = (char *)self->arg;
   debug(&debugger, "set token: %s", opts.token);
 }
 
-static void
-setopt_quiet(command_t *self) {
+static void setopt_quiet(command_t *self) {
   opts.verbose = 0;
   debug(&debugger, "set quiet flag");
 }
 
-static void
-setopt_dev(command_t *self) {
+static void setopt_dev(command_t *self) {
   opts.dev = 1;
   debug(&debugger, "set development flag");
 }
 
-static void
-setopt_save(command_t *self) {
+static void setopt_save(command_t *self) {
   opts.save = 1;
   debug(&debugger, "set save flag");
 }
 
-static void
-setopt_savedev(command_t *self) {
+static void setopt_savedev(command_t *self) {
   opts.savedev = 1;
   debug(&debugger, "set savedev flag");
 }
 
-static void
-setopt_force(command_t *self) {
+static void setopt_force(command_t *self) {
   opts.force = 1;
   debug(&debugger, "set force flag");
 }
 
-static void
-setopt_global(command_t *self) {
+static void setopt_global(command_t *self) {
   opts.global = 1;
   debug(&debugger, "set global flag");
 }
 
 #ifdef HAVE_PTHREADS
-static void
-setopt_concurrency(command_t *self) {
+static void setopt_concurrency(command_t *self) {
   if (self->arg) {
     opts.concurrency = atol(self->arg);
     debug(&debugger, "set concurrency: %lu", opts.concurrency);
@@ -137,14 +123,12 @@ setopt_concurrency(command_t *self) {
 }
 #endif
 
-static void
-setopt_skip_cache(command_t *self) {
+static void setopt_skip_cache(command_t *self) {
   opts.skip_cache = 1;
   debug(&debugger, "set skip cache flag");
 }
 
-static int
-install_local_packages_with_package_name(const char *file) {
+static int install_local_packages_with_package_name(const char *file) {
   if (-1 == fs_exists(file)) {
     logger_error("error", "Missing clib.json or package.json");
     return 1;
@@ -152,22 +136,25 @@ install_local_packages_with_package_name(const char *file) {
 
   debug(&debugger, "reading local clib.json or package.json");
   char *json = fs_read(file);
-  if (NULL == json) return 1;
-
+  if (NULL == json)
+    return 1;
 
   clib_package_t *pkg = clib_package_new(json, opts.verbose);
-  if (NULL == pkg) goto e1;
+  if (NULL == pkg)
+    goto e1;
 
   if (pkg->prefix) {
     setenv("PREFIX", pkg->prefix, 1);
   }
 
   int rc = clib_package_install_dependencies(pkg, opts.dir, opts.verbose);
-  if (-1 == rc) goto e2;
+  if (-1 == rc)
+    goto e2;
 
   if (opts.dev) {
     rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
-    if (-1 == rc) goto e2;
+    if (-1 == rc)
+      goto e2;
   }
 
   free(json);
@@ -184,8 +171,7 @@ e1:
 /**
  * Install dependency packages at `pwd`.
  */
-static int
-install_local_packages() {
+static int install_local_packages() {
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
@@ -198,16 +184,18 @@ install_local_packages() {
   return rc;
 }
 
-static int
-write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char *file) {
+static int write_dependency_with_package_name(clib_package_t *pkg, char *prefix,
+                                              const char *file) {
   JSON_Value *packageJson = json_parse_file(file);
   JSON_Object *packageJsonObject = json_object(packageJson);
   JSON_Value *newDepSectionValue = NULL;
 
-  if (NULL == packageJson || NULL == packageJsonObject) return 1;
+  if (NULL == packageJson || NULL == packageJsonObject)
+    return 1;
 
   // If the dependency section doesn't exist then create it
-  JSON_Object *depSection = json_object_dotget_object(packageJsonObject, prefix);
+  JSON_Object *depSection =
+      json_object_dotget_object(packageJsonObject, prefix);
   if (NULL == depSection) {
     newDepSectionValue = json_value_init_object();
     depSection = json_value_get_object(newDepSectionValue);
@@ -226,8 +214,7 @@ write_dependency_with_package_name(clib_package_t *pkg, char* prefix, const char
 /**
  * Writes out a dependency to clib.json or package.json
  */
-static int
-write_dependency(clib_package_t *pkg, char* prefix) {
+static int write_dependency(clib_package_t *pkg, char *prefix) {
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;
@@ -243,8 +230,7 @@ write_dependency(clib_package_t *pkg, char* prefix) {
 /**
  * Save a dependency to clib.json or package.json.
  */
-static int
-save_dependency(clib_package_t *pkg) {
+static int save_dependency(clib_package_t *pkg) {
   debug(&debugger, "saving dependency %s at %s", pkg->name, pkg->version);
   return write_dependency(pkg, "dependencies");
 }
@@ -252,8 +238,7 @@ save_dependency(clib_package_t *pkg) {
 /**
  * Save a development dependency to clib.json or package.json.
  */
-static int
-save_dev_dependency(clib_package_t *pkg) {
+static int save_dev_dependency(clib_package_t *pkg) {
   debug(&debugger, "saving dev dependency %s at %s", pkg->name, pkg->version);
   return write_dependency(pkg, "development");
 }
@@ -262,9 +247,8 @@ save_dev_dependency(clib_package_t *pkg) {
  * Create and install a package from `slug`.
  */
 
-static int
-install_package(const char *slug) {
-  clib_package_t *pkg  = NULL;
+static int install_package(const char *slug) {
+  clib_package_t *pkg = NULL;
   int rc;
 
 #ifdef PATH_MAX
@@ -301,14 +285,11 @@ install_package(const char *slug) {
 
   if (0 == fs_exists(slug)) {
     fs_stats *stats = fs_stat(slug);
-    if (
-      NULL != stats &&
-      (S_IFREG == (stats->st_mode & S_IFMT)
+    if (NULL != stats && (S_IFREG == (stats->st_mode & S_IFMT)
 #if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
-      || S_IFLNK == (stats->st_mode & S_IFMT)
+                          || S_IFLNK == (stats->st_mode & S_IFMT)
 #endif
-      )
-    ) {
+                              )) {
       free(stats);
       return install_local_packages_with_package_name(slug);
     }
@@ -322,7 +303,8 @@ install_package(const char *slug) {
     pkg = clib_package_new_from_slug(slug, opts.verbose);
   }
 
-  if (NULL == pkg) return -1;
+  if (NULL == pkg)
+    return -1;
 
   if (root_package && root_package->prefix) {
     package_opts.prefix = root_package->prefix;
@@ -345,8 +327,10 @@ install_package(const char *slug) {
     pkg->repo = strdup(slug);
   }
 
-  if (opts.save) save_dependency(pkg);
-  if (opts.savedev) save_dev_dependency(pkg);
+  if (opts.save)
+    save_dependency(pkg);
+  if (opts.savedev)
+    save_dev_dependency(pkg);
 
 cleanup:
   clib_package_free(pkg);
@@ -357,11 +341,11 @@ cleanup:
  * Install the given `pkgs`.
  */
 
-static int
-install_packages(int n, char *pkgs[]) {
+static int install_packages(int n, char *pkgs[]) {
   for (int i = 0; i < n; i++) {
     debug(&debugger, "install %s (%d)", pkgs[i], i);
-    if (-1 == install_package(pkgs[i])) return 1;
+    if (-1 == install_package(pkgs[i]))
+      return 1;
   }
   return 0;
 }
@@ -370,8 +354,7 @@ install_packages(int n, char *pkgs[]) {
  * Entry point.
  */
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 #ifdef _WIN32
   opts.dir = ".\\deps";
 #else
@@ -390,76 +373,45 @@ main(int argc, char *argv[]) {
 
   debug_init(&debugger, "clib-install");
 
-  //30 days expiration
+  // 30 days expiration
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
   command_t program;
 
-  command_init(&program
-    , "clib-install"
-    , CLIB_VERSION);
+  command_init(&program, "clib-install", CLIB_VERSION);
 
   program.usage = "[options] [name ...]";
 
-  command_option(&program
-    , "-o"
-    , "--out <dir>"
-    , "change the output directory [deps]"
-    , setopt_dir);
-  command_option(&program
-    , "-P"
-    , "--prefix <dir>"
-    , "change the prefix directory (usually '/usr/local')"
-    , setopt_prefix);
-  command_option(&program
-    , "-q"
-    , "--quiet"
-    , "disable verbose output"
-    , setopt_quiet);
-  command_option(&program
-    , "-d"
-    , "--dev"
-    , "install development dependencies"
-    , setopt_dev);
-  command_option(&program
-    , "-S"
-    , "--save"
-    , "save dependency in clib.json or package.json"
-    , setopt_save);
-  command_option(&program
-      , "-D"
-      , "--save-dev"
-      , "save development dependency in clib.json or package.json"
-      , setopt_savedev);
-  command_option(&program
-      , "-f"
-      , "--force"
-      , "force the action of something, like overwriting a file"
-      , setopt_force);
-  command_option(&program
-      , "-c"
-      , "--skip-cache"
-      , "skip cache when installing"
-      , setopt_skip_cache);
-  command_option(&program
-      , "-g"
-      , "--global"
-      , "global install, don't write to output dir (default: deps/)"
-      , setopt_global);
-  command_option(&program
-      , "-t"
-      , "--token <token>"
-      , "Access token used to read private content"
-      , setopt_token);
+  command_option(&program, "-o", "--out <dir>",
+                 "change the output directory [deps]", setopt_dir);
+  command_option(&program, "-P", "--prefix <dir>",
+                 "change the prefix directory (usually '/usr/local')",
+                 setopt_prefix);
+  command_option(&program, "-q", "--quiet", "disable verbose output",
+                 setopt_quiet);
+  command_option(&program, "-d", "--dev", "install development dependencies",
+                 setopt_dev);
+  command_option(&program, "-S", "--save",
+                 "save dependency in clib.json or package.json", setopt_save);
+  command_option(&program, "-D", "--save-dev",
+                 "save development dependency in clib.json or package.json",
+                 setopt_savedev);
+  command_option(&program, "-f", "--force",
+                 "force the action of something, like overwriting a file",
+                 setopt_force);
+  command_option(&program, "-c", "--skip-cache", "skip cache when installing",
+                 setopt_skip_cache);
+  command_option(&program, "-g", "--global",
+                 "global install, don't write to output dir (default: deps/)",
+                 setopt_global);
+  command_option(&program, "-t", "--token <token>",
+                 "Access token used to read private content", setopt_token);
 #ifdef HAVE_PTHREADS
-  command_option(&program,
-     "-C",
-     "--concurrency <number>",
-     "Set concurrency (default: " S(MAX_THREADS) ")",
-     setopt_concurrency);
+  command_option(&program, "-C", "--concurrency <number>",
+                 "Set concurrency (default: " S(MAX_THREADS) ")",
+                 setopt_concurrency);
 #endif
   command_parse(&program, argc, argv);
-
 
   debug(&debugger, "%d arguments", program.argc);
 
@@ -473,8 +425,8 @@ main(int argc, char *argv[]) {
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *) opts.prefix, 0, size);
-    memcpy((void *) opts.prefix, prefix, size);
+    memset((void *)opts.prefix, 0, size);
+    memcpy((void *)opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
@@ -500,9 +452,8 @@ main(int argc, char *argv[]) {
     setenv("CLIB_FORCE", "1", 1);
   }
 
-  int code = 0 == program.argc
-    ? install_local_packages()
-    : install_packages(program.argc, program.argv);
+  int code = 0 == program.argc ? install_local_packages()
+                               : install_packages(program.argc, program.argv);
 
   curl_global_cleanup();
   clib_package_cleanup();

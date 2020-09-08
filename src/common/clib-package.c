@@ -2,36 +2,36 @@
 // clib-package.c
 //
 // Copyright (c) 2014 Stephen Mathieson
+// Copyright (c) 2014-2020 clib authors
 // MIT license
 //
 
-
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
 #endif
 
-#include <limits.h>
-#include <stdlib.h>
-#include <libgen.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-#include <curl/curl.h>
 #include "asprintf/asprintf.h"
-#include "tempdir/tempdir.h"
-#include "strdup/strdup.h"
-#include "parson/parson.h"
-#include "substr/substr.h"
-#include "http-get/http-get.h"
-#include "mkdirp/mkdirp.h"
-#include "path-join/path-join.h"
-#include "logger/logger.h"
-#include "parse-repo/parse-repo.h"
-#include "debug/debug.h"
-#include "clib-package.h"
 #include "clib-cache.h"
+#include "clib-package.h"
+#include "debug/debug.h"
 #include "fs/fs.h"
 #include "hash/hash.h"
+#include "http-get/http-get.h"
+#include "logger/logger.h"
+#include "mkdirp/mkdirp.h"
+#include "parse-repo/parse-repo.h"
+#include "parson/parson.h"
+#include "path-join/path-join.h"
+#include "strdup/strdup.h"
+#include "substr/substr.h"
+#include "tempdir/tempdir.h"
+#include <curl/curl.h>
+#include <libgen.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
@@ -48,7 +48,8 @@
 #define GITHUB_CONTENT_URL "https://raw.githubusercontent.com/"
 #define GITHUB_CONTENT_URL_WITH_TOKEN "https://%s@raw.githubusercontent.com/"
 
-#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #define realpath(a, b) _fullpath(a, b, strlen(a))
 #endif
@@ -72,70 +73,59 @@ struct clib_package_lock {
   pthread_mutex_t mutex;
 };
 
-static clib_package_lock_t lock = {
-  PTHREAD_MUTEX_INITIALIZER
-};
+static clib_package_lock_t lock = {PTHREAD_MUTEX_INITIALIZER};
 
 #endif
 
 CURLSH *clib_package_curl_share;
 debug_t _debugger;
 
-#define _debug(...) ({                                           \
-  if (!(_debugger.name)) debug_init(&_debugger, "clib-package"); \
-  debug(&_debugger, __VA_ARGS__);                                \
-})
+#define _debug(...)                                                            \
+  ({                                                                           \
+    if (!(_debugger.name))                                                     \
+      debug_init(&_debugger, "clib-package");                                  \
+    debug(&_debugger, __VA_ARGS__);                                            \
+  })
 
-static const char *manifest_names[] = {
-  "clib.json",
-  "package.json",
-  NULL
-};
+static const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
-#define E_FORMAT(...) ({      \
-  rc = asprintf(__VA_ARGS__); \
-  if (-1 == rc) goto cleanup; \
-});
+#define E_FORMAT(...)                                                          \
+  ({                                                                           \
+    rc = asprintf(__VA_ARGS__);                                                \
+    if (-1 == rc)                                                              \
+      goto cleanup;                                                            \
+  });
 
 static clib_package_opts_t opts = {
 #ifdef HAVE_PTHREADS
-  .concurrency = 4,
+    .concurrency = 4,
 #endif
-  .skip_cache = 1,
-  .prefix = 0,
-  .global = 0,
-  .force = 0,
-  .token = 0,
+    .skip_cache = 1,
+    .prefix = 0,
+    .global = 0,
+    .force = 0,
+    .token = 0,
 };
 
 /**
  * Pre-declare prototypes.
  */
 
-static inline char *
-json_object_get_string_safe(JSON_Object *, const char *);
+static inline char *json_object_get_string_safe(JSON_Object *, const char *);
 
-static inline char *
-json_array_get_string_safe(JSON_Array *, int);
+static inline char *json_array_get_string_safe(JSON_Array *, int);
 
-static inline char *
-clib_package_file_url(const char *, const char *);
+static inline char *clib_package_file_url(const char *, const char *);
 
-static inline char *
-clib_package_slug(const char *, const char *, const char *);
+static inline char *clib_package_slug(const char *, const char *, const char *);
 
-static inline char *
-clib_package_repo(const char *, const char *);
+static inline char *clib_package_repo(const char *, const char *);
 
-static inline list_t *
-parse_package_deps(JSON_Object *);
+static inline list_t *parse_package_deps(JSON_Object *);
 
-static inline int
-install_packages(list_t *, const char *, int);
+static inline int install_packages(list_t *, const char *, int);
 
-
-void
-clib_package_set_opts(clib_package_opts_t o) {
+void clib_package_set_opts(clib_package_opts_t o) {
   if (1 == opts.skip_cache && 0 == o.skip_cache) {
     opts.skip_cache = 0;
   } else if (0 == opts.skip_cache && 1 == o.skip_cache) {
@@ -187,10 +177,11 @@ clib_package_set_opts(clib_package_opts_t o) {
  * parent `JSON_Value` without destroying the string.
  */
 
-static inline char *
-json_object_get_string_safe(JSON_Object *obj, const char *key) {
+static inline char *json_object_get_string_safe(JSON_Object *obj,
+                                                const char *key) {
   const char *val = json_object_get_string(obj, key);
-  if (!val) return NULL;
+  if (!val)
+    return NULL;
   return strdup(val);
 }
 
@@ -200,10 +191,10 @@ json_object_get_string_safe(JSON_Object *obj, const char *key) {
  * parent `JSON_Value` without destroying the string.
  */
 
-static inline char *
-json_array_get_string_safe(JSON_Array *array, int index) {
+static inline char *json_array_get_string_safe(JSON_Array *array, int index) {
   const char *val = json_array_get_string(array, index);
-  if (!val) return NULL;
+  if (!val)
+    return NULL;
   return strdup(val);
 }
 
@@ -211,16 +202,13 @@ json_array_get_string_safe(JSON_Array *array, int index) {
  * Build a URL for `file` of the package belonging to `url`
  */
 
-static inline char *
-clib_package_file_url(const char *url, const char *file) {
-  if (!url || !file) return NULL;
+static inline char *clib_package_file_url(const char *url, const char *file) {
+  if (!url || !file)
+    return NULL;
 
-  int size =
-      strlen(url)
-    + 1  // /
-    + strlen(file)
-    + 1  // \0
-    ;
+  int size = strlen(url) + 1    // /
+             + strlen(file) + 1 // \0
+      ;
 
   char *res = malloc(size);
   if (res) {
@@ -234,16 +222,12 @@ clib_package_file_url(const char *url, const char *file) {
  * Build a slug
  */
 
-static inline char *
-clib_package_slug(const char *author, const char *name, const char *version) {
-  int size =
-      strlen(author)
-    + 1 // /
-    + strlen(name)
-    + 1 // @
-    + strlen(version)
-    + 1 // \0
-    ;
+static inline char *clib_package_slug(const char *author, const char *name,
+                                      const char *version) {
+  int size = strlen(author) + 1    // /
+             + strlen(name) + 1    // @
+             + strlen(version) + 1 // \0
+      ;
 
   char *slug = malloc(size);
   if (slug) {
@@ -257,8 +241,8 @@ clib_package_slug(const char *author, const char *name, const char *version) {
  * Load a local package with a manifest.
  */
 
-clib_package_t *
-clib_package_load_from_manifest(const char* manifest, int verbose) {
+clib_package_t *clib_package_load_from_manifest(const char *manifest,
+                                                int verbose) {
   clib_package_t *pkg = NULL;
 
   if (-1 == fs_exists(manifest)) {
@@ -269,11 +253,12 @@ clib_package_load_from_manifest(const char* manifest, int verbose) {
   logger_info("info", "reading local %s", manifest);
 
   char *json = fs_read(manifest);
-  if (NULL == json) goto e1;
+  if (NULL == json)
+    goto e1;
 
   pkg = clib_package_new(json, verbose);
 
- e1:
+e1:
   free(json);
 
   return pkg;
@@ -283,13 +268,12 @@ clib_package_load_from_manifest(const char* manifest, int verbose) {
  * Load a manifest from the current path.
  */
 
-clib_package_t *
-clib_package_load_local_manifest(int verbose) {
-  clib_package_t* pkg = NULL;
+clib_package_t *clib_package_load_local_manifest(int verbose) {
+  clib_package_t *pkg = NULL;
   int i = 0;
 
   do {
-    const char* name = NULL;
+    const char *name = NULL;
     name = manifest_names[i];
     pkg = clib_package_load_from_manifest(name, verbose);
   } while (pkg == NULL && NULL != manifest_names[++i]);
@@ -301,14 +285,10 @@ clib_package_load_local_manifest(int verbose) {
  * Build a repo
  */
 
-static inline char *
-clib_package_repo(const char *author, const char *name) {
-  int size =
-      strlen(author)
-    + 1 // /
-    + strlen(name)
-    + 1 // \0
-    ;
+static inline char *clib_package_repo(const char *author, const char *name) {
+  int size = strlen(author) + 1 // /
+             + strlen(name) + 1 // \0
+      ;
 
   char *repo = malloc(size);
   if (repo) {
@@ -322,12 +302,13 @@ clib_package_repo(const char *author, const char *name) {
  * Parse the dependencies in the given `obj` into a `list_t`
  */
 
-static inline list_t *
-parse_package_deps(JSON_Object *obj) {
+static inline list_t *parse_package_deps(JSON_Object *obj) {
   list_t *list = NULL;
 
-  if (!obj) goto done;
-  if (!(list = list_new())) goto done;
+  if (!obj)
+    goto done;
+  if (!(list = list_new()))
+    goto done;
   list->free = clib_package_dependency_free;
 
   for (unsigned int i = 0; i < json_object_get_count(obj); i++) {
@@ -336,15 +317,20 @@ parse_package_deps(JSON_Object *obj) {
     clib_package_dependency_t *dep = NULL;
     int error = 1;
 
-    if (!(name = json_object_get_name(obj, i))) goto loop_cleanup;
-    if (!(version = json_object_get_string_safe(obj, name))) goto loop_cleanup;
-    if (!(dep = clib_package_dependency_new(name, version))) goto loop_cleanup;
-    if (!(list_rpush(list, list_node_new(dep)))) goto loop_cleanup;
+    if (!(name = json_object_get_name(obj, i)))
+      goto loop_cleanup;
+    if (!(version = json_object_get_string_safe(obj, name)))
+      goto loop_cleanup;
+    if (!(dep = clib_package_dependency_new(name, version)))
+      goto loop_cleanup;
+    if (!(list_rpush(list, list_node_new(dep))))
+      goto loop_cleanup;
 
     error = 0;
 
   loop_cleanup:
-    if (version) free(version);
+    if (version)
+      free(version);
     if (error) {
       list_destroy(list);
       list = NULL;
@@ -356,16 +342,17 @@ done:
   return list;
 }
 
-static inline int
-install_packages(list_t *list, const char *dir, int verbose) {
+static inline int install_packages(list_t *list, const char *dir, int verbose) {
   list_node_t *node = NULL;
   list_iterator_t *iterator = NULL;
   int rc = -1;
 
-  if (!list || !dir) goto cleanup;
+  if (!list || !dir)
+    goto cleanup;
 
   iterator = list_iterator_new(list, LIST_HEAD);
-  if (NULL == iterator) goto cleanup;
+  if (NULL == iterator)
+    goto cleanup;
 
   list_t *freelist = list_new();
 
@@ -375,20 +362,24 @@ install_packages(list_t *list, const char *dir, int verbose) {
     clib_package_t *pkg = NULL;
     int error = 1;
 
-    dep = (clib_package_dependency_t *) node->val;
+    dep = (clib_package_dependency_t *)node->val;
     slug = clib_package_slug(dep->author, dep->name, dep->version);
-    if (NULL == slug) goto loop_cleanup;
+    if (NULL == slug)
+      goto loop_cleanup;
 
     pkg = clib_package_new_from_slug(slug, verbose);
-    if (NULL == pkg) goto loop_cleanup;
+    if (NULL == pkg)
+      goto loop_cleanup;
 
-    if (-1 == clib_package_install(pkg, dir, verbose)) goto loop_cleanup;
+    if (-1 == clib_package_install(pkg, dir, verbose))
+      goto loop_cleanup;
 
     list_rpush(freelist, list_node_new(pkg));
     error = 0;
 
   loop_cleanup:
-    if (slug) free(slug);
+    if (slug)
+      free(slug);
     if (error) {
       list_iterator_destroy(iterator);
       iterator = NULL;
@@ -400,11 +391,13 @@ install_packages(list_t *list, const char *dir, int verbose) {
   rc = 0;
 
 cleanup:
-  if (iterator) list_iterator_destroy(iterator);
+  if (iterator)
+    list_iterator_destroy(iterator);
   iterator = list_iterator_new(freelist, LIST_HEAD);
   while ((node = list_iterator_next(iterator))) {
     clib_package_t *pkg = node->val;
-    if (pkg) clib_package_free(pkg);
+    if (pkg)
+      clib_package_free(pkg);
   }
   list_iterator_destroy(iterator);
   list_destroy(freelist);
@@ -412,35 +405,28 @@ cleanup:
 }
 
 #ifdef HAVE_PTHREADS
-static void
-curl_lock_callback(
-    CURL *handle
-  , curl_lock_data data
-  , curl_lock_access access
-  , void *userptr
-) {
+static void curl_lock_callback(CURL *handle, curl_lock_data data,
+                               curl_lock_access access, void *userptr) {
   pthread_mutex_lock(&lock.mutex);
 }
 
-static void
-curl_unlock_callback(
-    CURL *handle
-  , curl_lock_data data
-  , curl_lock_access access
-  , void *userptr
-) {
+static void curl_unlock_callback(CURL *handle, curl_lock_data data,
+                                 curl_lock_access access, void *userptr) {
   pthread_mutex_unlock(&lock.mutex);
 }
 
-static void
-init_curl_share() {
+static void init_curl_share() {
   if (0 == clib_package_curl_share) {
     pthread_mutex_lock(&lock.mutex);
     clib_package_curl_share = curl_share_init();
-    curl_share_setopt(clib_package_curl_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
-    curl_share_setopt(clib_package_curl_share, CURLSHOPT_LOCKFUNC, curl_lock_callback);
-    curl_share_setopt(clib_package_curl_share, CURLSHOPT_UNLOCKFUNC, curl_unlock_callback);
-    curl_share_setopt(clib_package_curl_share, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_SHARE,
+                      CURL_LOCK_DATA_CONNECT);
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_LOCKFUNC,
+                      curl_lock_callback);
+    curl_share_setopt(clib_package_curl_share, CURLSHOPT_UNLOCKFUNC,
+                      curl_unlock_callback);
+    curl_share_setopt(clib_package_curl_share, CURLOPT_NETRC,
+                      CURL_NETRC_OPTIONAL);
     pthread_mutex_unlock(&lock.mutex);
   }
 }
@@ -450,8 +436,7 @@ init_curl_share() {
  * Create a new clib package from the given `json`
  */
 
-clib_package_t *
-clib_package_new(const char *json, int verbose) {
+clib_package_t *clib_package_new(const char *json, int verbose) {
   clib_package_t *pkg = NULL;
   JSON_Value *root = NULL;
   JSON_Object *json_object = NULL;
@@ -519,7 +504,7 @@ clib_package_new(const char *json, int verbose) {
             pkg->flags = "";
           }
 
-          if (-1 == asprintf(&pkg->flags, "%s %s", pkg->flags, flag)){
+          if (-1 == asprintf(&pkg->flags, "%s %s", pkg->flags, flag)) {
             goto cleanup;
           }
 
@@ -545,10 +530,9 @@ clib_package_new(const char *json, int verbose) {
     pkg->repo_name = parse_repo_name(pkg->repo);
   } else {
     if (verbose) {
-      logger_warn(
-        "warning",
-        "missing repo in clib.json or package.json file for %s",
-        pkg->name);
+      logger_warn("warning",
+                  "missing repo in clib.json or package.json file for %s",
+                  pkg->name);
     }
     pkg->author = NULL;
     pkg->repo_name = NULL;
@@ -561,13 +545,16 @@ clib_package_new(const char *json, int verbose) {
   }
 
   if (src) {
-    if (!(pkg->src = list_new())) goto cleanup;
+    if (!(pkg->src = list_new()))
+      goto cleanup;
     pkg->src->free = free;
     for (unsigned int i = 0; i < json_array_get_count(src); i++) {
       char *file = json_array_get_string_safe(src, i);
       _debug("file: %s", file);
-      if (!file) goto cleanup;
-      if (!(list_rpush(pkg->src, list_node_new(file)))) goto cleanup;
+      if (!file)
+        goto cleanup;
+      if (!(list_rpush(pkg->src, list_node_new(file))))
+        goto cleanup;
     }
   } else {
     _debug("no src files listed in clib.json or package.json file");
@@ -588,14 +575,16 @@ clib_package_new(const char *json, int verbose) {
       goto cleanup;
     }
   } else {
-    _debug("no development dependencies listed in clib.json or package.json file");
+    _debug(
+        "no development dependencies listed in clib.json or package.json file");
     pkg->development = NULL;
   }
 
   error = 0;
 
 cleanup:
-  if (root) json_value_free(root);
+  if (root)
+    json_value_free(root);
   if (error && pkg) {
     clib_package_free(pkg);
     pkg = NULL;
@@ -604,7 +593,8 @@ cleanup:
 }
 
 static clib_package_t *
-clib_package_new_from_slug_with_package_name(const char *slug, int verbose, const char *file) {
+clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
+                                             const char *file) {
   char *author = NULL;
   char *name = NULL;
   char *version = NULL;
@@ -618,13 +608,19 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
   int retries = 3;
 
   // parse chunks
-  if (!slug) goto error;
+  if (!slug)
+    goto error;
   _debug("creating package: %s", slug);
-  if (!(author = parse_repo_owner(slug, DEFAULT_REPO_OWNER))) goto error;
-  if (!(name = parse_repo_name(slug))) goto error;
-  if (!(version = parse_repo_version(slug, DEFAULT_REPO_VERSION))) goto error;
-  if (!(url = clib_package_url(author, name, version))) goto error;
-  if (!(json_url = clib_package_file_url(url, file))) goto error;
+  if (!(author = parse_repo_owner(slug, DEFAULT_REPO_OWNER)))
+    goto error;
+  if (!(name = parse_repo_name(slug)))
+    goto error;
+  if (!(version = parse_repo_version(slug, DEFAULT_REPO_VERSION)))
+    goto error;
+  if (!(url = clib_package_url(author, name, version)))
+    goto error;
+  if (!(json_url = clib_package_file_url(url, file)))
+    goto error;
 
   _debug("author: %s", author);
   _debug("name: %s", name);
@@ -651,9 +647,9 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose, cons
     pthread_mutex_unlock(&lock.mutex);
 #endif
   } else {
-download:
+  download:
 #ifdef HAVE_PTHREADS
-      pthread_mutex_unlock(&lock.mutex);
+    pthread_mutex_unlock(&lock.mutex);
 #endif
     if (retries-- <= 0) {
       goto error;
@@ -692,7 +688,8 @@ download:
     pkg = clib_package_new(json, verbose);
   }
 
-  if (!pkg) goto error;
+  if (!pkg)
+    goto error;
 
   // force version number
   if (pkg->version) {
@@ -739,26 +736,21 @@ download:
 
   pkg->url = url;
 
-
 #ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&lock.mutex);
+  pthread_mutex_lock(&lock.mutex);
 #endif
   // cache json
   if (pkg && pkg->author && pkg->name && pkg->version) {
-    if (-1 == clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
-      _debug("failed to cache JSON for: %s/%s@%s"
-        , pkg->author
-        , pkg->name
-        , pkg->version);
+    if (-1 ==
+        clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
+      _debug("failed to cache JSON for: %s/%s@%s", pkg->author, pkg->name,
+             pkg->version);
     } else {
-      _debug("cached: %s/%s@%s"
-        , pkg->author
-        , pkg->name
-        , pkg->version);
+      _debug("cached: %s/%s@%s", pkg->author, pkg->name, pkg->version);
     }
   }
 #ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
+  pthread_mutex_unlock(&lock.mutex);
 #endif
 
   if (res) {
@@ -785,9 +777,12 @@ error:
   free(url);
   free(json_url);
   free(repo);
-  if (!res && json) free(json);
-  if (res) http_get_free(res);
-  if (pkg) clib_package_free(pkg);
+  if (!res && json)
+    free(json);
+  if (res)
+    http_get_free(res);
+  if (pkg)
+    clib_package_free(pkg);
   return NULL;
 }
 
@@ -795,8 +790,7 @@ error:
  * Create a package from the given repo `slug`
  */
 
-clib_package_t *
-clib_package_new_from_slug(const char *slug, int verbose) {
+clib_package_t *clib_package_new_from_slug(const char *slug, int verbose) {
   clib_package_t *package = NULL;
   const char *name = NULL;
   unsigned int i = 0;
@@ -805,7 +799,7 @@ clib_package_new_from_slug(const char *slug, int verbose) {
     name = manifest_names[i];
     package = clib_package_new_from_slug_with_package_name(slug, verbose, name);
     if (NULL != package) {
-      package->filename = (char *) name;
+      package->filename = (char *)name;
     }
   } while (NULL != manifest_names[++i] && NULL == package);
 
@@ -816,17 +810,14 @@ clib_package_new_from_slug(const char *slug, int verbose) {
  * Get a slug for the package `author/name@version`
  */
 
-char *
-clib_package_url(const char *author, const char *name, const char *version) {
-  if (!author || !name || !version) return NULL;
-  int size = strlen(GITHUB_CONTENT_URL)
-    + strlen(author)
-    + 1 // /
-    + strlen(name)
-    + 1 // /
-    + strlen(version)
-    + 1 // \0
-    ;
+char *clib_package_url(const char *author, const char *name,
+                       const char *version) {
+  if (!author || !name || !version)
+    return NULL;
+  int size = strlen(GITHUB_CONTENT_URL) + strlen(author) + 1 // /
+             + strlen(name) + 1                              // /
+             + strlen(version) + 1                           // \0
+      ;
 
   if (0 != opts.token) {
     size += strlen(opts.token);
@@ -837,33 +828,22 @@ clib_package_url(const char *author, const char *name, const char *version) {
   if (slug) {
     memset(slug, '\0', size);
     if (0 != opts.token) {
-      sprintf(slug
-          , GITHUB_CONTENT_URL_WITH_TOKEN "%s/%s/%s"
-          , opts.token
-          , author
-          , name
-          , version);
+      sprintf(slug, GITHUB_CONTENT_URL_WITH_TOKEN "%s/%s/%s", opts.token,
+              author, name, version);
     } else {
-      sprintf(slug
-          , GITHUB_CONTENT_URL "%s/%s/%s"
-          , author
-          , name
-          , version);
+      sprintf(slug, GITHUB_CONTENT_URL "%s/%s/%s", author, name, version);
     }
   }
 
   return slug;
 }
 
-char *
-clib_package_url_from_repo(const char *repo, const char *version) {
-  if (!repo || !version) return NULL;
-  int size = strlen(GITHUB_CONTENT_URL)
-    + strlen(repo)
-    + 1 // /
-    + strlen(version)
-    + 1 // \0
-    ;
+char *clib_package_url_from_repo(const char *repo, const char *version) {
+  if (!repo || !version)
+    return NULL;
+  int size = strlen(GITHUB_CONTENT_URL) + strlen(repo) + 1 // /
+             + strlen(version) + 1                         // \0
+      ;
 
   if (0 != opts.token) {
     size += strlen(opts.token);
@@ -874,16 +854,10 @@ clib_package_url_from_repo(const char *repo, const char *version) {
   if (slug) {
     memset(slug, '\0', size);
     if (0 != opts.token) {
-      sprintf(slug
-          , GITHUB_CONTENT_URL_WITH_TOKEN "%s/%s"
-          , opts.token
-          , repo
-          , version);
+      sprintf(slug, GITHUB_CONTENT_URL_WITH_TOKEN "%s/%s", opts.token, repo,
+              version);
     } else {
-      sprintf(slug
-          , GITHUB_CONTENT_URL "%s/%s"
-          , repo
-          , version);
+      sprintf(slug, GITHUB_CONTENT_URL "%s/%s", repo, version);
     }
   }
   return slug;
@@ -893,8 +867,7 @@ clib_package_url_from_repo(const char *repo, const char *version) {
  * Parse the package author from the given `slug`
  */
 
-char *
-clib_package_parse_author(const char *slug) {
+char *clib_package_parse_author(const char *slug) {
   return parse_repo_owner(slug, DEFAULT_REPO_OWNER);
 }
 
@@ -902,8 +875,7 @@ clib_package_parse_author(const char *slug) {
  * Parse the package version from the given `slug`
  */
 
-char *
-clib_package_parse_version(const char *slug) {
+char *clib_package_parse_version(const char *slug) {
   return parse_repo_version(slug, DEFAULT_REPO_VERSION);
 }
 
@@ -911,8 +883,7 @@ clib_package_parse_version(const char *slug) {
  * Parse the package name from the given `slug`
  */
 
-char *
-clib_package_parse_name(const char *slug) {
+char *clib_package_parse_name(const char *slug) {
   return parse_repo_name(slug);
 }
 
@@ -920,18 +891,18 @@ clib_package_parse_name(const char *slug) {
  * Create a new package dependency from the given `repo` and `version`
  */
 
-clib_package_dependency_t *
-clib_package_dependency_new(const char *repo, const char *version) {
-  if (!repo || !version) return NULL;
+clib_package_dependency_t *clib_package_dependency_new(const char *repo,
+                                                       const char *version) {
+  if (!repo || !version)
+    return NULL;
 
   clib_package_dependency_t *dep = malloc(sizeof(clib_package_dependency_t));
   if (!dep) {
     return NULL;
   }
 
-  dep->version = 0 == strcmp("*", version)
-    ? strdup(DEFAULT_REPO_VERSION)
-    : strdup(version);
+  dep->version = 0 == strcmp("*", version) ? strdup(DEFAULT_REPO_VERSION)
+                                           : strdup(version);
   dep->name = clib_package_parse_name(repo);
   dep->author = clib_package_parse_author(repo);
 
@@ -939,13 +910,8 @@ clib_package_dependency_new(const char *repo, const char *version) {
   return dep;
 }
 
-static int
-fetch_package_file_work(
-    clib_package_t *pkg
-  , const char *dir
-  , char *file
-  , int verbose
-) {
+static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
+                                   char *file, int verbose) {
   char *url = NULL;
   char *path = NULL;
   int saved = 0;
@@ -975,7 +941,7 @@ fetch_package_file_work(
   }
 
 #ifdef HAVE_PTHREADS
-      pthread_mutex_lock(&lock.mutex);
+  pthread_mutex_lock(&lock.mutex);
 #endif
 
   if (1 == opts.force || -1 == fs_exists(path)) {
@@ -985,17 +951,16 @@ fetch_package_file_work(
     }
 
 #ifdef HAVE_PTHREADS
-      pthread_mutex_unlock(&lock.mutex);
+    pthread_mutex_unlock(&lock.mutex);
 #endif
 
     rc = http_get_file_shared(url, path, clib_package_curl_share);
     saved = 1;
   } else {
 #ifdef HAVE_PTHREADS
-      pthread_mutex_unlock(&lock.mutex);
+    pthread_mutex_unlock(&lock.mutex);
 #endif
   }
-
 
   if (-1 == rc) {
     if (verbose) {
@@ -1033,19 +998,15 @@ cleanup:
 }
 
 #ifdef HAVE_PTHREADS
-static void *
-fetch_package_file_thread(void *arg) {
+static void *fetch_package_file_thread(void *arg) {
   fetch_package_file_thread_data_t *data = arg;
   int *status = malloc(sizeof(int));
-  int rc = fetch_package_file_work(
-      data->pkg
-    , data->dir
-    , data->file
-    , data->verbose);
+  int rc =
+      fetch_package_file_work(data->pkg, data->dir, data->file, data->verbose);
   *status = rc;
-  (void) data->pkg->refs--;
-  pthread_exit((void *) status);
-  return (void *) rc;
+  (void)data->pkg->refs--;
+  pthread_exit((void *)status);
+  return (void *)rc;
 }
 #endif
 
@@ -1055,14 +1016,8 @@ fetch_package_file_thread(void *arg) {
  * Returns 0 on success.
  */
 
-static int
-fetch_package_file(
-    clib_package_t *pkg
-  , const char *dir
-  , char *file
-  , int verbose
-  , void **data
-) {
+static int fetch_package_file(clib_package_t *pkg, const char *dir, char *file,
+                              int verbose, void **data) {
 #ifndef HAVE_PTHREADS
   return fetch_package_file_work(pkg, dir, file, verbose);
 #else
@@ -1089,12 +1044,8 @@ fetch_package_file(
     return rc;
   }
 
-  (void) pkg->refs++;
-  rc = pthread_create(
-      &fetch->thread
-    , NULL
-    , fetch_package_file_thread
-    , fetch);
+  (void)pkg->refs++;
+  rc = pthread_create(&fetch->thread, NULL, fetch_package_file_thread, fetch);
 
   if (0 != rc) {
     pthread_attr_destroy(&fetch->attr);
@@ -1116,8 +1067,8 @@ fetch_package_file(
 #endif
 }
 
-int
-clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
+int clib_package_install_executable(clib_package_t *pkg, char *dir,
+                                    int verbose) {
 #ifdef PATH_MAX
   long path_max = PATH_MAX;
 #elif defined(_PC_PATH_MAX)
@@ -1156,39 +1107,29 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
   }
 
   reponame = strrchr(pkg->repo, '/');
-  if (reponame && *reponame != '\0') reponame++;
+  if (reponame && *reponame != '\0')
+    reponame++;
   else {
     if (verbose) {
-      logger_error(
-        "error",
-        "malformed repo field, must be in the form user/pkg");
+      logger_error("error",
+                   "malformed repo field, must be in the form user/pkg");
     }
     return -1;
   }
 
-  E_FORMAT(&url
-    , "https://github.com/%s/archive/%s.tar.gz"
-    , pkg->repo
-    , pkg->version);
+  E_FORMAT(&url, "https://github.com/%s/archive/%s.tar.gz", pkg->repo,
+           pkg->version);
 
-  E_FORMAT(&file
-    , "%s-%s.tar.gz"
-    , reponame
-    , pkg->version);
+  E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
 
-  E_FORMAT(&tarball
-    , "%s/%s"
-    , tmp, file);
+  E_FORMAT(&tarball, "%s/%s", tmp, file);
 
   rc = http_get_file_shared(url, tarball, clib_package_curl_share);
 
   if (0 != rc) {
     if (verbose) {
-      logger_error("error"
-        , "download failed for '%s@%s' - HTTP GET '%s'"
-        , pkg->repo
-        , pkg->version
-        , url);
+      logger_error("error", "download failed for '%s@%s' - HTTP GET '%s'",
+                   pkg->repo, pkg->version, url);
     }
 
     goto cleanup;
@@ -1203,7 +1144,8 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
 
   // cheap untar
   rc = system(command);
-  if (0 != rc) goto cleanup;
+  if (0 != rc)
+    goto cleanup;
 
   free(command);
   command = NULL;
@@ -1234,7 +1176,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
 
   char *version = pkg->version;
   if ('v' == version[0]) {
-    (void) version++;
+    (void)version++;
   }
 
   E_FORMAT(&unpack_dir, "%s/%s-%s", tmp, reponame, version);
@@ -1245,16 +1187,13 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     E_FORMAT(&deps, "%s/deps", unpack_dir);
     _debug("deps: %s", deps);
     rc = clib_package_install_dependencies(pkg, deps, verbose);
-    if (-1 == rc) goto cleanup;
+    if (-1 == rc)
+      goto cleanup;
   }
 
   if (!opts.global && pkg->makefile) {
-    E_FORMAT(&command
-        , "cp -fr %s/%s/%s %s"
-        , dir_path
-        , pkg->name
-        , basename(pkg->makefile)
-        , unpack_dir);
+    E_FORMAT(&command, "cp -fr %s/%s/%s %s", dir_path, pkg->name,
+             basename(pkg->makefile), unpack_dir);
 
     rc = system(command);
     if (0 != rc) {
@@ -1281,9 +1220,7 @@ clib_package_install_executable(clib_package_t *pkg , char *dir, int verbose) {
     setenv("CFLAGS", cflags, 1);
   }
 
-  E_FORMAT(&command, "cd %s && %s"
-      , unpack_dir
-      , pkg->install);
+  E_FORMAT(&command, "cd %s && %s", unpack_dir, pkg->install);
 
   _debug("command(install): %s", command);
   rc = system(command);
@@ -1301,8 +1238,7 @@ cleanup:
  * Install the given `pkg` in `dir`
  */
 
-int
-clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
+int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   list_iterator_t *iterator = NULL;
   char *package_json = NULL;
   char *pkg_dir = NULL;
@@ -1385,16 +1321,16 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
 #ifdef HAVE_PTHREADS
-    fetch_package_file_thread_data_t **fetchs = 0;
-    if (NULL != pkg && NULL != pkg->src) {
-      if (pkg->src->len > 0) {
-        fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-      }
+  fetch_package_file_thread_data_t **fetchs = 0;
+  if (NULL != pkg && NULL != pkg->src) {
+    if (pkg->src->len > 0) {
+      fetchs = malloc(pkg->src->len * sizeof(fetch_package_file_thread_data_t));
     }
+  }
 
-    if (fetchs) {
-      memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
-    }
+  if (fetchs) {
+    memset(fetchs, 0, pkg->src->len * sizeof(fetch_package_file_thread_data_t));
+  }
 
 #endif
 
@@ -1418,9 +1354,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
   if (NULL == pkg->url) {
-    pkg->url = clib_package_url(pkg->author
-      , pkg->repo_name
-      , pkg->version);
+    pkg->url = clib_package_url(pkg->author, pkg->repo_name, pkg->version);
 
     if (NULL == pkg->url) {
       rc = -1;
@@ -1478,7 +1412,8 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
         status = 0;
         if (0 != rc) {
           rc = 0;
-          logger_warn("warning", "unable to fetch Makefile (%s) for '%s'", pkg->makefile, pkg->name);
+          logger_warn("warning", "unable to fetch Makefile (%s) for '%s'",
+                      pkg->makefile, pkg->name);
         }
       }
     }
@@ -1486,24 +1421,26 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
   // if no sources are listed, just install
-  if (opts.global || NULL == pkg->src) goto install;
+  if (opts.global || NULL == pkg->src)
+    goto install;
 
 #ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&lock.mutex);
+  pthread_mutex_lock(&lock.mutex);
 #endif
 
   if (clib_cache_has_package(pkg->author, pkg->name, pkg->version)) {
     if (opts.skip_cache) {
-        clib_cache_delete_package(pkg->author, pkg->name, pkg->version);
+      clib_cache_delete_package(pkg->author, pkg->name, pkg->version);
 #ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
+      pthread_mutex_unlock(&lock.mutex);
 #endif
-        goto download;
+      goto download;
     }
 
-    if (0 != clib_cache_load_package(pkg->author, pkg->name, pkg->version, pkg_dir)){
+    if (0 != clib_cache_load_package(pkg->author, pkg->name, pkg->version,
+                                     pkg_dir)) {
 #ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
+      pthread_mutex_unlock(&lock.mutex);
 #endif
       goto download;
     }
@@ -1520,7 +1457,7 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   }
 
 #ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
+  pthread_mutex_unlock(&lock.mutex);
 #endif
 
 download:
@@ -1539,7 +1476,7 @@ download:
       goto cleanup;
     }
 
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     usleep(1024 * 10);
 #endif
 
@@ -1550,10 +1487,10 @@ download:
 
     fetchs[i] = fetch;
 
-    (void) pending++;
+    (void)pending++;
 
     if (i < max) {
-      (void) i++;
+      (void)i++;
     } else {
       while (--i >= 0) {
         fetch_package_file_thread_data_t *data = fetchs[i];
@@ -1562,7 +1499,7 @@ download:
         free(data);
         fetchs[i] = NULL;
 
-        (void) pending--;
+        (void)pending--;
 
         if (NULL != status) {
           rc = *status;
@@ -1575,7 +1512,7 @@ download:
           goto cleanup;
         }
 
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
         usleep(1024 * 10);
 #endif
       }
@@ -1590,7 +1527,7 @@ download:
 
     pthread_join(data->thread, (void **) &status);
 
-    (void) pending--;
+    (void)pending--;
     free(data);
     fetchs[i] = NULL;
 
@@ -1608,11 +1545,11 @@ download:
 #endif
 
 #ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&lock.mutex);
+  pthread_mutex_lock(&lock.mutex);
 #endif
   clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
 #ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
+  pthread_mutex_unlock(&lock.mutex);
 #endif
 
 install:
@@ -1631,18 +1568,14 @@ install:
       setenv("PREFIX", path, 1);
     }
 
-    E_FORMAT(&command
-        , "cd %s/%s && %s"
-        , dir
-        , pkg->name
-        , pkg->configure);
+    E_FORMAT(&command, "cd %s/%s && %s", dir, pkg->name, pkg->configure);
 
-      _debug("command(configure): %s", command);
+    _debug("command(configure): %s", command);
 
-      rc = system(command);
-      if (0 != rc) goto cleanup;
+    rc = system(command);
+    if (0 != rc)
+      goto cleanup;
   }
-
 
   if (0 == rc && pkg->install) {
     rc = clib_package_install_executable(pkg, dir, verbose);
@@ -1653,10 +1586,14 @@ install:
   }
 
 cleanup:
-  if (pkg_dir) free(pkg_dir);
-  if (package_json) free(package_json);
-  if (iterator) list_iterator_destroy(iterator);
-  if (command) free(command);
+  if (pkg_dir)
+    free(pkg_dir);
+  if (package_json)
+    free(package_json);
+  if (iterator)
+    list_iterator_destroy(iterator);
+  if (command)
+    free(command);
 #ifdef HAVE_PTHREADS
   if (NULL != pkg && NULL != pkg->src) {
     if (pkg->src->len > 0) {
@@ -1674,12 +1611,12 @@ cleanup:
  * Install the given `pkg`'s dependencies in `dir`
  */
 
-int
-clib_package_install_dependencies(clib_package_t *pkg
-    , const char *dir
-    , int verbose) {
-  if (!pkg || !dir) return -1;
-  if (NULL == pkg->dependencies) return 0;
+int clib_package_install_dependencies(clib_package_t *pkg, const char *dir,
+                                      int verbose) {
+  if (!pkg || !dir)
+    return -1;
+  if (NULL == pkg->dependencies)
+    return 0;
 
   return install_packages(pkg->dependencies, dir, verbose);
 }
@@ -1688,12 +1625,12 @@ clib_package_install_dependencies(clib_package_t *pkg
  * Install the given `pkg`'s development dependencies in `dir`
  */
 
-int
-clib_package_install_development(clib_package_t *pkg
-    , const char *dir
-    , int verbose) {
-  if (!pkg || !dir) return -1;
-  if (NULL == pkg->development) return 0;
+int clib_package_install_development(clib_package_t *pkg, const char *dir,
+                                     int verbose) {
+  if (!pkg || !dir)
+    return -1;
+  if (NULL == pkg->development)
+    return 0;
 
   return install_packages(pkg->development, dir, verbose);
 }
@@ -1702,8 +1639,7 @@ clib_package_install_development(clib_package_t *pkg
  * Free a clib package
  */
 
-void
-clib_package_free(clib_package_t *pkg) {
+void clib_package_free(clib_package_t *pkg) {
   if (NULL == pkg) {
     return;
   }
@@ -1712,7 +1648,11 @@ clib_package_free(clib_package_t *pkg) {
     return;
   }
 
-#define FREE(k) if (pkg->k) { free(pkg->k); pkg->k = 0; }
+#define FREE(k)                                                                \
+  if (pkg->k) {                                                                \
+    free(pkg->k);                                                              \
+    pkg->k = 0;                                                                \
+  }
   FREE(author);
   FREE(description);
   FREE(install);
@@ -1728,34 +1668,35 @@ clib_package_free(clib_package_t *pkg) {
   FREE(flags);
 #undef FREE
 
-  if (pkg->src) list_destroy(pkg->src);
+  if (pkg->src)
+    list_destroy(pkg->src);
   pkg->src = 0;
 
-  if (pkg->dependencies) list_destroy(pkg->dependencies);
+  if (pkg->dependencies)
+    list_destroy(pkg->dependencies);
   pkg->dependencies = 0;
 
-  if (pkg->development) list_destroy(pkg->development);
+  if (pkg->development)
+    list_destroy(pkg->development);
   pkg->development = 0;
 
   free(pkg);
   pkg = 0;
 }
 
-void
-clib_package_dependency_free(void *_dep) {
-  clib_package_dependency_t *dep = (clib_package_dependency_t *) _dep;
+void clib_package_dependency_free(void *_dep) {
+  clib_package_dependency_t *dep = (clib_package_dependency_t *)_dep;
   free(dep->name);
   free(dep->author);
   free(dep->version);
   free(dep);
 }
 
-void
-clib_package_cleanup() {
+void clib_package_cleanup() {
   if (0 != visited_packages) {
     hash_each(visited_packages, {
-      free((void *) key);
-      (void) val;
+      free((void *)key);
+      (void)val;
     });
 
     hash_free(visited_packages);
