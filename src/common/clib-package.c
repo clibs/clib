@@ -661,6 +661,10 @@ download:
 #ifdef HAVE_PTHREADS
       init_curl_share();
       _debug("GET %s", json_url);
+      if (res) {
+        // clean up from when retrying
+        http_get_free(res);
+      }
       res = http_get_shared(json_url, clib_package_curl_share);
 #else
       res = http_get(json_url);
@@ -1446,7 +1450,9 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
 #ifdef HAVE_PTHREADS
     pthread_mutex_lock(&lock.mutex);
 #endif
-    hash_set(visited_packages, strdup(pkg->name), "t");
+    if (!hash_has(visited_packages, pkg->name)) {
+      hash_set(visited_packages, strdup(pkg->name), "t");
+    }
 #ifdef HAVE_PTHREADS
     pthread_mutex_unlock(&lock.mutex);
 #endif
@@ -1464,9 +1470,9 @@ clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
 #ifdef HAVE_PTHREADS
     if (0 != fetch) {
       fetch_package_file_thread_data_t *data = fetch;
-      int *status = 0;
+      int *status;
       pthread_join(data->thread, (void **) &status);
-      if (0 != status) {
+      if (NULL != status) {
         rc = *status;
         free(status);
         status = 0;
@@ -1551,14 +1557,14 @@ download:
     } else {
       while (--i >= 0) {
         fetch_package_file_thread_data_t *data = fetchs[i];
-        int *status = 0;
-        pthread_join(data->thread, (void **) status);
+        int *status;
+        pthread_join(data->thread, (void **) &status);
         free(data);
         fetchs[i] = NULL;
 
         (void) pending--;
 
-        if (0 != status) {
+        if (NULL != status) {
           rc = *status;
           free(status);
           status = 0;
@@ -1580,15 +1586,15 @@ download:
 #ifdef HAVE_PTHREADS
   while (--i >= 0) {
     fetch_package_file_thread_data_t *data = fetchs[i];
-    int *status = 0;
+    int *status;
 
-    pthread_join(data->thread, (void **) status);
+    pthread_join(data->thread, (void **) &status);
 
     (void) pending--;
     free(data);
     fetchs[i] = NULL;
 
-    if (0 != status) {
+    if (NULL != status) {
       rc = *status;
       free(status);
       status = 0;
@@ -1755,4 +1761,6 @@ clib_package_cleanup() {
     hash_free(visited_packages);
     visited_packages = 0;
   }
+
+  curl_share_cleanup(clib_package_curl_share);
 }
