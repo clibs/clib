@@ -70,5 +70,8 @@ main() {
     }
   }
 
+  curl_global_cleanup();
+  clib_package_cleanup();
+
   return assert_failures();
 }

@@ -77,7 +77,7 @@ main() {
     it("should manage the search cache") {
       char *cached_search;
 
-  clib_cache_delete_search();
+      clib_cache_delete_search();
 
       assert_equal(0, clib_cache_has_search());
       assert_null(clib_cache_read_search());
