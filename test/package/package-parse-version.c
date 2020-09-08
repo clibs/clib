@@ -1,9 +1,8 @@
 
-#include "describe/describe.h"
 #include "clib-package.h"
+#include "describe/describe.h"
 
-int
-main() {
+int main() {
   describe("clib_package_parse_version") {
     char *version = NULL;
 

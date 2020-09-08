@@ -1,9 +1,8 @@
 
-#include "describe/describe.h"
 #include "clib-package.h"
+#include "describe/describe.h"
 
-int
-main() {
+int main() {
   curl_global_init(CURL_GLOBAL_ALL);
 
   describe("clib_package_dependency_new") {
@@ -13,7 +12,8 @@ main() {
     }
 
     it("should return a clib-dependency when given valid input") {
-      clib_package_dependency_t *dep = clib_package_dependency_new("foo/bar", "1.2.3");
+      clib_package_dependency_t *dep =
+          clib_package_dependency_new("foo/bar", "1.2.3");
       assert(dep);
       assert_str_equal("foo", dep->author);
       assert_str_equal("bar", dep->name);
@@ -22,14 +22,16 @@ main() {
     }
 
     it("should transform \"*\" to \"master\"") {
-      clib_package_dependency_t *dep = clib_package_dependency_new("foo/bar", "*");
+      clib_package_dependency_t *dep =
+          clib_package_dependency_new("foo/bar", "*");
       assert(dep);
       assert_str_equal("master", dep->version);
       clib_package_dependency_free(dep);
     }
 
     it("should default to \"clibs\" when no repo author is given") {
-      clib_package_dependency_t *dep = clib_package_dependency_new("foo", "master");
+      clib_package_dependency_t *dep =
+          clib_package_dependency_new("foo", "master");
       assert(dep);
       assert_str_equal("clibs", dep->author);
       assert_str_equal("master", dep->version);

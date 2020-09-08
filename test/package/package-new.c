@@ -1,27 +1,25 @@
 
-#include "describe/describe.h"
 #include "clib-package.h"
+#include "describe/describe.h"
 
-int
-main() {
+int main() {
   describe("clib_package_new") {
-    char json[] =
-      "{"
-      "  \"name\": \"foo\","
-      "  \"version\": \"1.0.0\","
-      "  \"repo\": \"foobar/foo\","
-      "  \"license\": \"mit\","
-      "  \"description\": \"lots of foo\","
-      "  \"src\": ["
-      "    \"foo.h\","
-      "    \"foo.c\""
-      "  ],"
-      "  \"dependencies\": {"
-      "    \"blah/blah\": \"1.2.3\","
-      "    \"bar\": \"*\","
-      "    \"abc/def\": \"master\""
-      "  }"
-      "}";
+    char json[] = "{"
+                  "  \"name\": \"foo\","
+                  "  \"version\": \"1.0.0\","
+                  "  \"repo\": \"foobar/foo\","
+                  "  \"license\": \"mit\","
+                  "  \"description\": \"lots of foo\","
+                  "  \"src\": ["
+                  "    \"foo.h\","
+                  "    \"foo.c\""
+                  "  ],"
+                  "  \"dependencies\": {"
+                  "    \"blah/blah\": \"1.2.3\","
+                  "    \"bar\": \"*\","
+                  "    \"abc/def\": \"master\""
+                  "  }"
+                  "}";
 
     it("should return NULL when given broken json") {
       assert(NULL == clib_package_new("{", 0));
@@ -67,14 +65,13 @@ main() {
     }
 
     it("should support missing src") {
-      char json[] =
-        "{"
-        "  \"name\": \"foo\","
-        "  \"version\": \"1.0.0\","
-        "  \"repo\": \"foobar/foo\","
-        "  \"license\": \"mit\","
-        "  \"description\": \"lots of foo\""
-        "}";
+      char json[] = "{"
+                    "  \"name\": \"foo\","
+                    "  \"version\": \"1.0.0\","
+                    "  \"repo\": \"foobar/foo\","
+                    "  \"license\": \"mit\","
+                    "  \"description\": \"lots of foo\""
+                    "}";
 
       clib_package_t *pkg = clib_package_new(json, 0);
       assert(pkg);

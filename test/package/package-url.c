@@ -1,9 +1,8 @@
 
-#include "describe/describe.h"
 #include "clib-package.h"
+#include "describe/describe.h"
 
-int
-main() {
+int main() {
   describe("clib_package_url") {
     it("should return NULL when given a bad author") {
       assert(NULL == clib_package_url(NULL, "name", "version"));
@@ -19,7 +18,8 @@ main() {
 
     it("should build a GitHub url") {
       char *url = clib_package_url("author", "name", "version");
-      assert_str_equal("https://raw.githubusercontent.com/author/name/version", url);
+      assert_str_equal("https://raw.githubusercontent.com/author/name/version",
+                       url);
       free(url);
     }
   }
