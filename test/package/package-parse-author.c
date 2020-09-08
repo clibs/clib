@@ -1,10 +1,9 @@
 
-#include <string.h>
-#include "describe/describe.h"
 #include "clib-package.h"
+#include "describe/describe.h"
+#include <string.h>
 
-int
-main() {
+int main() {
   describe("clib_package_parse_author") {
     char *author = NULL;
 

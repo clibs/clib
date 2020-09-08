@@ -13,7 +13,7 @@ MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
 COMMON_SRC = $(wildcard src/common/*.c)
-ALL_SRC = $(wildcard src/*.c src/*.h src/common/*.c src/common/*.h)
+ALL_SRC = $(wildcard src/*.c src/*.h src/common/*.c src/common/*.h test/package/*.c test/cache/*.c)
 SDEPS = $(wildcard deps/*/*.c)
 ODEPS = $(SDEPS:.c=.o)
 DEPS = $(filter-out $(ODEPS), $(SDEPS))
