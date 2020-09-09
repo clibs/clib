@@ -6,5 +6,5 @@
 //
 
 #ifndef CLIB_VERSION
-#define CLIB_VERSION "2.2.0"
+#define CLIB_VERSION "2.3.0"
 #endif

@@ -1,3 +1,9 @@
+2.3.0 / 2020-09-09
+==================
+  * [refact]: Integrating clib-cache into the main repository (#206)
+  * [refact]: Add `clang-format` for code formatting (#209, #211)
+  * [fix]: clib-package.c memory leaks (#210)
+
 2.2.0 / 2020-08-25
 ==================
   * Integrateing the clib-package into the main repo
