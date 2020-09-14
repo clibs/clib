@@ -138,13 +138,18 @@ static int install_package(const char *slug) {
   if (0 != extended_slug) {
     pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
   } else {
-    logger_warn("warn", "In clib 2.6.0, this functionality will change. We will default to the latest tag rather than the master branch.")
-    pkg = clib_package_new_from_slug(slug, opts.verbose);
+    logger_warn("warn",
+                "In clib 2.6.0, this functionality will change. We will "
+                "default to the latest tag rather than the master branch.")
+        pkg = clib_package_new_from_slug(slug, opts.verbose);
   }
 
   if (NULL == pkg) {
     if (opts.tag) {
-      logger_error("error", "Unable to install tag %s. Please make sure it actually exists.", opts.tag);
+      logger_error(
+          "error",
+          "Unable to install tag %s. Please make sure it actually exists.",
+          opts.tag);
     }
     return -1;
   }
