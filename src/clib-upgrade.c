@@ -138,11 +138,16 @@ static int install_package(const char *slug) {
   if (0 != extended_slug) {
     pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
   } else {
+    logger_warn("warn", "In clib 2.6.0, this functionality will change. We will default to the latest tag rather than the master branch.")
     pkg = clib_package_new_from_slug(slug, opts.verbose);
   }
 
-  if (NULL == pkg)
+  if (NULL == pkg) {
+    if (opts.tag) {
+      logger_error("error", "Unable to install tag %s. Please make sure it actually exists.", opts.tag);
+    }
     return -1;
+  }
 
   if (root_package && root_package->prefix) {
     package_opts.prefix = root_package->prefix;
@@ -209,7 +214,7 @@ int main(int argc, char *argv[]) {
                  setopt_slug);
   command_option(&program, "-T", "--tag <tag>",
                  "The tag to upgrade to (usually it is the latest)",
-                 setopt_token);
+                 setopt_tag);
 #ifdef HAVE_PTHREADS
   command_option(&program, "-C", "--concurrency <number>",
                  "Set concurrency (default: " S(MAX_THREADS) ")",
