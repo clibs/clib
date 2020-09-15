@@ -13,7 +13,6 @@
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parson/parson.h"
-#include "str-concat/str-concat.h"
 #include "str-replace/str-replace.h"
 #include "tempdir/tempdir.h"
 #include "version.h"
