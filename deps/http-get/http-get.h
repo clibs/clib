@@ -14,7 +14,7 @@
 #include <unistd.h>
 #endif
 
-#define HTTP_GET_VERSION "0.1.0"
+#define HTTP_GET_VERSION "0.3.0"
 
 typedef struct {
   char *data;

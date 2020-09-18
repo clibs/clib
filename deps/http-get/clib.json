@@ -1,6 +1,6 @@
 {
   "name": "http-get",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "repo": "clibs/http-get.c",
   "description": "Simple HTTP GET requests backed by libcurl",
   "keywords": [

@@ -22,6 +22,18 @@
 int clib_cache_init(time_t expiration);
 
 /**
+ * Initializes the internal cache directory
+ *
+ * @return 0 on success, -1 otherwise
+ */
+int clib_cache_meta_init(void);
+
+/**
+ * @return directory of internally cached data
+ */
+const char *clib_cache_meta_dir(void);
+
+/**
  * @return The base base dir
  */
 const char *clib_cache_dir(void);
