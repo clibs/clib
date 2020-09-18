@@ -37,6 +37,7 @@
 static char package_cache_dir[BUFSIZ];
 static char search_cache[BUFSIZ];
 static char json_cache_dir[BUFSIZ];
+static char meta_cache_dir[BUFSIZ];
 static time_t expiration;
 
 static void json_cache_path(char *pkg_cache, char *author, char *name,
@@ -58,6 +59,18 @@ static int check_dir(char *dir) {
   }
   return 0;
 }
+
+int clib_cache_meta_init(void) {
+  sprintf(meta_cache_dir, BASE_CACHE_PATTERN "/meta", BASE_DIR);
+
+  if (0 != check_dir(meta_cache_dir)) {
+    return -1;
+  }
+
+  return 0;
+}
+
+const char *clib_cache_meta_dir(void) { return meta_cache_dir; }
 
 int clib_cache_init(time_t exp) {
   expiration = exp;

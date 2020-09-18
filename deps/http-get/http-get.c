@@ -55,6 +55,7 @@ http_get_response_t *http_get_shared(const char *url, CURLSH *share) {
   curl_easy_setopt(req, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(req, CURLOPT_WRITEFUNCTION, http_get_cb);
   curl_easy_setopt(req, CURLOPT_WRITEDATA, (void *) res);
+  curl_easy_setopt(req, CURLOPT_USERAGENT, "http-get.c/"HTTP_GET_VERSION);
 
   int c = curl_easy_perform(req);
 

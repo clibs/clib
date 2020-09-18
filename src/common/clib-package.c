@@ -1403,7 +1403,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     if (0 != fetch) {
       fetch_package_file_thread_data_t *data = fetch;
       int *status;
-      pthread_join(data->thread, (void **) &status);
+      pthread_join(data->thread, (void **)&status);
       if (NULL != status) {
         rc = *status;
         free(status);
@@ -1493,7 +1493,7 @@ download:
       while (--i >= 0) {
         fetch_package_file_thread_data_t *data = fetchs[i];
         int *status;
-        pthread_join(data->thread, (void **) &status);
+        pthread_join(data->thread, (void **)&status);
         free(data);
         fetchs[i] = NULL;
 
@@ -1523,7 +1523,7 @@ download:
     fetch_package_file_thread_data_t *data = fetchs[i];
     int *status;
 
-    pthread_join(data->thread, (void **) &status);
+    pthread_join(data->thread, (void **)&status);
 
     (void)pending--;
     free(data);
