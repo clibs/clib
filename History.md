@@ -1,3 +1,9 @@
+2.4.0 / 2020-09-18
+==================
+  * [change] Logging future change in clib upgrade's default behaviour (#215)
+  * [refact] Remove unused `str-concat` dep (#216)
+  * [feature] Notifying the user if new version is available (#217)
+
 2.3.0 / 2020-09-09
 ==================
   * [refact]: Integrating clib-cache into the main repository (#206)
