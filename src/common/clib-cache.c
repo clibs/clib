@@ -70,9 +70,7 @@ int clib_cache_meta_init(void) {
   return 0;
 }
 
-const char *clib_cache_meta_dir(void) {
-  return meta_cache_dir;
-}
+const char *clib_cache_meta_dir(void) { return meta_cache_dir; }
 
 int clib_cache_init(time_t exp) {
   expiration = exp;

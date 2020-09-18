@@ -6,23 +6,22 @@
 //
 
 #include "asprintf/asprintf.h"
+#include "common/clib-cache.h"
 #include "debug/debug.h"
+#include "fs/fs.h"
+#include "http-get/http-get.h"
+#include "logger/logger.h"
+#include "parson/parson.h"
+#include "path-join/path-join.h"
 #include "str-flatten/str-flatten.h"
 #include "strdup/strdup.h"
 #include "trim/trim.h"
 #include "version.h"
 #include "which/which.h"
-#include "http-get/http-get.h"
-#include "logger/logger.h"
-#include "parson/parson.h"
-#include "common/clib-cache.h"
-#include "path-join/path-join.h"
-#include "fs/fs.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
     defined(__MINGW64__) || defined(__CYGWIN__)
@@ -30,7 +29,8 @@
 #define realpath(a, b) _fullpath(a, b, strlen(a))
 #endif
 
-#define LATEST_RELEASE_ENDPOINT "https://api.github.com/repos/clibs/clib/releases/latest"
+#define LATEST_RELEASE_ENDPOINT                                                \
+  "https://api.github.com/repos/clibs/clib/releases/latest"
 #define RELEASE_NOTIFICATION_EXPIRATION 3 * 24 * 60 * 60 // 3 days
 
 debug_t debugger;
@@ -65,9 +65,7 @@ static const char *usage =
     }                                                                          \
   })
 
-
-static bool should_check_release(const char *path)
-{
+static bool should_check_release(const char *path) {
   fs_stats *stat = fs_stat(path);
 
   if (!stat) {
@@ -81,18 +79,21 @@ static bool should_check_release(const char *path)
   return now - modified >= RELEASE_NOTIFICATION_EXPIRATION;
 }
 
-static void compare_versions(const JSON_Object *response, const char *marker_file_path)
-{
+static void compare_versions(const JSON_Object *response,
+                             const char *marker_file_path) {
   const char *latest_version = json_object_get_string(response, "tag_name");
 
   if (0 != strcmp(CLIB_VERSION, latest_version)) {
-    logger_info("info", "You are using clib %s, a new version is avalable. You can upgrade with the following command: clib upgrade --tag %s", CLIB_VERSION, latest_version);
+    logger_info("info",
+                "You are using clib %s, a new version is avalable. You can "
+                "upgrade with the following command: clib upgrade --tag %s",
+                CLIB_VERSION, latest_version);
   }
 }
 
-static void notify_new_release(void)
-{
-  const char *marker_file_path = path_join(clib_cache_meta_dir(), "release-notification-checked");
+static void notify_new_release(void) {
+  const char *marker_file_path =
+      path_join(clib_cache_meta_dir(), "release-notification-checked");
 
   if (!marker_file_path) {
     fs_write(marker_file_path, " ");
@@ -132,7 +133,7 @@ cleanup:
   if (root_json)
     json_value_free(root_json);
 
-  free((void *) marker_file_path);
+  free((void *)marker_file_path);
   http_get_free(res);
 }
 
@@ -150,7 +151,6 @@ int main(int argc, const char **argv) {
   clib_cache_meta_init();
 
   notify_new_release();
-
 
   // usage
   if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) ||
