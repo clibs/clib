@@ -112,7 +112,6 @@ static void notify_new_release(void) {
 
   if (!res->ok) {
     debug(&debugger, "Couldn't lookup latest release");
-    exit(0);
     goto cleanup;
   }
 
