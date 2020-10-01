@@ -129,7 +129,7 @@ _**NOTE:** Make sure you have a relese as the same version in your `package.json
 
 ## Making your own libraries
 
-Now that your know how to use libraries, heres how to make your own:
+Now that you know how to use libraries, heres how to make your own:
 
 Like before, heres a typical project directory tree:
 
