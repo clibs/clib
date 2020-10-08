@@ -125,7 +125,7 @@ at a example `package.json` file for your project: (executable package)
 
 Starting from the top, `"name"` is your package name. `"version"` is your package version. `"repo"` is the location of your project, (not including the `https://github.com/`). `"dependencies"` is all the dependencies your project requires, along with there version. `"install"` is the command to install your program (ran as root), (tip: if your project requires more then one command to install it, like need to run `./configure`, before `make`, then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command to uninstall your project, [more on that later](#install-and-uninstall-executables).
  
-_**NOTE:** Make sure you have a relese as the same version in your `package.json` file, otherwise the download will fail. If you always want your package at the latest version, then put `master` as your version._
+_**NOTE:** Make sure you have a release as the same version in your `package.json` file, otherwise the download will fail. If you always want your package at the latest version, then put `master` as your version._
 
 ## Making your own libraries
 
@@ -200,7 +200,7 @@ this is where your make library source code is, your can change it, but src is p
 **TIP:** In the `"dependencies"` section, if you define `"*"` as the version, clib will install
 the latest version of that library.
 
-_**NOTE:** Just like your executable package, you will want to tag a relese with the same name
+_**NOTE:** Just like your executable package, you will want to tag a release with the same name
 as your version specified in your `package.json`._
 
 ## Install and uninstall executables packages
