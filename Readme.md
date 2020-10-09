@@ -145,4 +145,4 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ## Articles
 
   - [Introducing Clib](https://medium.com/code-adventures/b32e6e769cb3) - introduction to clib
-  - [The Advent of Clib: the C Package Manager](http://blog.ashworth.in/2014/10/19/the-advent-of-clib-the-c-package-manager.html) - overview article about clib
+  - [The Advent of Clib: the C Package Manager](https://web.archive.org/web/20200128184218/http://blog.ashworth.in/2014/10/19/the-advent-of-clib-the-c-package-manager.html) - overview article about clib
