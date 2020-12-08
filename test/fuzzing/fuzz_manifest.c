@@ -17,8 +17,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     fwrite(data, size, 1, fp);
     fclose(fp);
     
-    clib_package_load_from_manifest(filename, 0);
-    
+    clib_package_t *pkg = 
+	    clib_package_load_from_manifest(filename, 0);
+    if(pkg) {
+	    clib_package_free(pkg);
+    }
     unlink(filename);
     return 0;
 }
