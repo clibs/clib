@@ -256,15 +256,6 @@ int main(int argc, char *argv[]) {
 
   clib_package_set_opts(package_opts);
 
-  if (opts.prefix) {
-    setenv("CLIB_PREFIX", opts.prefix, 1);
-    setenv("PREFIX", opts.prefix, 1);
-  }
-
-  if (opts.force) {
-    setenv("CLIB_FORCE", "1", 1);
-  }
-
   char *slug = 0;
 
   if (0 == opts.tag && 0 != program.argv[0]) {
