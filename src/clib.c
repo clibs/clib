@@ -158,11 +158,6 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
-  if (0 == strncmp(argv[1], "-v", 2)) {
-    fprintf(stderr, "Deprecated flag: \"-v\". Please use \"-V\"\n");
-    argv[1] = "-V";
-  }
-
   // version
   if (0 == strncmp(argv[1], "-V", 2) || 0 == strncmp(argv[1], "--version", 9)) {
     printf("%s\n", CLIB_VERSION);
