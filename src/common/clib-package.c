@@ -1065,6 +1065,24 @@ static int fetch_package_file(clib_package_t *pkg, const char *dir, char *file,
 #endif
 }
 
+static void set_prefix(clib_package_t *pkg)
+{
+  if (NULL != opts.prefix || NULL != pkg->prefix) {
+    char path[path_max];
+    memset(path, 0, path_max);
+
+    if (opts.prefix) {
+      realpath(opts.prefix, path);
+    } else {
+      realpath(pkg->prefix, path);
+    }
+
+    _debug("env: PREFIX: %s", path);
+    setenv("PREFIX", path, 1);
+    mkdirp(path, 0777);
+  }
+}
+
 int clib_package_install_executable(clib_package_t *pkg, char *dir,
                                     int verbose) {
 #ifdef PATH_MAX
@@ -1148,20 +1166,7 @@ int clib_package_install_executable(clib_package_t *pkg, char *dir,
   free(command);
   command = NULL;
 
-  if (NULL != opts.prefix || NULL != pkg->prefix) {
-    char path[path_max];
-    memset(path, 0, path_max);
-
-    if (opts.prefix) {
-      realpath(opts.prefix, path);
-    } else {
-      realpath(pkg->prefix, path);
-    }
-
-    _debug("env: PREFIX: %s", path);
-    setenv("PREFIX", path, 1);
-    mkdirp(path, 0777);
-  }
+  set_prefix(pkg);
 
   const char *configure = pkg->configure;
 
@@ -1336,6 +1341,8 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     rc = -1;
     goto cleanup;
   }
+
+  set_prefix(pkg);
 
   if (!(pkg_dir = path_join(dir, pkg->name))) {
     rc = -1;
@@ -1552,20 +1559,6 @@ download:
 
 install:
   if (pkg->configure) {
-    if (NULL != opts.prefix || NULL != pkg->prefix) {
-      char path[path_max];
-      memset(path, 0, path_max);
-
-      if (opts.prefix) {
-        realpath(opts.prefix, path);
-      } else {
-        realpath(pkg->prefix, path);
-      }
-
-      _debug("env: PREFIX: %s", path);
-      setenv("PREFIX", path, 1);
-    }
-
     E_FORMAT(&command, "cd %s/%s && %s", dir, pkg->name, pkg->configure);
 
     _debug("command(configure): %s", command);

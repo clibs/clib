@@ -685,15 +685,6 @@ int main(int argc, char **argv) {
 
   clib_package_set_opts(package_opts);
 
-  if (opts.prefix) {
-    setenv("CLIB_PREFIX", opts.prefix, 1);
-    setenv("PREFIX", opts.prefix, 1);
-  }
-
-  if (opts.force) {
-    setenv("CLIB_FORCE", "1", 1);
-  }
-
   if (0 == program.argc || (argc == rest_offset + rest_argc)) {
     rc = build_package(CWD);
   } else {
