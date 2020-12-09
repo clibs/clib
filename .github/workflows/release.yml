@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get Tag Name
-        uses: olegtarasov/get-tag@v2
+        uses: little-core-labs/get-git-tag@v3.0.1
         id: tag_name
 
       - name: System Setup
@@ -55,7 +55,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get Tag Name
-        uses: olegtarasov/get-tag@v2
+        uses: little-core-labs/get-git-tag@v3.0.1
         id: tag_name
 
       - name: System Setup
@@ -94,7 +94,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get Tag Name
-        uses: olegtarasov/get-tag@v2
+        uses: little-core-labs/get-git-tag@v3.0.1
         id: tag_name
 
       - name: System Setup
@@ -127,7 +127,7 @@ jobs:
     needs: [linux, macos, windows]
     steps:
       - name: Get Tag Name
-        uses: olegtarasov/get-tag@v2
+        uses: little-core-labs/get-git-tag@v3.0.1
         id: tag_name
 
       - name: Create Release
