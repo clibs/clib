@@ -3,6 +3,7 @@
   * [fix] Update BEST_PRACTICE.md (#218)
   * [fix] docs: fix simple typo, relese -> release (#221)
   * [fix] doc(README.md): Replace dead link with archive.org's (#222)
+  * [fix] Replacing olegtarasov/get-tag action n release worklow with a working fork (114b93f)
   * [add] Added fuzzer (#224)
   * [add] Added free to fuzzer (#225)
   * [remove] Removing deprecated -v flag (#227)
