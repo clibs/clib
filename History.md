@@ -1,3 +1,17 @@
+2.5.0 / 2020-12-09
+==================
+  * [fix] Update BEST_PRACTICE.md (#218)
+  * [fix] docs: fix simple typo, relese -> release (#221)
+  * [fix] doc(README.md): Replace dead link with archive.org's (#222)
+  * [add] Added fuzzer (#224)
+  * [add] Added free to fuzzer (#225)
+  * [remove] Removing deprecated -v flag (#227)
+  * [remove] Removing unused/duplicated environment variables (CLIB_FORCE, CLIB_PREFIX, PREFIX) (#226)
+
+2.4.1 / 2020-09-18
+==================
+  * [fix] correct version in version.h
+
 2.4.0 / 2020-09-18
 ==================
   * [change] Logging future change in clib upgrade's default behaviour (#215)
