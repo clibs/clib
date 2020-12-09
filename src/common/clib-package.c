@@ -1065,7 +1065,7 @@ static int fetch_package_file(clib_package_t *pkg, const char *dir, char *file,
 #endif
 }
 
-static void set_prefix(clib_package_t *pkg)
+static void set_prefix(clib_package_t *pkg, long path_max)
 {
   if (NULL != opts.prefix || NULL != pkg->prefix) {
     char path[path_max];
@@ -1166,7 +1166,7 @@ int clib_package_install_executable(clib_package_t *pkg, char *dir,
   free(command);
   command = NULL;
 
-  set_prefix(pkg);
+  set_prefix(pkg, path_max);
 
   const char *configure = pkg->configure;
 
@@ -1342,7 +1342,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     goto cleanup;
   }
 
-  set_prefix(pkg);
+  set_prefix(pkg, path_max);
 
   if (!(pkg_dir = path_join(dir, pkg->name))) {
     rc = -1;
