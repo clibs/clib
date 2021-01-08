@@ -1,7 +1,7 @@
 //
 // clib-search.c
 //
-// Copyright (c) 2012-2020 clib authors
+// Copyright (c) 2012-2021 clib authors
 // MIT licensed
 //
 
@@ -85,8 +85,10 @@ static int matches(int count, char *args[], wiki_package_t *pkg) {
   COMPARE(href);
 
 cleanup:
-  free(name);
   free(description);
+  free(name);
+  free(repo);
+  free(href);
   return rc;
 }
 
