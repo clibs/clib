@@ -1,7 +1,7 @@
 //
 // clib-configure.c
 //
-// Copyright (c) 2012-2020 clib authors
+// Copyright (c) 2012-2021 clib authors
 // MIT licensed
 //
 
@@ -122,7 +122,7 @@ void *configure_package_with_manifest_name_thread(void *arg) {
 
 int configure_package_with_manifest_name(const char *dir, const char *file) {
   clib_package_t *package = 0;
-  char *json = 0;
+  char *json = NULL;
   int ok = 0;
   int rc = 0;
 
@@ -146,7 +146,6 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 
   if (!root_package) {
     const char *name = NULL;
-    char *json = NULL;
     unsigned int i = 0;
 
     do {
@@ -180,6 +179,9 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&mutex);
 #endif
+
+  // Free the json if it was allocated before attempting to modify it
+  free(json);
 
   if (0 == fs_exists(path)) {
     debug(&debugger, "read %s", path);
