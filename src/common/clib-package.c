@@ -1,4 +1,3 @@
-//
 // clib-package.c
 //
 // Copyright (c) 2014 Stephen Mathieson
@@ -1065,8 +1064,7 @@ static int fetch_package_file(clib_package_t *pkg, const char *dir, char *file,
 #endif
 }
 
-static void set_prefix(clib_package_t *pkg, long path_max)
-{
+static void set_prefix(clib_package_t *pkg, long path_max) {
   if (NULL != opts.prefix || NULL != pkg->prefix) {
     char path[path_max];
     memset(path, 0, path_max);

@@ -7,6 +7,7 @@
 
 #include "asprintf/asprintf.h"
 #include "common/clib-cache.h"
+#include "common/clib-release-info.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
 #include "http-get/http-get.h"
@@ -79,9 +80,8 @@ static bool should_check_release(const char *path) {
   return now - modified >= RELEASE_NOTIFICATION_EXPIRATION;
 }
 
-static void compare_versions(const JSON_Object *response,
-                             const char *marker_file_path) {
-  const char *latest_version = json_object_get_string(response, "tag_name");
+static void compare_versions(const char *marker_file_path) {
+  const char *latest_version = clib_release_get_latest_tag();
 
   if (0 != strcmp(CLIB_VERSION, latest_version)) {
     logger_info("info",
@@ -89,6 +89,7 @@ static void compare_versions(const JSON_Object *response,
                 "upgrade with the following command: clib upgrade --tag %s",
                 CLIB_VERSION, latest_version);
   }
+  free(latest_version);
 }
 
 static void notify_new_release(void) {
@@ -96,7 +97,8 @@ static void notify_new_release(void) {
       path_join(clib_cache_meta_dir(), "release-notification-checked");
 
   if (!marker_file_path) {
-    fs_write(marker_file_path, " ");
+    debug(&debugger,
+          "Unable to retrieve release notification marker file path");
     return;
   }
 
@@ -105,35 +107,10 @@ static void notify_new_release(void) {
     return;
   }
 
-  JSON_Value *root_json = NULL;
-  JSON_Object *json_object = NULL;
-
-  http_get_response_t *res = http_get(LATEST_RELEASE_ENDPOINT);
-
-  if (!res->ok) {
-    debug(&debugger, "Couldn't lookup latest release");
-    goto cleanup;
-  }
-
-  if (!(root_json = json_parse_string(res->data))) {
-    debug(&debugger, "Unable to parse release JSON response");
-    goto cleanup;
-  }
-
-  if (!(json_object = json_value_get_object(root_json))) {
-    debug(&debugger, "Unable to parse release JSON response object");
-    goto cleanup;
-  }
-
-  compare_versions(json_object, marker_file_path);
+  compare_versions(marker_file_path);
   fs_write(marker_file_path, " ");
 
-cleanup:
-  if (root_json)
-    json_value_free(root_json);
-
   free((void *)marker_file_path);
-  http_get_free(res);
 }
 
 int main(int argc, const char **argv) {

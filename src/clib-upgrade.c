@@ -8,6 +8,7 @@
 #include "commander/commander.h"
 #include "common/clib-cache.h"
 #include "common/clib-package.h"
+#include "common/clib-release-info.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
 #include "http-get/http-get.h"
@@ -130,26 +131,26 @@ static int install_package(const char *slug) {
   }
 
   char *extended_slug = 0;
+
   if (0 != opts.tag) {
     asprintf(&extended_slug, "%s@%s", slug, opts.tag);
+  } else {
+    const char *latest_tag = clib_release_get_latest_tag();
+
+    asprintf(&extended_slug, "%s@%s", slug, latest_tag);
+    free(latest_tag);
   }
 
-  if (0 != extended_slug) {
-    pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
-  } else {
-    logger_warn("warn",
-                "In clib 2.6.0, this functionality will change. We will "
-                "default to the latest tag rather than the master branch.")
-        pkg = clib_package_new_from_slug(slug, opts.verbose);
-  }
+  logger_info("info", "Upgrading to %s", extended_slug);
+
+  pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
 
   if (NULL == pkg) {
-    if (opts.tag) {
-      logger_error(
-          "error",
-          "Unable to install tag %s. Please make sure it actually exists.",
-          opts.tag);
-    }
+    logger_error("error",
+                 "Unable to install %s. If you provided --tag, please make "
+                 "sure it actually exists.",
+                 extended_slug);
+
     return -1;
   }
 
