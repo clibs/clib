@@ -11,6 +11,6 @@
 /**
  * @return NULL on failure, char * otherwise that must be freed
  */
-const char *clib_relase_get_latest_tag(void);
+const char *clib_release_get_latest_tag(void);
 
 #endif

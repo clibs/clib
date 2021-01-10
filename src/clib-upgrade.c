@@ -135,7 +135,7 @@ static int install_package(const char *slug) {
   if (0 != opts.tag) {
     asprintf(&extended_slug, "%s@%s", slug, opts.tag);
   } else {
-    const char *latest_tag = clib_relase_get_latest_tag();
+    const char *latest_tag = clib_release_get_latest_tag();
 
     asprintf(&extended_slug, "%s@%s", slug, latest_tag);
     free(latest_tag);
