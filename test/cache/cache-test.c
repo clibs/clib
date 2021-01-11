@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define assert_exists(f) assert_equal(0, fs_exists(f));
 
@@ -36,11 +37,15 @@ int main() {
     char *version = "1.2.0";
     char pkg_dir[BUFSIZ];
 
-    it("should initialize succesfully") { assert_equal(0, clib_cache_init(1)); }
+    int expiraton = 1;
+
+    it("should initialize succesfully") {
+      assert_equal(0, clib_cache_init(expiraton));
+    }
 
     sprintf(pkg_dir, "%s/author_pkg_1.2.0", clib_cache_dir());
 
-    it("should manage package the cache") {
+    it("should manage the package cache") {
       assert_equal(
           0, clib_cache_save_package(author, name, version, "../../deps/copy"));
       assert_equal(1, clib_cache_has_package(author, name, version));
@@ -84,6 +89,17 @@ int main() {
       assert_equal(0, clib_cache_delete_search());
       assert_equal(0, clib_cache_has_search());
       assert_null(clib_cache_read_search());
+    }
+
+    it("should expire the search cache") {
+      clib_cache_delete_search();
+
+      assert_equal(13, clib_cache_save_search("<html></html>"));
+      assert_equal(1, clib_cache_has_search());
+
+      sleep(expiraton + 1);
+
+      assert_equal(0, clib_cache_has_search());
     }
   }
 
