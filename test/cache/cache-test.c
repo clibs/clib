@@ -101,6 +101,8 @@ int main() {
 
       assert_equal(0, clib_cache_has_search());
     }
+
+    clib_cache_delete_search();
   }
 
   return assert_failures();
