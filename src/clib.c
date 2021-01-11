@@ -89,7 +89,7 @@ static void compare_versions(const char *marker_file_path) {
                 "upgrade with the following command: clib upgrade --tag %s",
                 CLIB_VERSION, latest_version);
   }
-  free((void*)latest_version);
+  free((void *)latest_version);
 }
 
 static void notify_new_release(void) {
