@@ -138,7 +138,7 @@ static int install_package(const char *slug) {
     const char *latest_tag = clib_release_get_latest_tag();
 
     asprintf(&extended_slug, "%s@%s", slug, latest_tag);
-    free(latest_tag);
+    free((void *)latest_tag);
   }
 
   logger_info("info", "Upgrading to %s", extended_slug);

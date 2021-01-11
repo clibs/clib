@@ -75,7 +75,7 @@ char *clib_package_parse_name(const char *);
 clib_package_dependency_t *clib_package_dependency_new(const char *,
                                                        const char *);
 
-int clib_package_install_executable(clib_package_t *pkg, char *dir,
+int clib_package_install_executable(clib_package_t *pkg, const char *dir,
                                     int verbose);
 
 int clib_package_install(clib_package_t *, const char *, int);
