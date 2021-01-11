@@ -1,6 +1,6 @@
 2.6.0 / 2020-12-09
 ==================
-  * [change] `clib upgrage` will install the latest released tag by default if no `--tag` provided
+  * [change] `clib upgrage` will install the latest released tag by default if no `--tag` provided (#230)
   * [fix] Fixed memory leak for clib-search (#229) 
   * [fix] Fix memory leak in clib-configure (#228)
 
