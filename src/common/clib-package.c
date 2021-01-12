@@ -1003,7 +1003,7 @@ static void *fetch_package_file_thread(void *arg) {
   *status = rc;
   (void)data->pkg->refs--;
   pthread_exit((void *)status);
-  return (void *)rc;
+  return (void *)(intptr_t)rc;
 }
 #endif
 
@@ -1081,7 +1081,7 @@ static void set_prefix(clib_package_t *pkg, long path_max) {
   }
 }
 
-int clib_package_install_executable(clib_package_t *pkg, char *dir,
+int clib_package_install_executable(clib_package_t *pkg, const char *dir,
                                     int verbose) {
 #ifdef PATH_MAX
   long path_max = PATH_MAX;
