@@ -132,7 +132,9 @@ int clib_cache_delete_json(char *author, char *name, char *version) {
   return unlink(json_cache);
 }
 
-int clib_cache_has_search(void) { return 0 == fs_exists(search_cache); }
+int clib_cache_has_search(void) {
+  return 0 == fs_exists(search_cache) && !is_expired(search_cache);
+}
 
 char *clib_cache_read_search(void) {
   if (!clib_cache_has_search()) {
