@@ -345,6 +345,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
   list_node_t *node = NULL;
   list_iterator_t *iterator = NULL;
   int rc = -1;
+  list_t *freelist = NULL;
 
   if (!list || !dir)
     goto cleanup;
@@ -353,7 +354,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
   if (NULL == iterator)
     goto cleanup;
 
-  list_t *freelist = list_new();
+  freelist = list_new();
 
   while ((node = list_iterator_next(iterator))) {
     clib_package_dependency_t *dep = NULL;
@@ -392,14 +393,17 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
 cleanup:
   if (iterator)
     list_iterator_destroy(iterator);
-  iterator = list_iterator_new(freelist, LIST_HEAD);
-  while ((node = list_iterator_next(iterator))) {
-    clib_package_t *pkg = node->val;
-    if (pkg)
-      clib_package_free(pkg);
+
+  if (freelist) {
+      iterator = list_iterator_new(freelist, LIST_HEAD);
+      while ((node = list_iterator_next(iterator))) {
+        clib_package_t *pkg = node->val;
+        if (pkg)
+          clib_package_free(pkg);
+      }
+      list_iterator_destroy(iterator);
+      list_destroy(freelist);
   }
-  list_iterator_destroy(iterator);
-  list_destroy(freelist);
   return rc;
 }
 
