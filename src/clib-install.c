@@ -343,8 +343,10 @@ cleanup:
 static int install_packages(int n, char *pkgs[]) {
   for (int i = 0; i < n; i++) {
     debug(&debugger, "install %s (%d)", pkgs[i], i);
-    if (-1 == install_package(pkgs[i]))
+    if (-1 == install_package(pkgs[i])) {
+      logger_error("error", "Unable to install package %s", pkgs[i]);
       return 1;
+    }
   }
   return 0;
 }
