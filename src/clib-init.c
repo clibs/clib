@@ -54,12 +54,10 @@ static void setopt_manifest_file(command_t *self) {
 static char *find_basepath() {
   char cwd[4096] = {0};
   getcwd(cwd, 4096);
-  char *walk = cwd + strlen(cwd);
-  while (*(--walk) != '/')
-    ;
-  char *basepath = malloc((size_t)(walk - cwd));
-  strncpy(basepath, walk + 1, (size_t)(walk - cwd));
-  return basepath;
+
+  char *s = strrchr(cwd, '/');
+
+  return strdup(s + 1);
 }
 
 static void getinput(char *buffer, size_t s) {
