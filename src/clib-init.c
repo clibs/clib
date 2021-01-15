@@ -55,9 +55,7 @@ static char *find_basepath() {
   char cwd[4096] = {0};
   getcwd(cwd, 4096);
 
-  char *s = strrchr(cwd, '/');
-
-  return strdup(s + 1);
+  return strdup(strrchr(cwd, '/') + 1);
 }
 
 static void getinput(char *buffer, size_t s) {
