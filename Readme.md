@@ -79,6 +79,8 @@ $ sudo make install
     help <cmd>           Display help for cmd
 ```
 
+More about the Command Line Interface [here](https://github.com/clibs/clib/wiki/Command-Line-Interface).
+
 ## Examples
 
  More examples and best practices at [BEST_PRACTICE.md](https://github.com/clibs/clib/blob/master/BEST_PRACTICE.md).
