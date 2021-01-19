@@ -24,15 +24,10 @@
     goto done;                                                                 \
   })
 
-#define WARN(warning)                                                          \
-  ({                                                                           \
-    logger_warn("warning", warning);                                           \
-  });
+#define WARN(warning) ({ logger_warn("warning", warning); });
 
 #define WARN_FORMAT(warning, ...)                                              \
-  ({                                                                           \
-    logger_warn("warning", warning, __VA_ARGS__);                              \
-  });
+  ({ logger_warn("warning", warning, __VA_ARGS__); });
 
 #define WARN_MISSING(key, file)                                                \
   ({ WARN_FORMAT("missing " #key " in  %s", file); })
@@ -52,7 +47,6 @@ int clib_validate(const char *file) {
   JSON_Value *root = NULL;
   JSON_Object *obj = NULL;
   JSON_Value *src = NULL;
-  JSON_Array *keywords = NULL;
 
   if (-1 == fs_exists(file))
     ERROR_FORMAT("no such file: %s", file);
@@ -78,6 +72,10 @@ int clib_validate(const char *file) {
   require_string(description, file);
   require_string(license, file);
 
+  if (!json_object_get_array(obj, "keywords")) {
+    WARN_MISSING("keywords", file);
+  }
+
   src = json_object_get_value(obj, "src");
   if (!src) {
 
@@ -86,10 +84,6 @@ int clib_validate(const char *file) {
 
   } else if (json_value_get_type(src) != JSONArray) {
     WARN("src should be an array")
-  }
-
-  if (!(keywords = json_object_get_array(obj, "keywords"))) {
-    WARN_MISSING("keywords", file);
   }
 
 done:
