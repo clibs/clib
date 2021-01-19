@@ -26,13 +26,11 @@
 
 #define WARN(warning)                                                          \
   ({                                                                           \
-    rc++;                                                                      \
     logger_warn("warning", warning);                                           \
   });
 
 #define WARN_FORMAT(warning, ...)                                              \
   ({                                                                           \
-    rc++;                                                                      \
     logger_warn("warning", warning, __VA_ARGS__);                              \
   });
 
