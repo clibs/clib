@@ -8,6 +8,7 @@
 #include "commander/commander.h"
 #include "common/clib-cache.h"
 #include "common/clib-package.h"
+#include "common/clib-validate.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
 #include "http-get/http-get.h"
@@ -98,8 +99,7 @@ static void setopt_concurrency(command_t *self) {
 #endif
 
 static int install_local_packages_with_package_name(const char *file) {
-  if (-1 == fs_exists(file)) {
-    logger_error("error", "Missing clib.json or package.json");
+  if (0 != clib_validate(file)) {
     return 1;
   }
 
