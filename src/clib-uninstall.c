@@ -92,6 +92,8 @@ static char *get_uninstall_target(const char *name, const char *version) {
   }
 
   size = asprintf(&target, "cd %s && %s", dir, val);
+  if (-1 == size)
+    return NULL;
 
 done:
   if (root)
