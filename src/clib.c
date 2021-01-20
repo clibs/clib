@@ -113,6 +113,22 @@ static void notify_new_release(void) {
   free((void *)marker_file_path);
 }
 
+static void warn_deprecated_sub_command(const char *cmd) {
+  const char *allowed[] = {"build",  "configure", "init",    "install",
+                           "search", "update",    "upgrade", NULL};
+
+  int i = 0;
+
+  do {
+    if (0 == strcmp(allowed[i], cmd)) {
+      return;
+    }
+  } while (NULL != allowed[++i]);
+
+  logger_warn("deprecated", "Invoking external clib-* executables as "
+                            "sub-commands will be removed in 3.0");
+}
+
 int main(int argc, const char **argv) {
 
   char *cmd = NULL;
@@ -176,6 +192,8 @@ int main(int argc, const char **argv) {
   // aliases
   cmd = strcmp(cmd, "i") == 0 ? strdup("install") : cmd;
   cmd = strcmp(cmd, "up") == 0 ? strdup("update") : cmd;
+
+  warn_deprecated_sub_command(cmd);
 
 #ifdef _WIN32
   format(&command, "clib-%s.exe", cmd);
