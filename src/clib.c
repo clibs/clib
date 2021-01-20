@@ -115,7 +115,7 @@ static void notify_new_release(void) {
 
 static void warn_deprecated_sub_command(const char *cmd) {
   const char *allowed[] = {"build",  "configure", "init",    "install",
-                           "search", "update",    "upgrade", NULL};
+                           "search", "update",    "upgrade", "uninstall", NULL};
 
   int i = 0;
 
