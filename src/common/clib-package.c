@@ -395,14 +395,14 @@ cleanup:
     list_iterator_destroy(iterator);
 
   if (freelist) {
-      iterator = list_iterator_new(freelist, LIST_HEAD);
-      while ((node = list_iterator_next(iterator))) {
-        clib_package_t *pkg = node->val;
-        if (pkg)
-          clib_package_free(pkg);
-      }
-      list_iterator_destroy(iterator);
-      list_destroy(freelist);
+    iterator = list_iterator_new(freelist, LIST_HEAD);
+    while ((node = list_iterator_next(iterator))) {
+      clib_package_t *pkg = node->val;
+      if (pkg)
+        clib_package_free(pkg);
+    }
+    list_iterator_destroy(iterator);
+    list_destroy(freelist);
   }
   return rc;
 }
