@@ -11,6 +11,7 @@ package-lock.json
 clib-build
 clib-update
 clib-upgrade
+clib-uninstall
 
 test/package/package-*
 !test/package/package-*.c
