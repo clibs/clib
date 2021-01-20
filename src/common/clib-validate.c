@@ -2,7 +2,9 @@
 //
 // clib-validate: `clib-validate.c`
 //
-// Copyright (c) 2021 Stephen Mathieson
+// Copyright (c) 2014 Stephen Mathieson
+// Copyright (c) 2021 clib authors
+//
 // MIT licensed
 //
 
