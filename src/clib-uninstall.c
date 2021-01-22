@@ -20,6 +20,11 @@
 
 #define CLIB_UNINSTALL_DEFAULT_TARGET "make uninstall"
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#endif
+
 debug_t debugger;
 
 static void setopt_prefix(command_t *self) {
