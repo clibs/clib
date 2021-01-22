@@ -12,12 +12,20 @@
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parse-repo/parse-repo.h"
+#include "debug/debug.h"
 #include "parson/parson.h"
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
 
 #define CLIB_UNINSTALL_DEFAULT_TARGET "make uninstall"
+
+debug_t debugger;
+
+static void setopt_prefix(command_t *self) {
+  setenv("PREFIX", (char *)self->arg, 1);
+  debug(&debugger, "set prefix: %s", (char *)self->arg);
+}
 
 static char *get_tarball_url(const char *owner, const char *name,
                              const char *version) {
@@ -157,8 +165,16 @@ int main(int argc, char **argv) {
   int rc = 1;
   command_t program;
 
+  debug_init(&debugger, "clib-uninstall");
+
   command_init(&program, "clib-uninstall", CLIB_VERSION);
-  program.usage = "[name ...]";
+
+  program.usage = "[options] [name ...]";
+
+  command_option(&program, "-P", "--prefix <dir>",
+                 "change the prefix directory (usually '/usr/local')",
+                 setopt_prefix);
+
   command_parse(&program, argc, argv);
 
   if (0 == program.argc)
