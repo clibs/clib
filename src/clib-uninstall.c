@@ -9,10 +9,11 @@
 
 #include "asprintf/asprintf.h"
 #include "commander/commander.h"
+#include "debug/debug.h"
+#include "fs/fs.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parse-repo/parse-repo.h"
-#include "debug/debug.h"
 #include "parson/parson.h"
 #include "version.h"
 #include <stdlib.h>
@@ -24,6 +25,8 @@
     defined(__MINGW64__) || defined(__CYGWIN__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #endif
+
+const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
 debug_t debugger;
 
@@ -70,11 +73,31 @@ static char *get_untar_command(const char *file) {
   return cmd;
 }
 
+static char *get_manifest_path(const char *dir) {
+  char *path = NULL;
+  int i = 0;
+
+  do {
+    asprintf(&path, "%s/%s", dir, manifest_names[i]);
+
+    if (0 == fs_exists(path)) {
+      return path;
+    }
+
+    debug(&debugger, "Manifest file does not exists %s", path);
+
+    free(path);
+    path = NULL;
+  } while (NULL != manifest_names[++i]);
+
+  return NULL;
+}
+
 static char *get_uninstall_target(const char *name, const char *version) {
   int size = 0;
   char *target = NULL;
   char *dir = NULL;
-  char *pkg = NULL;
+  char *manifest = NULL;
   const char *val = NULL;
   JSON_Value *root = NULL;
   JSON_Object *obj = NULL;
@@ -83,11 +106,12 @@ static char *get_uninstall_target(const char *name, const char *version) {
   if (-1 == size)
     return NULL;
 
-  size = asprintf(&pkg, "%s/package.json", dir);
-  if (-1 == size)
+  manifest = get_manifest_path(dir);
+
+  if (NULL == manifest)
     goto done;
 
-  root = json_parse_file(pkg);
+  root = json_parse_file(manifest);
   if (!root)
     goto done;
 
@@ -112,7 +136,7 @@ done:
   if (root)
     json_value_free(root);
   free(dir);
-  free(pkg);
+  free(manifest);
   return target;
 }
 
