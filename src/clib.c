@@ -105,12 +105,13 @@ static void notify_new_release(void) {
 
   if (!should_check_release(marker_file_path)) {
     debug(&debugger, "No need to check for new release yet");
-    return;
+    goto cleanup;
   }
 
   compare_versions(marker_file_path);
   fs_write(marker_file_path, " ");
 
+cleanup:
   free((void *)marker_file_path);
 }
 
