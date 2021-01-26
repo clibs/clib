@@ -1,3 +1,11 @@
+2.7.0 / 2021-01-26
+==================
+  * [feature] Integrating clib-uninstall as `clib uninstall` command (#245)
+  * [feature] Integrating clib-validate to automatically validate `clib.json` files (#242)
+  * [deprecated] Deperecated `clib-*` executable plugins (#244)
+  * [fix] `clib init` can't always determine the current directory name (#240)
+  * [fix] memory leak in clib.c (#353834e)
+
 2.6.1 / 2021-01-14
 ==================
   * [fix] Expire the search cache (#234)

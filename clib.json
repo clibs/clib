@@ -1,6 +1,6 @@
 {
   "name": "clib",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "repo": "clibs/clib",
   "install": "make clean uninstall build install",
   "makefile": "Makefile",
