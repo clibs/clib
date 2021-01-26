@@ -84,7 +84,7 @@ static char *get_manifest_path(const char *dir) {
       return path;
     }
 
-    debug(&debugger, "Manifest file does not exists %s", path);
+    debug(&debugger, "Manifest file does not exist %s", path);
 
     free(path);
     path = NULL;
