@@ -50,6 +50,7 @@ static const char *usage =
     "    init                 Start a new project\n"
     "    i, install [name...] Install one or more packages\n"
     "    up, update [name...] Update one or more packages\n"
+    "    uninstall [name...]  Uninstall executables\n"
     "    upgrade [version]    Upgrade clib to a specified or latest version\n"
     "    configure [name...]  Configure one or more packages\n"
     "    build [name...]      Build one or more packages\n"
