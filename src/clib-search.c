@@ -61,7 +61,7 @@ static void setopt_json(command_t *self) { opt_json = 1; }
     }                                                                          \
   }
 
-static int matches(int count, char *args[], wiki_package_t *pkg) {
+static int matches(int count, char *args[], wiki_package_ptr_t pkg) {
   // Display all packages if there's no query
   if (0 == count)
     return 1;
@@ -72,16 +72,16 @@ static int matches(int count, char *args[], wiki_package_t *pkg) {
   char *href = NULL;
   int rc = 0;
 
-  name = clib_package_parse_name(pkg->repo);
+  name = clib_package_parse_name(wiki_package_get_repo(pkg));
   COMPARE(name);
 
-  description = strdup(pkg->description);
+  description = strdup(wiki_package_get_description(pkg));
   COMPARE(description);
 
-  repo = strdup(pkg->repo);
+  repo = strdup(wiki_package_get_repo(pkg));
   COMPARE(repo);
 
-  href = strdup(pkg->href);
+  href = strdup(wiki_package_get_href(pkg));
   COMPARE(href);
 
 cleanup:
@@ -100,11 +100,7 @@ static char *wiki_html_cache() {
     if (data) {
       return data;
     }
-
-    goto set_cache;
   }
-
-set_cache:
 
   debug(&debugger, "setting cache from %s", CLIB_WIKI_URL);
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
@@ -119,30 +115,30 @@ set_cache:
   if (NULL == html)
     return html;
   clib_cache_save_search(html);
-  debug(&debugger, "wrote cach");
+  debug(&debugger, "wrote cache");
   return html;
 }
 
-static void display_package(const wiki_package_t *pkg,
+static void display_package(const wiki_package_ptr_t pkg,
                             cc_color_t fg_color_highlight,
                             cc_color_t fg_color_text) {
-  cc_fprintf(fg_color_highlight, stdout, "  %s\n", pkg->repo);
+  cc_fprintf(fg_color_highlight, stdout, "  %s\n", wiki_package_get_repo(pkg));
   printf("  url: ");
-  cc_fprintf(fg_color_text, stdout, "%s\n", pkg->href);
+  cc_fprintf(fg_color_text, stdout, "%s\n", wiki_package_get_href(pkg));
   printf("  desc: ");
-  cc_fprintf(fg_color_text, stdout, "%s\n", pkg->description);
+  cc_fprintf(fg_color_text, stdout, "%s\n", wiki_package_get_description(pkg));
   printf("\n");
 }
 
-static void add_package_to_json(const wiki_package_t *pkg,
+static void add_package_to_json(const wiki_package_ptr_t pkg,
                                 JSON_Array *json_list) {
   JSON_Value *json_pkg_root = json_value_init_object();
   JSON_Object *json_pkg = json_value_get_object(json_pkg_root);
 
-  json_object_set_string(json_pkg, "repo", pkg->repo);
-  json_object_set_string(json_pkg, "href", pkg->href);
-  json_object_set_string(json_pkg, "description", pkg->description);
-  json_object_set_string(json_pkg, "category", pkg->category);
+  json_object_set_string(json_pkg, "repo", wiki_package_get_repo(pkg));
+  json_object_set_string(json_pkg, "href", wiki_package_get_href(pkg));
+  json_object_set_string(json_pkg, "description", wiki_package_get_description(pkg));
+  json_object_set_string(json_pkg, "category", wiki_package_get_category(pkg));
 
   json_array_append_value(json_list, json_pkg_root);
 }
@@ -177,20 +173,25 @@ int main(int argc, char *argv[]) {
   cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
   cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
 
-  char *html = wiki_html_cache();
-  if (NULL == html) {
-    command_free(&program);
-    logger_error("error", "failed to fetch wiki HTML");
-    return 1;
-  }
 
+  wiki_registry_ptr_t registry = wiki_registry_create(CLIB_WIKI_URL);
+  wiki_registry_fetch(registry);
+
+  // TODO, implement caching for the new registries.
+  /*
+    char *html = wiki_html_cache();
+    if (NULL == html) {
+        command_free(&program);
+        logger_error("error", "failed to fetch wiki HTML");
+        return 1;
+    }
   list_t *pkgs = wiki_registry_parse(html);
   free(html);
-
   debug(&debugger, "found %zu packages", pkgs->len);
+   */
 
-  list_node_t *node;
-  list_iterator_t *it = list_iterator_new(pkgs, LIST_HEAD);
+  wiki_package_ptr_t pkg;
+  wiki_registry_iterator_t it = wiki_registry_iterator_new(registry);
 
   JSON_Array *json_list = NULL;
   JSON_Value *json_list_root = NULL;
@@ -202,8 +203,7 @@ int main(int argc, char *argv[]) {
 
   printf("\n");
 
-  while ((node = list_iterator_next(it))) {
-    wiki_package_t *pkg = (wiki_package_t *)node->val;
+  while ((pkg = wiki_registry_iterator_next(it))) {
     if (matches(program.argc, program.argv, pkg)) {
       if (opt_json) {
         add_package_to_json(pkg, json_list);
@@ -211,10 +211,8 @@ int main(int argc, char *argv[]) {
         display_package(pkg, fg_color_highlight, fg_color_text);
       }
     } else {
-      debug(&debugger, "skipped package %s", pkg->repo);
+      debug(&debugger, "skipped package %s", wiki_package_get_repo(pkg));
     }
-
-    wiki_package_free(pkg);
   }
 
   if (opt_json) {
@@ -225,8 +223,8 @@ int main(int argc, char *argv[]) {
     json_value_free(json_list_root);
   }
 
-  list_iterator_destroy(it);
-  list_destroy(pkgs);
+  wiki_registry_iterator_destroy(it);
+  wiki_registry_free(registry);
   command_free(&program);
   return 0;
 }
