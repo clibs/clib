@@ -3,6 +3,6 @@
 
 #include "list/list.h"
 
-list_t* gitlab_registry_fetch(const char *url);
+list_t* gitlab_registry_fetch(const char* url, const char* hostname);
 
 #endif //CLIB_GITLAB_REGISTRY_H

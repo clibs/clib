@@ -8,11 +8,13 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include "strdup/strdup.h"
 #include "gumbo-parser/gumbo.h"
 #include "list/list.h"
 #include "wiki-registry-internal.h"
 #include "github-registry.h"
 #include "gitlab-registry.h"
+#include "url/url.h"
 
 enum wiki_registry_type_t {
     REGISTRY_TYPE_GITHUB,
@@ -21,7 +23,8 @@ enum wiki_registry_type_t {
 
 struct wiki_registry_t {
     enum wiki_registry_type_t type;
-    char *url;
+    char* url;
+    char* hostname;
     list_t *packages;
 };
 
@@ -52,8 +55,7 @@ void wiki_package_free(wiki_package_ptr_t pkg) {
 
 wiki_registry_ptr_t wiki_registry_create(const char *url) {
     wiki_registry_ptr_t registry = malloc(sizeof(struct wiki_registry_t));
-    registry->url = malloc(strlen(url));
-    strcpy(registry->url, url);
+    registry->url = strdup(url);
 
     if (strstr(url, "github.com") != NULL) {
         registry->type = REGISTRY_TYPE_GITHUB;
@@ -63,12 +65,23 @@ wiki_registry_ptr_t wiki_registry_create(const char *url) {
         return NULL;
     }
 
+    url_data_t *parsed = url_parse(url);
+    registry->hostname = strdup(parsed->hostname);
+    url_free(parsed);
+
     return registry;
 }
 
 void wiki_registry_free(wiki_registry_ptr_t registry) {
     free(registry->url);
+    free(registry->hostname);
     if (registry->packages != NULL) {
+        list_iterator_t* it = list_iterator_new(registry->packages, LIST_HEAD);
+        list_node_t* node;
+        while ((node = list_iterator_next(it))) {
+            wiki_package_free(node->val);
+        }
+        list_iterator_destroy(it);
         list_destroy(registry->packages);
     }
     free(registry);
@@ -78,7 +91,7 @@ void wiki_registry_free(wiki_registry_ptr_t registry) {
 bool wiki_registry_fetch(wiki_registry_ptr_t registry) {
     switch (registry->type) {
         case REGISTRY_TYPE_GITLAB:
-            registry->packages = gitlab_registry_fetch(registry->url);
+            registry->packages = gitlab_registry_fetch(registry->url, registry->hostname);
             break;
         case REGISTRY_TYPE_GITHUB:
             registry->packages = github_registry_fetch(registry->url);

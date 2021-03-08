@@ -20,7 +20,7 @@
 #include "strdup/strdup.h"
 #include "tempdir/tempdir.h"
 #include "version.h"
-#include "wiki-registry/wiki-registry.h"
+#include "registry/wiki-registry.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
