@@ -62,10 +62,44 @@ static wiki_package_ptr_t parse_li(GumboNode *li, const char* hostname) {
  * Parse a list of packages from the given `html`
  */
 static list_t *wiki_registry_parse(const char* hostname, const char *html) {
-    GumboOutput *output = gumbo_parse(html);
     list_t *pkgs = list_new();
 
-    GumboNode *body = gumbo_get_element_by_id("wiki-body", output->root);
+    // Try to parse the markdown file.
+    char* input = strdup(html);
+    char* line;
+    char* category = NULL;
+    while ((line = strsep(&input, "\n"))) {
+        char* dash_position = strstr(line, "-");
+        // The line starts with a dash, so we expect a package.
+        if (dash_position != NULL && dash_position - line < 4) {
+
+            char* link_name_start = strstr(line, "[")+1;
+            char* link_name_end = strstr(link_name_start, "]");
+            char* link_value_start = strstr(link_name_end, "(")+1;
+            char* link_value_end = strstr(link_value_start, ")");
+            char* description_position = strstr(link_value_end, "-")+1;
+
+            wiki_package_ptr_t package = wiki_package_new();
+            package->href = strndup(link_value_start, link_value_end-link_value_start);
+            package->repo = strndup(link_name_start, link_name_end-link_name_start);
+            package->description = strdup(description_position);
+            package->category = strdup(category != NULL ? category: "unknown");
+            list_rpush(pkgs, list_node_new(package));
+        }
+
+        char* header_position = strstr(line, "##");
+        // The category starts with a ##.
+        if (header_position != NULL && header_position - line < 4) {
+            category = header_position+2;
+        }
+    }
+
+    free(input);
+
+    return pkgs;
+
+    GumboOutput *output = gumbo_parse(html);
+    GumboNode *body = gumbo_get_element_by_id("content-body", output->root);
     if (body) {
         // grab all category `<h2 />`s
         list_t *h2s = gumbo_get_elements_by_tag_name("h2", body);
@@ -119,12 +153,14 @@ static list_t *wiki_registry_parse(const char* hostname, const char *html) {
 
 /**
  * Get a list of packages from the given gitlab wiki `url`.
+ * TODO, get the secret from a secrets file.
  */
 list_t *gitlab_registry_fetch(const char *url, const char* hostname) {
-    http_get_response_t *res = http_get(url);
+    char* headers[1] = {"PRIVATE-TOKEN: SECRET"};
+    http_get_response_t *res = http_get(url, headers, 1);
     if (!res->ok) return NULL;
 
-    list_t *list = wiki_registry_parse(url, res->data);
+    list_t *list = wiki_registry_parse(hostname, res->data);
     http_get_free(res);
     return list;
 }

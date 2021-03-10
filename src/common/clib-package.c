@@ -563,6 +563,24 @@ clib_package_t *clib_package_new(const char *json, int verbose) {
     pkg->src = NULL;
   }
 
+  if (!(pkg->registries = list_new())) {
+    goto cleanup;
+  }
+  JSON_Array* registries = json_object_get_array(json_object, "registries");
+  if (registries) {
+    pkg->registries->free = free;
+    for (unsigned int i = 0; i < json_array_get_count(registries); i++) {
+      char *file = json_array_get_string_safe(registries, i);
+      _debug("file: %s", file);
+      if (!file)
+        goto cleanup;
+      if (!(list_rpush(pkg->registries, list_node_new(file))))
+        goto cleanup;
+    }
+  } else {
+    _debug("no extra registries listed in clib.json or package.json file");
+  }
+
   if ((deps = json_object_get_object(json_object, "dependencies"))) {
     if (!(pkg->dependencies = parse_package_deps(deps))) {
       goto cleanup;
@@ -661,7 +679,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
       _debug("GET %s", json_url);
       // clean up when retrying
       http_get_free(res);
-      res = http_get_shared(json_url, clib_package_curl_share);
+      res = http_get_shared(json_url, clib_package_curl_share, NULL, 0);
 #else
       res = http_get(json_url);
 #endif

@@ -121,7 +121,7 @@ list_t *wiki_registry_parse(const char *html) {
  * Get a list of packages from the given GitHub wiki `url`.
  */
 list_t *github_registry_fetch(const char *url) {
-    http_get_response_t *res = http_get(url);
+    http_get_response_t *res = http_get(url, NULL, 0);
     if (!res->ok) return NULL;
 
     list_t *list = wiki_registry_parse(res->data);

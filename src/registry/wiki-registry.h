@@ -34,6 +34,13 @@ void wiki_registry_free(wiki_registry_ptr_t registry);
 bool wiki_registry_fetch(wiki_registry_ptr_t registry);
 
 /**
+ * Get the url for the registry
+ * @param registry
+ * @return
+ */
+const char* wiki_registry_get_url(wiki_registry_ptr_t registry);
+
+/**
  * An iterator through the packages in the registry.
  */
 wiki_registry_iterator_t wiki_registry_iterator_new(wiki_registry_ptr_t registry);

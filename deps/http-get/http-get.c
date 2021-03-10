@@ -40,7 +40,7 @@ static size_t http_get_cb(void *contents, size_t size, size_t nmemb, void *userp
   return realsize;
 }
 
-http_get_response_t *http_get_shared(const char *url, CURLSH *share) {
+http_get_response_t *http_get_shared(const char *url, CURLSH *share, const char** headers, int header_count) {
   CURL *req = curl_easy_init();
 
   http_get_response_t *res = malloc(sizeof(http_get_response_t));
@@ -48,6 +48,15 @@ http_get_response_t *http_get_shared(const char *url, CURLSH *share) {
 
   if (share) {
     curl_easy_setopt(req, CURLOPT_SHARE, share);
+  }
+
+  if (header_count > 0) {
+    struct curl_slist *chunk = NULL;
+    for (int i = 0; i < header_count; i++) {
+      chunk = curl_slist_append(chunk, headers[i]);
+    }
+    /* set our custom set of headers */
+    curl_easy_setopt(req, CURLOPT_HTTPHEADER, chunk);
   }
 
   curl_easy_setopt(req, CURLOPT_URL, url);
@@ -70,8 +79,8 @@ http_get_response_t *http_get_shared(const char *url, CURLSH *share) {
  * Perform an HTTP(S) GET on `url`
  */
 
-http_get_response_t *http_get(const char *url) {
-  return http_get_shared(url, NULL);
+http_get_response_t *http_get(const char *url, const char** headers, int header_count) {
+  return http_get_shared(url, NULL, headers, header_count);
 }
 
 /**

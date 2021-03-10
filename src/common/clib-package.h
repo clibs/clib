@@ -37,6 +37,7 @@ typedef struct {
   list_t *dependencies;
   list_t *development;
   list_t *src;
+  list_t *registries;
   void *data; // user data
   unsigned int refs;
 } clib_package_t;

@@ -18,7 +18,7 @@ static debug_t debugger;
 const char *clib_release_get_latest_tag(void) {
   debug_init(&debugger, "clib-release-info");
 
-  http_get_response_t *res = http_get(LATEST_RELEASE_ENDPOINT);
+  http_get_response_t *res = http_get(LATEST_RELEASE_ENDPOINT, NULL, 0);
 
   JSON_Value *root_json = NULL;
   JSON_Object *json_object = NULL;

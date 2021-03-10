@@ -87,14 +87,23 @@ void wiki_registry_free(wiki_registry_ptr_t registry) {
     free(registry);
 }
 
-// TODO, return false if the request fails.
+const char* wiki_registry_get_url(wiki_registry_ptr_t registry) {
+    return registry->url;
+}
+
 bool wiki_registry_fetch(wiki_registry_ptr_t registry) {
     switch (registry->type) {
         case REGISTRY_TYPE_GITLAB:
             registry->packages = gitlab_registry_fetch(registry->url, registry->hostname);
+            if (registry->packages != NULL) {
+                return true;
+            }
             break;
         case REGISTRY_TYPE_GITHUB:
             registry->packages = github_registry_fetch(registry->url);
+            if (registry->packages != NULL) {
+                return true;
+            }
             break;
         default:
             return false;
