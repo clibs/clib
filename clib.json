@@ -44,7 +44,7 @@
     "stephenmathieson/gumbo-get-element-by-id.c": "*",
     "stephenmathieson/gumbo-get-elements-by-tag-name.c": "*",
     "clibs/list": "*",
-    "jwerle/url.h": "0.0.*"
+    "jwerle/url.h": "0.1.*"
   },
   "development": {
     "stephenmathieson/describe.h": "2.0.1"

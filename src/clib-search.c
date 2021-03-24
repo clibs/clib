@@ -17,14 +17,17 @@
 #include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parson/parson.h"
+#include "registry-manager.h"
+#include "registry/registry.h"
 #include "strdup/strdup.h"
 #include "tempdir/tempdir.h"
 #include "version.h"
-#include "registry/wiki-registry.h"
+#include <clib-secrets.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <url/url.h>
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
 
@@ -61,7 +64,7 @@ static void setopt_json(command_t *self) { opt_json = 1; }
     }                                                                          \
   }
 
-static int matches(int count, char *args[], wiki_package_ptr_t pkg) {
+static int matches(int count, char *args[], registry_package_ptr_t pkg) {
     // Display all packages if there's no query
     if (0 == count)
         return 1;
@@ -72,16 +75,16 @@ static int matches(int count, char *args[], wiki_package_ptr_t pkg) {
     char *href = NULL;
     int rc = 0;
 
-    name = clib_package_parse_name(wiki_package_get_repo(pkg));
+    name = clib_package_parse_name(registry_package_get_id(pkg));
     COMPARE(name);
 
-    description = strdup(wiki_package_get_description(pkg));
+    description = strdup(registry_package_get_description(pkg));
     COMPARE(description);
 
-    repo = strdup(wiki_package_get_repo(pkg));
+    repo = strdup(registry_package_get_id(pkg));
     COMPARE(repo);
 
-    href = strdup(wiki_package_get_href(pkg));
+    href = strdup(registry_package_get_href(pkg));
     COMPARE(href);
 
     cleanup:
@@ -120,26 +123,26 @@ static char *wiki_html_cache() {
 }
 */
 
-static void display_package(const wiki_package_ptr_t pkg,
+static void display_package(const registry_package_ptr_t pkg,
                             cc_color_t fg_color_highlight,
                             cc_color_t fg_color_text) {
-    cc_fprintf(fg_color_highlight, stdout, "  %s\n", wiki_package_get_repo(pkg));
+    cc_fprintf(fg_color_highlight, stdout, "  %s\n", registry_package_get_id(pkg));
     printf("  url: ");
-    cc_fprintf(fg_color_text, stdout, "%s\n", wiki_package_get_href(pkg));
+    cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_href(pkg));
     printf("  desc: ");
-    cc_fprintf(fg_color_text, stdout, "%s\n", wiki_package_get_description(pkg));
+    cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_description(pkg));
     printf("\n");
 }
 
-static void add_package_to_json(const wiki_package_ptr_t pkg,
+static void add_package_to_json(const registry_package_ptr_t pkg,
                                 JSON_Array *json_list) {
     JSON_Value *json_pkg_root = json_value_init_object();
     JSON_Object *json_pkg = json_value_get_object(json_pkg_root);
 
-    json_object_set_string(json_pkg, "repo", wiki_package_get_repo(pkg));
-    json_object_set_string(json_pkg, "href", wiki_package_get_href(pkg));
-    json_object_set_string(json_pkg, "description", wiki_package_get_description(pkg));
-    json_object_set_string(json_pkg, "category", wiki_package_get_category(pkg));
+    json_object_set_string(json_pkg, "repo", registry_package_get_id(pkg));
+    json_object_set_string(json_pkg, "href", registry_package_get_href(pkg));
+    json_object_set_string(json_pkg, "description", registry_package_get_description(pkg));
+    json_object_set_string(json_pkg, "category", registry_package_get_category(pkg));
 
     json_array_append_value(json_list, json_pkg_root);
 }
@@ -176,26 +179,11 @@ int main(int argc, char *argv[]) {
 
     // We search the local manifest for extra registries.
     // It is important to give the extra registries preference over the default registry.
+    clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
+
     clib_package_t *package = clib_package_load_local_manifest(0);
-    wiki_registry_ptr_t* registries = malloc((package->registries->len + 1) * sizeof(wiki_registry_ptr_t));
-    int registry_count = 0;
-
-    list_iterator_t *registry_iterator = list_iterator_new(package->registries, LIST_HEAD);
-    list_node_t *node;
-    while ((node = list_iterator_next(registry_iterator))) {
-        registries[registry_count] = wiki_registry_create(node->val);
-        if (!wiki_registry_fetch(registries[registry_count])) {
-            printf("SEARCH, could not list packages from. %s\n", wiki_registry_get_url(registries[registry_count]));
-        } else {
-            registry_count++;
-        }
-    }
-    list_iterator_destroy(registry_iterator);
-
-    // And add the default registry.
-    //registries[registry_count] = wiki_registry_create(CLIB_WIKI_URL);
-    //wiki_registry_fetch(registries[registry_count]);
-    //registry_count++;
+    registries_t registries = registry_manager_init_registries(package->registries, secrets);
+    registry_manager_fetch_registries(registries);
 
     // TODO, implement caching for the new registries.
     /*
@@ -210,10 +198,12 @@ int main(int argc, char *argv[]) {
     debug(&debugger, "found %zu packages", pkgs->len);
      */
 
-    for (int i = 0; i < registry_count; i++) {
-        printf("SEARCH: packages from %s\n", wiki_registry_get_url(registries[i]));
-        wiki_package_ptr_t pkg;
-        wiki_registry_iterator_t it = wiki_registry_iterator_new(registries[i]);
+    registry_iterator_t it = registry_iterator_new(registries);
+    registry_ptr_t registry = NULL;
+    while ((registry = registry_iterator_next(it))) {
+        printf("SEARCH: packages from %s\n", registry_get_url(registry));
+        registry_package_ptr_t pkg;
+        registry_package_iterator_t it = registry_package_iterator_new(registry);
 
         JSON_Array *json_list = NULL;
         JSON_Value *json_list_root = NULL;
@@ -225,7 +215,7 @@ int main(int argc, char *argv[]) {
 
         printf("\n");
 
-        while ((pkg = wiki_registry_iterator_next(it))) {
+        while ((pkg = registry_package_iterator_next(it))) {
             if (matches(program.argc, program.argv, pkg)) {
                 if (opt_json) {
                     add_package_to_json(pkg, json_list);
@@ -233,7 +223,7 @@ int main(int argc, char *argv[]) {
                     display_package(pkg, fg_color_highlight, fg_color_text);
                 }
             } else {
-                debug(&debugger, "skipped package %s", wiki_package_get_repo(pkg));
+                debug(&debugger, "skipped package %s", registry_package_get_id(pkg));
             }
         }
 
@@ -245,8 +235,7 @@ int main(int argc, char *argv[]) {
             json_value_free(json_list_root);
         }
 
-        wiki_registry_iterator_destroy(it);
-        wiki_registry_free(registries[i]);
+        registry_package_iterator_destroy(it);
     }
     command_free(&program);
     return 0;

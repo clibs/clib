@@ -57,7 +57,7 @@ void clib_package_set_opts(clib_package_opts_t opts);
 
 clib_package_t *clib_package_new(const char *, int);
 
-clib_package_t *clib_package_new_from_slug(const char *, int);
+clib_package_t *clib_package_new_from_slug_and_url(const char* slug, const char* url, int);
 
 clib_package_t *clib_package_load_from_manifest(const char *, int);
 

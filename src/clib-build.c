@@ -199,7 +199,7 @@ int build_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef DEBUG
     package = clib_package_new_from_slug(dir, 1);
 #else
-    package = clib_package_new_from_slug(dir, 0);
+    package = clib_package_new_from_slug_and_url(dir, "FIXME", 0);
 #endif
   }
 
@@ -330,7 +330,7 @@ int build_package_with_manifest_name(const char *dir, const char *file) {
       char *dep_dir = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      clib_package_t *dependency = clib_package_new_from_slug_and_url(slug, "FIXME", 0);
       if (opts.dir && dependency && dependency->name) {
         dep_dir = path_join(opts.dir, dependency->name);
       }
@@ -401,7 +401,7 @@ int build_package_with_manifest_name(const char *dir, const char *file) {
       char *slug = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      clib_package_t *dependency = clib_package_new_from_slug_and_url(slug, "FIXME", 0);
       char *dep_dir = path_join(opts.dir, dependency->name);
 
       free(slug);

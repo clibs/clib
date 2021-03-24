@@ -136,7 +136,7 @@ static int install_package(const char *slug) {
 
   logger_info("info", "Upgrading to %s", extended_slug);
 
-  pkg = clib_package_new_from_slug(extended_slug, opts.verbose);
+  pkg = clib_package_new_from_slug_and_url(extended_slug, "FIXME", opts.verbose);
 
   if (NULL == pkg) {
     logger_error("error",

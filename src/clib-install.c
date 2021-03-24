@@ -17,9 +17,12 @@
 #include "parson/parson.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
+#include <clib-secrets.h>
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
+#include <registry-manager.h>
+#include <repository.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -251,21 +254,6 @@ static int install_package(const char *slug) {
   long path_max = 4096;
 #endif
 
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
-
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
-
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-    }
-  }
-
   if ('.' == slug[0]) {
     if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
       char dir[path_max];
@@ -291,10 +279,21 @@ static int install_package(const char *slug) {
     }
   }
 
-  if (!pkg) {
-    pkg = clib_package_new_from_slug(slug, opts.verbose);
+  // Read local config files.
+  clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
+  repository_init(secrets); // The repository requires the secrets for authentication.
+  clib_package_t *package = clib_package_load_local_manifest(0);
+
+  registries_t registries = registry_manager_init_registries(package->registries, secrets);
+  registry_manager_fetch_registries(registries);
+  registry_package_ptr_t package_info = registry_manger_find_package(registries, slug);
+  if (!package_info) {
+    debug(&debugger, "Package %s not found in any registry.", slug);
+    return -1;
   }
 
+
+  pkg = clib_package_new_from_slug_and_url(slug, registry_package_get_href(package_info), opts.verbose);
   if (NULL == pkg)
     return -1;
 
@@ -436,6 +435,21 @@ int main(int argc, char *argv[]) {
 #endif
 
   clib_package_set_opts(package_opts);
+
+  if (!root_package) {
+    const char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (NULL != manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+    }
+  }
 
   int code = 0 == program.argc ? install_local_packages()
                                : install_packages(program.argc, program.argv);

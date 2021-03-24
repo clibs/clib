@@ -97,7 +97,7 @@ static size_t http_get_file_cb(void *ptr, size_t size, size_t nmemb, void *strea
  * Request `url` and save to `file`
  */
 
-int http_get_file_shared(const char *url, const char *file, CURLSH *share) {
+int http_get_file_shared(const char *url, const char *file, CURLSH *share, const char** headers, int header_count) {
   CURL *req = curl_easy_init();
   if (!req) return -1;
 
@@ -106,6 +106,15 @@ int http_get_file_shared(const char *url, const char *file, CURLSH *share) {
 
   if (share) {
     curl_easy_setopt(req, CURLOPT_SHARE, share);
+  }
+
+  if (header_count > 0) {
+    struct curl_slist *chunk = NULL;
+    for (int i = 0; i < header_count; i++) {
+      chunk = curl_slist_append(chunk, headers[i]);
+    }
+    /* set our custom set of headers */
+    curl_easy_setopt(req, CURLOPT_HTTPHEADER, chunk);
   }
 
   curl_easy_setopt(req, CURLOPT_URL, url);
@@ -125,7 +134,7 @@ int http_get_file_shared(const char *url, const char *file, CURLSH *share) {
 }
 
 int http_get_file(const char *url, const char *file) {
-  return http_get_file_shared(url, file, NULL);
+  return http_get_file_shared(url, file, NULL, NULL, 0);
 }
 
 /**

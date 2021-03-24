@@ -51,6 +51,7 @@
  * http://en.wikipedia.org/wiki/URI_scheme
  */
 
+#ifdef URL_H_IMPLEMENTATION
 char *URL_SCHEMES[] = {
         // official IANA registered schemes
         "aaa", "aaas", "about", "acap", "acct", "adiumxtra", "afp", "afs", "aim", "apt", "attachment", "aw",
@@ -72,6 +73,7 @@ char *URL_SCHEMES[] = {
         // unofficial schemes
         "javascript", "jdbc", "doi"
 };
+#endif
 
 
 /**
@@ -102,7 +104,7 @@ typedef struct url_data {
  */
 
 url_data_t *
-url_parse (char *url);
+url_parse (const char *url);
 
 char *
 url_get_protocol (char *url);
@@ -151,7 +153,7 @@ url_data_inspect (url_data_t *data);
 
 
 // implementation
-
+#ifdef URL_H_IMPLEMENTATION
 
 // non C99 standard functions
 #if _POSIX_C_SOURCE < 200809L
@@ -220,7 +222,7 @@ get_part (char *url, const char *format, int l) {
 }
 
 url_data_t *
-url_parse (char *url) {
+url_parse (const char *url) {
     url_data_t *data = malloc(sizeof(url_data_t));
     if (!data) return NULL;
 
@@ -590,5 +592,6 @@ url_free (url_data_t *data) {
     free(data);
 }
 
+#endif
 
 #endif
