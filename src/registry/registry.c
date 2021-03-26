@@ -62,6 +62,8 @@ registry_ptr_t registry_create(const char *url, const char *secret) {
   } else if (strstr(url, "gitlab") != NULL) {
     registry->type = REGISTRY_TYPE_GITLAB;
   } else {
+    registry_free(registry);
+
     return NULL;
   }
 
@@ -106,9 +108,11 @@ bool registry_fetch(registry_ptr_t registry) {
     }
     break;
   default:
+    registry->packages = list_new();
     return false;
   }
 
+  registry->packages = list_new();
   return false;
 }
 

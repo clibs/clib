@@ -52,6 +52,8 @@ typedef struct {
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;
+// TODO, move to a separate file.
+extern clib_package_opts_t package_opts;
 
 void clib_package_set_opts(clib_package_opts_t opts);
 
@@ -76,14 +78,11 @@ char *clib_package_parse_name(const char *);
 clib_package_dependency_t *clib_package_dependency_new(const char *,
                                                        const char *);
 
-int clib_package_install_executable(clib_package_t *pkg, const char *dir,
-                                    int verbose);
+char *clib_package_get_id(const char *, const char *);
 
-int clib_package_install(clib_package_t *, const char *, int);
+char *clib_package_slug(const char *author, const char *name, const char* version);
 
-int clib_package_install_dependencies(clib_package_t *, const char *, int);
-
-int clib_package_install_development(clib_package_t *, const char *, int);
+void clib_package_set_prefix(clib_package_t *pkg, long path_max);
 
 void clib_package_free(clib_package_t *);
 

@@ -12,20 +12,18 @@
 #include "common/clib-validate.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
-#include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parson/parson.h"
-#include "str-replace/str-replace.h"
 #include "version.h"
 #include <clib-secrets.h>
 #include <curl/curl.h>
-#include <libgen.h>
 #include <limits.h>
 #include <registry-manager.h>
 #include <repository.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clib-package-installer.h"
 
 #define SX(s) #s
 #define S(s) SX(s)
@@ -58,8 +56,9 @@ struct options {
 
 static struct options opts = {0};
 
-static clib_package_opts_t package_opts = {0};
 static clib_package_t *root_package = NULL;
+static clib_secrets_t secrets = NULL;
+static registries_t registries = NULL;
 
 /**
  * Option setters.
@@ -279,19 +278,11 @@ static int install_package(const char *slug) {
     }
   }
 
-  // Read local config files.
-  clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
-  repository_init(secrets); // The repository requires the secrets for authentication.
-  clib_package_t *package = clib_package_load_local_manifest(0);
-
-  registries_t registries = registry_manager_init_registries(package->registries, secrets);
-  registry_manager_fetch_registries(registries);
   registry_package_ptr_t package_info = registry_manger_find_package(registries, slug);
   if (!package_info) {
     debug(&debugger, "Package %s not found in any registry.", slug);
     return -1;
   }
-
 
   pkg = clib_package_new_from_slug_and_url(slug, registry_package_get_href(package_info), opts.verbose);
   if (NULL == pkg)
@@ -299,7 +290,6 @@ static int install_package(const char *slug) {
 
   if (root_package && root_package->prefix) {
     package_opts.prefix = root_package->prefix;
-    clib_package_set_opts(package_opts);
   }
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
@@ -418,38 +408,34 @@ int main(int argc, char *argv[]) {
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
-  package_opts.force = opts.force;
-  package_opts.token = opts.token;
+  clib_package_opts_t install_package_opts = {0};
+  install_package_opts.skip_cache = opts.skip_cache;
+  install_package_opts.prefix = opts.prefix;
+  install_package_opts.global = opts.global;
+  install_package_opts.force = opts.force;
+  install_package_opts.token = opts.token;
 
 #ifdef HAVE_PTHREADS
-  package_opts.concurrency = opts.concurrency;
+  install_package_opts.concurrency = opts.concurrency;
 #endif
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(install_package_opts);
 
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
+  // Read local config files.
+  secrets = clib_secrets_load_from_file("clib_secrets.json");
+  root_package = clib_package_load_local_manifest(0);
 
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
+  repository_init(secrets); // The repository requires the secrets for authentication.
+  registries = registry_manager_init_registries(root_package->registries, secrets);
+  registry_manager_fetch_registries(registries);
 
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-    }
-  }
+  clib_package_installer_init(registries, secrets);
 
   int code = 0 == program.argc ? install_local_packages()
                                : install_packages(program.argc, program.argv);

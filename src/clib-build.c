@@ -79,7 +79,7 @@ struct options {
 #endif
 };
 
-clib_package_opts_t package_opts = {0};
+clib_package_opts_t build_package_opts = {0};
 clib_package_t *root_package = 0;
 
 command_t program = {0};
@@ -231,8 +231,8 @@ int build_package_with_manifest_name(const char *dir, const char *file) {
     }
 
     if (root_package && root_package->prefix) {
-      package_opts.prefix = root_package->prefix;
-      clib_package_set_opts(package_opts);
+      build_package_opts.prefix = root_package->prefix;
+      clib_package_set_opts(build_package_opts);
       setenv("PREFIX", package_opts.prefix, 1);
     } else if (opts.prefix) {
       setenv("PREFIX", opts.prefix, 1);
@@ -671,12 +671,12 @@ int main(int argc, char **argv) {
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
-  package_opts.force = opts.force;
+  build_package_opts.skip_cache = opts.skip_cache;
+  build_package_opts.prefix = opts.prefix;
+  build_package_opts.global = opts.global;
+  build_package_opts.force = opts.force;
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(build_package_opts);
 
   if (0 == program.argc || (argc == rest_offset + rest_argc)) {
     rc = build_package(CWD);

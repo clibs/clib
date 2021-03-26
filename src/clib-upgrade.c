@@ -19,6 +19,7 @@
 #include "tempdir/tempdir.h"
 #include "version.h"
 #include <asprintf/asprintf.h>
+#include <clib-package-installer.h>
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
@@ -54,7 +55,7 @@ struct options {
 
 static struct options opts = {0};
 
-static clib_package_opts_t package_opts = {0};
+static clib_package_opts_t upgrade_package_opts = {0};
 static clib_package_t *root_package = NULL;
 
 /**
@@ -148,8 +149,8 @@ static int install_package(const char *slug) {
   }
 
   if (root_package && root_package->prefix) {
-    package_opts.prefix = root_package->prefix;
-    clib_package_set_opts(package_opts);
+    upgrade_package_opts.prefix = root_package->prefix;
+    clib_package_set_opts(upgrade_package_opts);
   }
 
   char *tmp = gettempdir();
@@ -232,23 +233,23 @@ int main(int argc, char *argv[]) {
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = 1;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = 1;
-  package_opts.force = opts.force;
-  package_opts.token = opts.token;
+  upgrade_package_opts.skip_cache = 1;
+  upgrade_package_opts.prefix = opts.prefix;
+  upgrade_package_opts.global = 1;
+  upgrade_package_opts.force = opts.force;
+  upgrade_package_opts.token = opts.token;
 
 #ifdef HAVE_PTHREADS
-  package_opts.concurrency = opts.concurrency;
+  upgrade_package_opts.concurrency = opts.concurrency;
 #endif
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(upgrade_package_opts);
 
   char *slug = 0;
 

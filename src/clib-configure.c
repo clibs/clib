@@ -70,7 +70,7 @@ struct options {
 #endif
 };
 
-clib_package_opts_t package_opts = {0};
+clib_package_opts_t configure_package_opts = {0};
 clib_package_t *root_package = 0;
 
 hash_t *configured = 0;
@@ -603,12 +603,12 @@ int main(int argc, char **argv) {
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
-  package_opts.force = opts.force;
+  configure_package_opts.skip_cache = package_opts.skip_cache;
+  configure_package_opts.prefix = package_opts.prefix;
+  configure_package_opts.global = package_opts.global;
+  configure_package_opts.force = package_opts.force;
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(configure_package_opts);
 
   if (0 == program.argc || (argc == rest_offset + rest_argc)) {
     rc = configure_package(CWD);
