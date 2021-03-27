@@ -39,6 +39,6 @@ void registry_iterator_destroy(registry_iterator_t iterator);
  * @param package_id the identifier of the package "<namespace>/<package_name>"
  * @return a pointer to the package if it could be found or NULL
  */
-registry_package_ptr_t registry_manger_find_package(registries_t registries, const char* package_id);
+registry_package_ptr_t registry_manager_find_package(registries_t registries, const char* package_id);
 
 #endif//CLIB_SRC_REGISTRY_REGISTRY_MANAGER_H

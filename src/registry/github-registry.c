@@ -18,6 +18,8 @@
 #include <curl/curl.h>
 #include <string.h>
 
+#define GITHUB_BASE_URL "https://github.com/"
+
 /**
  * Add `href` to the given `package`.
  */
@@ -25,7 +27,7 @@ static void add_package_href(registry_package_ptr_t self) {
     size_t len = strlen(self->id) + 20; // https://github.com/ \0
     self->href = malloc(len);
     if (self->href)
-        sprintf(self->href, "https://github.com/%s", self->id);
+        sprintf(self->href, GITHUB_BASE_URL "%s", self->id);
 }
 
 /**
@@ -129,4 +131,3 @@ list_t *github_registry_fetch(const char *url) {
     http_get_free(res);
     return list;
 }
-

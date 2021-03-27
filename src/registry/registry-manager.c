@@ -13,19 +13,22 @@
 registries_t registry_manager_init_registries(list_t* registry_urls, clib_secrets_t secrets) {
   list_t* registries = list_new();
 
-  // Add all the registries that were provided.
-  list_iterator_t *registry_iterator = list_iterator_new(registry_urls, LIST_HEAD);
-  list_node_t *node;
-  while ((node = list_iterator_next(registry_iterator))) {
-    char* url = node->val;
-    url_data_t *parsed = url_parse(url);
-    char* hostname = strdup(parsed->hostname);
-    url_free(parsed);
-    char* secret = clib_secret_find_for_hostname(secrets, hostname);
-    registry_ptr_t registry = registry_create(url, secret);
-    list_rpush(registries, list_node_new(registry));
+  if (registry_urls != NULL) {
+    // Add all the registries that were provided.
+    list_iterator_t *registry_iterator = list_iterator_new(registry_urls, LIST_HEAD);
+    list_node_t *node;
+    while ((node = list_iterator_next(registry_iterator))) {
+      char *url = node->val;
+      url_data_t *parsed = url_parse(url);
+      char *secret = clib_secret_find_for_hostname(secrets, parsed->hostname);
+      url_free(parsed);
+      registry_ptr_t registry = registry_create(url, secret);
+      if (registry != NULL) {
+        list_rpush(registries, list_node_new(registry));
+      }
+    }
+    list_iterator_destroy(registry_iterator);
   }
-  list_iterator_destroy(registry_iterator);
 
   // And add the default registry.
   registry_ptr_t registry = registry_create(CLIB_WIKI_URL, NULL);
@@ -45,7 +48,7 @@ void registry_manager_fetch_registries(registries_t registries) {
   registry_iterator_destroy(it);
 }
 
-registry_package_ptr_t registry_manger_find_package(registries_t registries, const char* package_id) {
+registry_package_ptr_t registry_manager_find_package(registries_t registries, const char* package_id) {
   registry_iterator_t it = registry_iterator_new(registries);
   registry_ptr_t reg;
   while ((reg = registry_iterator_next(it))) {

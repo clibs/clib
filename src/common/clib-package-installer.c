@@ -88,7 +88,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
     if (NULL == slug)
       goto loop_cleanup;
 
-    registry_package_ptr_t package_info = registry_manger_find_package(registries, package_id);
+    registry_package_ptr_t package_info = registry_manager_find_package(registries, package_id);
     if (!package_info) {
       debug(&_debugger, "Package %s not found in any registry.", slug);
       return -1;
@@ -482,7 +482,7 @@ download:
   list_node_t *source;
   repository_file_handle_t *handles = malloc(pkg->src->len * sizeof(repository_file_handle_t));
   while ((source = list_iterator_next(iterator))) {
-    handles[i] = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->name), pkg->version, source->val, pkg_dir);
+    handles[i] = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->repo_name), pkg->version, source->val, pkg_dir);
 
     if (handles[i] == NULL) {
       list_iterator_destroy(iterator);

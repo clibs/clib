@@ -18,7 +18,7 @@ struct clib_secret_handle {
 
 clib_secrets_t clib_secrets_load_from_file(const char *file) {
   if (-1 == fs_exists(file)) {
-    logger_error("error", "Secrets file %s does not exist.", file);
+    logger_warn("warning", "Secrets file %s does not exist.", file);
     return NULL;
   }
 
@@ -66,6 +66,9 @@ clib_secrets_t clib_secrets_load_from_file(const char *file) {
 }
 
 char *clib_secret_find_for_hostname(clib_secrets_t secrets, const char *hostname) {
+  if (secrets == NULL) {
+    return NULL;
+  }
   list_iterator_t *iterator = list_iterator_new(secrets->secrets, LIST_HEAD);
   list_node_t *node;
   while ((node = list_iterator_next(iterator))) {

@@ -11,6 +11,7 @@
 #include "list/list.h"
 #include "registry-internal.h"
 #include "url/url.h"
+#include <logger/logger.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,20 +57,21 @@ registry_ptr_t registry_create(const char *url, const char *secret) {
   registry_ptr_t registry = malloc(sizeof(struct registry_t));
   registry->url = strdup(url);
   registry->secret = strdup(secret);
+  registry->packages = NULL;
+  url_data_t *parsed = url_parse(url);
+  registry->hostname = strdup(parsed->hostname);
+  url_free(parsed);
 
-  if (strstr(url, "github.com") != NULL) {
+  if (strstr(registry->hostname, "github.com") != NULL) {
     registry->type = REGISTRY_TYPE_GITHUB;
-  } else if (strstr(url, "gitlab") != NULL) {
+  } else if (strstr(registry->hostname, "gitlab") != NULL) {
     registry->type = REGISTRY_TYPE_GITLAB;
   } else {
+    logger_error("error", "Registry type (%s) not supported, currently github.com, gitlab.com and self-hosted gitlab are supported.", registry->url);
     registry_free(registry);
 
     return NULL;
   }
-
-  url_data_t *parsed = url_parse(url);
-  registry->hostname = strdup(parsed->hostname);
-  url_free(parsed);
 
   return registry;
 }
@@ -112,6 +114,7 @@ bool registry_fetch(registry_ptr_t registry) {
     return false;
   }
 
+  logger_error("error", "Fetching package list from (%s) failed.", registry->url);
   registry->packages = list_new();
   return false;
 }

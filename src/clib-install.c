@@ -278,7 +278,10 @@ static int install_package(const char *slug) {
     }
   }
 
-  registry_package_ptr_t package_info = registry_manger_find_package(registries, slug);
+  char* author = clib_package_parse_author(slug);
+  char* name = clib_package_parse_name(slug);
+  char* package_id = clib_package_get_id(author, name);
+  registry_package_ptr_t package_info = registry_manager_find_package(registries, package_id);
   if (!package_info) {
     debug(&debugger, "Package %s not found in any registry.", slug);
     return -1;
@@ -432,7 +435,7 @@ int main(int argc, char *argv[]) {
   root_package = clib_package_load_local_manifest(0);
 
   repository_init(secrets); // The repository requires the secrets for authentication.
-  registries = registry_manager_init_registries(root_package->registries, secrets);
+  registries = registry_manager_init_registries(root_package ? root_package->registries : NULL, secrets);
   registry_manager_fetch_registries(registries);
 
   clib_package_installer_init(registries, secrets);
