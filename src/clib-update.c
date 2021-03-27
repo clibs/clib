@@ -21,6 +21,7 @@
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
+#include <repository.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,8 @@ struct options {
 static struct options opts = {0};
 
 static clib_package_t *root_package = NULL;
+static clib_secrets_t secrets = NULL;
+static registries_t registries = NULL;
 
 /**
  * Option setters.
@@ -354,6 +357,16 @@ int main(int argc, char *argv[]) {
 #endif
 
   clib_package_set_opts(package_opts);
+
+  // Read local config files.
+  secrets = clib_secrets_load_from_file("clib_secrets.json");
+  root_package = clib_package_load_local_manifest(0);
+
+  repository_init(secrets); // The repository requires the secrets for authentication.
+  registries = registry_manager_init_registries(root_package->registries, secrets);
+  registry_manager_fetch_registries(registries);
+
+  clib_package_installer_init(registries, secrets);
 
   int code = 0 == program.argc ? install_local_packages()
                                : install_packages(program.argc, program.argv);

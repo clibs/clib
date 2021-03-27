@@ -41,7 +41,7 @@
 #include <path-join/path-join.h>
 #include <str-flatten/str-flatten.h>
 #include <trim/trim.h>
-
+#include "clib-settings.h"
 #include "version.h"
 
 #define PROGRAM_NAME "clib-configure"

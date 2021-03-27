@@ -19,6 +19,7 @@
 #include "version.h"
 #include <stdlib.h>
 #include <string.h>
+#include "clib-settings.h"
 
 #define CLIB_UNINSTALL_DEFAULT_TARGET "make uninstall"
 

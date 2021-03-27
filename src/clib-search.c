@@ -49,50 +49,50 @@ static void setopt_nocache(command_t *self) { opt_cache = 0; }
 
 static void setopt_json(command_t *self) { opt_json = 1; }
 
-#define COMPARE(v)                                                             \
-  {                                                                            \
-    if (NULL == v) {                                                           \
-      rc = 0;                                                                  \
-      goto cleanup;                                                            \
-    }                                                                          \
-    case_lower(v);                                                             \
-    for (int i = 0; i < count; i++) {                                          \
-      if (strstr(v, args[i])) {                                                \
-        rc = 1;                                                                \
-        break;                                                                 \
-      }                                                                        \
-    }                                                                          \
+#define COMPARE(v)                    \
+  {                                   \
+    if (NULL == v) {                  \
+      rc = 0;                         \
+      goto cleanup;                   \
+    }                                 \
+    case_lower(v);                    \
+    for (int i = 0; i < count; i++) { \
+      if (strstr(v, args[i])) {       \
+        rc = 1;                       \
+        break;                        \
+      }                               \
+    }                                 \
   }
 
 static int matches(int count, char *args[], registry_package_ptr_t pkg) {
-    // Display all packages if there's no query
-    if (0 == count)
-        return 1;
+  // Display all packages if there's no query
+  if (0 == count)
+    return 1;
 
-    char *description = NULL;
-    char *name = NULL;
-    char *repo = NULL;
-    char *href = NULL;
-    int rc = 0;
+  char *description = NULL;
+  char *name = NULL;
+  char *repo = NULL;
+  char *href = NULL;
+  int rc = 0;
 
-    name = clib_package_parse_name(registry_package_get_id(pkg));
-    COMPARE(name);
+  name = clib_package_parse_name(registry_package_get_id(pkg));
+  COMPARE(name);
 
-    description = strdup(registry_package_get_description(pkg));
-    COMPARE(description);
+  description = strdup(registry_package_get_description(pkg));
+  COMPARE(description);
 
-    repo = strdup(registry_package_get_id(pkg));
-    COMPARE(repo);
+  repo = strdup(registry_package_get_id(pkg));
+  COMPARE(repo);
 
-    href = strdup(registry_package_get_href(pkg));
-    COMPARE(href);
+  href = strdup(registry_package_get_href(pkg));
+  COMPARE(href);
 
-    cleanup:
-    free(description);
-    free(name);
-    free(repo);
-    free(href);
-    return rc;
+cleanup:
+  free(description);
+  free(name);
+  free(repo);
+  free(href);
+  return rc;
 }
 
 /*
@@ -126,67 +126,67 @@ static char *wiki_html_cache() {
 static void display_package(const registry_package_ptr_t pkg,
                             cc_color_t fg_color_highlight,
                             cc_color_t fg_color_text) {
-    cc_fprintf(fg_color_highlight, stdout, "  %s\n", registry_package_get_id(pkg));
-    printf("  url: ");
-    cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_href(pkg));
-    printf("  desc: ");
-    cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_description(pkg));
-    printf("\n");
+  cc_fprintf(fg_color_highlight, stdout, "  %s\n", registry_package_get_id(pkg));
+  printf("  url: ");
+  cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_href(pkg));
+  printf("  desc: ");
+  cc_fprintf(fg_color_text, stdout, "%s\n", registry_package_get_description(pkg));
+  printf("\n");
 }
 
 static void add_package_to_json(const registry_package_ptr_t pkg,
                                 JSON_Array *json_list) {
-    JSON_Value *json_pkg_root = json_value_init_object();
-    JSON_Object *json_pkg = json_value_get_object(json_pkg_root);
+  JSON_Value *json_pkg_root = json_value_init_object();
+  JSON_Object *json_pkg = json_value_get_object(json_pkg_root);
 
-    json_object_set_string(json_pkg, "repo", registry_package_get_id(pkg));
-    json_object_set_string(json_pkg, "href", registry_package_get_href(pkg));
-    json_object_set_string(json_pkg, "description", registry_package_get_description(pkg));
-    json_object_set_string(json_pkg, "category", registry_package_get_category(pkg));
+  json_object_set_string(json_pkg, "repo", registry_package_get_id(pkg));
+  json_object_set_string(json_pkg, "href", registry_package_get_href(pkg));
+  json_object_set_string(json_pkg, "description", registry_package_get_description(pkg));
+  json_object_set_string(json_pkg, "category", registry_package_get_category(pkg));
 
-    json_array_append_value(json_list, json_pkg_root);
+  json_array_append_value(json_list, json_pkg_root);
 }
 
 int main(int argc, char *argv[]) {
-    opt_color = 1;
-    opt_cache = 1;
+  opt_color = 1;
+  opt_cache = 1;
 
-    debug_init(&debugger, "clib-search");
+  debug_init(&debugger, "clib-search");
 
-    clib_cache_init(CLIB_SEARCH_CACHE_TIME);
+  clib_cache_init(CLIB_SEARCH_CACHE_TIME);
 
-    command_t program;
-    command_init(&program, "clib-search", CLIB_VERSION);
-    program.usage = "[options] [query ...]";
+  command_t program;
+  command_init(&program, "clib-search", CLIB_VERSION);
+  program.usage = "[options] [query ...]";
 
-    command_option(&program, "-n", "--no-color", "don't colorize output",
-                   setopt_nocolor);
+  command_option(&program, "-n", "--no-color", "don't colorize output",
+                 setopt_nocolor);
 
-    command_option(&program, "-c", "--skip-cache", "skip the search cache",
-                   setopt_nocache);
+  command_option(&program, "-c", "--skip-cache", "skip the search cache",
+                 setopt_nocache);
 
-    command_option(&program, "-j", "--json", "generate a serialized JSON output",
-                   setopt_json);
+  command_option(&program, "-j", "--json", "generate a serialized JSON output",
+                 setopt_json);
 
-    command_parse(&program, argc, argv);
+  command_parse(&program, argc, argv);
 
-    for (int i = 0; i < program.argc; i++)
-        case_lower(program.argv[i]);
+  for (int i = 0; i < program.argc; i++)
+    case_lower(program.argv[i]);
 
-    // set color theme
-    cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
-    cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
+  // set color theme
+  cc_color_t fg_color_highlight = opt_color ? CC_FG_DARK_CYAN : CC_FG_NONE;
+  cc_color_t fg_color_text = opt_color ? CC_FG_DARK_GRAY : CC_FG_NONE;
 
-    // We search the local manifest for extra registries.
-    // It is important to give the extra registries preference over the default registry.
-    clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
+  // We search the local manifest for extra registries.
+  // It is important to give the extra registries preference over the default registry.
+  clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
 
-    clib_package_t *package = clib_package_load_local_manifest(0);
-    registries_t registries = registry_manager_init_registries(package->registries, secrets);
-    registry_manager_fetch_registries(registries);
+  clib_package_t *package = clib_package_load_local_manifest(0);
+  registries_t registries = registry_manager_init_registries(package->registries, secrets);
+  registry_manager_fetch_registries(registries);
 
-    // TODO, implement caching for the new registries.
-    /*
+  // TODO, implement caching for the new registries.
+  /*
       char *html = wiki_html_cache();
       if (NULL == html) {
           command_free(&program);
@@ -198,45 +198,45 @@ int main(int argc, char *argv[]) {
     debug(&debugger, "found %zu packages", pkgs->len);
      */
 
-    registry_iterator_t it = registry_iterator_new(registries);
-    registry_ptr_t registry = NULL;
-    while ((registry = registry_iterator_next(it))) {
-        printf("SEARCH: packages from %s\n", registry_get_url(registry));
-        registry_package_ptr_t pkg;
-        registry_package_iterator_t it = registry_package_iterator_new(registry);
+  registry_iterator_t it = registry_iterator_new(registries);
+  registry_ptr_t registry = NULL;
+  while ((registry = registry_iterator_next(it))) {
+    printf("SEARCH: packages from %s\n", registry_get_url(registry));
+    registry_package_ptr_t pkg;
+    registry_package_iterator_t it = registry_package_iterator_new(registry);
 
-        JSON_Array *json_list = NULL;
-        JSON_Value *json_list_root = NULL;
+    JSON_Array *json_list = NULL;
+    JSON_Value *json_list_root = NULL;
 
-        if (opt_json) {
-            json_list_root = json_value_init_array();
-            json_list = json_value_get_array(json_list_root);
-        }
-
-        printf("\n");
-
-        while ((pkg = registry_package_iterator_next(it))) {
-            if (matches(program.argc, program.argv, pkg)) {
-                if (opt_json) {
-                    add_package_to_json(pkg, json_list);
-                } else {
-                    display_package(pkg, fg_color_highlight, fg_color_text);
-                }
-            } else {
-                debug(&debugger, "skipped package %s", registry_package_get_id(pkg));
-            }
-        }
-
-        if (opt_json) {
-            char *serialized = json_serialize_to_string_pretty(json_list_root);
-            puts(serialized);
-
-            json_free_serialized_string(serialized);
-            json_value_free(json_list_root);
-        }
-
-        registry_package_iterator_destroy(it);
+    if (opt_json) {
+      json_list_root = json_value_init_array();
+      json_list = json_value_get_array(json_list_root);
     }
-    command_free(&program);
-    return 0;
+
+    printf("\n");
+
+    while ((pkg = registry_package_iterator_next(it))) {
+      if (matches(program.argc, program.argv, pkg)) {
+        if (opt_json) {
+          add_package_to_json(pkg, json_list);
+        } else {
+          display_package(pkg, fg_color_highlight, fg_color_text);
+        }
+      } else {
+        debug(&debugger, "skipped package %s", registry_package_get_id(pkg));
+      }
+    }
+
+    if (opt_json) {
+      char *serialized = json_serialize_to_string_pretty(json_list_root);
+      puts(serialized);
+
+      json_free_serialized_string(serialized);
+      json_value_free(json_list_root);
+    }
+
+    registry_package_iterator_destroy(it);
+  }
+  command_free(&program);
+  return 0;
 }

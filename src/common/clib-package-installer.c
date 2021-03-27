@@ -20,28 +20,25 @@
 #include <repository.h>
 #include <string.h>
 #include <tempdir/tempdir.h>
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-#include <unistd.h>
-#endif
+#include <limits.h>
 
 CURLSH *clib_package_curl_share;
 //TODO, cleanup somewhere curl_share_cleanup(clib_package_curl_share);
 
 static debug_t _debugger;
 
-#define _debug(...)                                     \
-  ({                                                    \
-    if (!(_debugger.name))                              \
+#define _debug(...)                                \
+  ({                                               \
+    if (!(_debugger.name))                         \
       debug_init(&_debugger, "package-installer"); \
-    debug(&_debugger, __VA_ARGS__);                     \
+    debug(&_debugger, __VA_ARGS__);                \
   })
 
-#define E_FORMAT(...)                                                          \
-  ({                                                                           \
-    rc = asprintf(__VA_ARGS__);                                                \
-    if (-1 == rc)                                                              \
-      goto cleanup;                                                            \
+#define E_FORMAT(...)           \
+  ({                            \
+    rc = asprintf(__VA_ARGS__); \
+    if (-1 == rc)               \
+      goto cleanup;             \
   });
 
 static hash_t *visited_packages = 0;
@@ -86,7 +83,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
     int error = 1;
 
     dep = (clib_package_dependency_t *) node->val;
-    char* package_id = clib_package_get_id(dep->author, dep->name);
+    char *package_id = clib_package_get_id(dep->author, dep->name);
     slug = clib_package_slug(dep->author, dep->name, dep->version);
     if (NULL == slug)
       goto loop_cleanup;
@@ -315,18 +312,6 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   int max = package_opts.concurrency;
 #endif
 
-#ifdef CLIB_PACKAGE_PREFIX
-  if (0 == opts.prefix) {
-#ifdef HAVE_PTHREADS
-    pthread_mutex_lock(&lock.mutex);
-#endif
-    opts.prefix = CLIB_PACKAGE_PREFIX;
-#ifdef HAVE_PTHREADS
-    pthread_mutex_unlock(&lock.mutex);
-#endif
-  }
-#endif
-
   if (0 == package_opts.prefix) {
 #ifdef HAVE_PTHREADS
     pthread_mutex_lock(&lock.mutex);
@@ -441,7 +426,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   // fetch makefile
   if (!package_opts.global && pkg->makefile) {
     _debug("fetch: %s/%s", pkg->repo, pkg->makefile);
-    repository_file_handle_t handle = repository_download_package_file(pkg->url, pkg_dir, pkg->version, pkg->makefile, pkg_dir);
+    repository_file_handle_t handle = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->name), pkg->version, pkg->makefile, pkg_dir);
     if (handle == NULL) {
       goto cleanup;
     }
@@ -497,7 +482,7 @@ download:
   list_node_t *source;
   repository_file_handle_t *handles = malloc(pkg->src->len * sizeof(repository_file_handle_t));
   while ((source = list_iterator_next(iterator))) {
-    handles[i] = repository_download_package_file(pkg->url, pkg_dir, pkg->version, source->val, pkg_dir);
+    handles[i] = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->name), pkg->version, source->val, pkg_dir);
 
     if (handles[i] == NULL) {
       list_iterator_destroy(iterator);
@@ -507,7 +492,7 @@ download:
     }
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    struct timespec ts = {0, 1000*1000*10};
+    struct timespec ts = {0, 1000 * 1000 * 10};
     nanosleep(&ts, NULL);
 #endif
 
@@ -527,7 +512,8 @@ download:
         (void) pending--;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-        usleep(1024 * 10);
+        struct timespec ts = {0, 1000 * 1000 * 10};
+        nanosleep(&ts, NULL);
 #endif
       }
     }

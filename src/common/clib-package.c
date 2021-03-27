@@ -548,7 +548,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, const char* url, 
     } else {
       _debug("Fetching package manifest for %s", slug);
       // clean up when retrying
-      res = repository_fetch_package_manifest(url, slug, version);
+      res = repository_fetch_package_manifest(url, clib_package_get_id(author, name), version);
 
       json = res->data;
       _debug("status: %d", res->status);
@@ -579,10 +579,10 @@ clib_package_new_from_slug_with_package_name(const char *slug, const char* url, 
   if (!pkg)
     goto error;
 
-  // force version number
+  // force version number if the registry returned a different version from what we expected.
   if (pkg->version) {
     if (version) {
-      if (0 != strcmp(version, DEFAULT_REPO_VERSION)) {
+      if (0 != strcmp(version, DEFAULT_REPO_VERSION) && 0 != strcmp(pkg->version, version)) {
         _debug("forcing version number: %s (%s)", version, pkg->version);
         free(pkg->version);
         pkg->version = version;

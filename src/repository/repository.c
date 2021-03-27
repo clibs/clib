@@ -68,11 +68,11 @@ void repository_init(clib_secrets_t _secrets) {
   secrets = _secrets;
 }
 
-static char *repository_create_url_for_file(const char *package_url, const char *slug, const char *version, const char *file_path, const char *secret) {
+static char *repository_create_url_for_file(const char *package_url, const char *package_id, const char *version, const char *file_path, const char *secret) {
   if (strstr(package_url, "github.com") != NULL) {
-    return github_repository_get_url_for_file(package_url, slug, version, file_path, secret);
+    return github_repository_get_url_for_file(package_url, package_id, version, file_path, secret);
   } else if (strstr(package_url, "gitlab") != NULL) {
-    return gitlab_repository_get_url_for_file(package_url, slug, version, file_path, secret);
+    return gitlab_repository_get_url_for_file(package_url, package_id, version, file_path, secret);
   } else {
     return NULL;
   }
@@ -148,8 +148,7 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
   pthread_mutex_lock(&mutex);
 #endif
 
-  // TODO, add force again. (1 == opts.force)
-  if (-1 == fs_exists(path)) {
+  if (package_opts.force || -1 == fs_exists(path)) {
     logger_info("fetch", "%s:%s", url, file);
     fflush(stdout);
 
