@@ -7,9 +7,7 @@
 
 #include "asprintf/asprintf.h"
 #include "commander/commander.h"
-#include "common/clib-package.h"
 #include "debug/debug.h"
-#include "fs/fs.h"
 #include "logger/logger.h"
 #include "parson/parson.h"
 #include "version.h"
@@ -17,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <strdup/strdup.h>
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
     defined(__MINGW64__)

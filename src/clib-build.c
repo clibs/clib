@@ -13,10 +13,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-#include <unistd.h>
-#endif
-
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
 #endif

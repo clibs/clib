@@ -156,7 +156,7 @@ url_data_inspect (url_data_t *data);
 #ifdef URL_H_IMPLEMENTATION
 
 // non C99 standard functions
-#if _POSIX_C_SOURCE < 200809L
+#if _POSIX_C_SOURCE < 200809L && !(defined URL_H_NO_STRDUP)
 char *
 strdup (const char *str) {
     int n = strlen(str) + 1;
