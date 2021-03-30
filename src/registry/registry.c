@@ -12,6 +12,7 @@
 #include "registry-internal.h"
 #include "url/url.h"
 #include <logger/logger.h>
+#include <strdup/strdup.h>
 #include <stdlib.h>
 #include <string.h>
 

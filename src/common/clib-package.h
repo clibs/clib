@@ -65,10 +65,6 @@ clib_package_t *clib_package_load_from_manifest(const char *, int);
 
 clib_package_t *clib_package_load_local_manifest(int);
 
-char *clib_package_url(const char *, const char *, const char *);
-
-char *clib_package_url_from_repo(const char *repo, const char *version);
-
 char *clib_package_parse_version(const char *);
 
 char *clib_package_parse_author(const char *);

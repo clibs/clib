@@ -88,8 +88,6 @@ static inline char *json_object_get_string_safe(JSON_Object *, const char *);
 
 static inline char *json_array_get_string_safe(JSON_Array *, int);
 
-static inline char *clib_package_file_url(const char *, const char *);
-
 
 static inline list_t *parse_package_deps(JSON_Object *);
 
@@ -169,26 +167,6 @@ static inline char *json_array_get_string_safe(JSON_Array *array, int index) {
 }
 
 /**
- * Build a URL for `file` of the package belonging to `url`
- */
-
-static inline char *clib_package_file_url(const char *url, const char *file) {
-  if (!url || !file)
-    return NULL;
-
-  int size = strlen(url) + 1    // /
-             + strlen(file) + 1 // \0
-      ;
-
-  char *res = malloc(size);
-  if (res) {
-    memset(res, 0, size);
-    sprintf(res, "%s/%s", url, file);
-  }
-  return res;
-}
-
-/**
  * Build a slug
  */
 
@@ -216,11 +194,11 @@ clib_package_t *clib_package_load_from_manifest(const char *manifest,
   clib_package_t *pkg = NULL;
 
   if (-1 == fs_exists(manifest)) {
-    logger_error("error", "Missing %s", manifest);
+    _debug("clib-package", "%s not found", manifest);
     return NULL;
   }
 
-  logger_info("info", "reading local %s", manifest);
+  _debug("clib-package", "reading local %s", manifest);
 
   char *json = fs_read(manifest);
   if (NULL == json)
@@ -490,13 +468,11 @@ cleanup:
   return pkg;
 }
 
-static clib_package_t *
-clib_package_new_from_slug_with_package_name(const char *slug, const char* url, int verbose, const char *file) {
+static clib_package_t * clib_package_new_from_slug_with_package_name(const char *slug, const char* url, int verbose, const char *manifest_file) {
   char *author = NULL;
   char *name = NULL;
   char *version = NULL;
   char *json_url = NULL;
-  char *repo = NULL;
   char *json = NULL;
   char *log = NULL;
   http_get_response_t *res = NULL;
@@ -548,65 +524,59 @@ clib_package_new_from_slug_with_package_name(const char *slug, const char* url, 
     } else {
       _debug("Fetching package manifest for %s", slug);
       // clean up when retrying
-      res = repository_fetch_package_manifest(url, clib_package_get_id(author, name), version);
+      res = repository_fetch_package_manifest(url, clib_package_get_id(author, name), version, manifest_file);
 
-      json = res->data;
       _debug("status: %d", res->status);
-      if (!res || !res->ok) {
+      if (!res || (res->status != 200 && res->status != 404)) {
         goto download;
+      } else if (res->status == 404) {
+        goto error;
       }
+      json = res->data;
       log = "fetch";
     }
   }
 
   if (verbose) {
-    logger_info(log, "%s/%s:%s", author, name, file);
+    logger_info(log, "%s/%s:%s", author, name, manifest_file);
   }
 
   free(json_url);
   json_url = NULL;
-  free(name);
-  name = NULL;
 
-  if (json) {
-    // build package
-    pkg = clib_package_new(json, verbose);
-  }
-
-  // Set the url so that we can download the other files.
-  pkg->url = url;
+  // build package
+  pkg = clib_package_new(json, verbose);
 
   if (!pkg)
     goto error;
 
-  // force version number if the registry returned a different version from what we expected.
+  // Set the url so that we can download the other files.
+  pkg->url = strdup(url);
+
+  // force the supplied version number if the registry returned a different version from what we expected.
   if (pkg->version) {
-    if (version) {
       if (0 != strcmp(version, DEFAULT_REPO_VERSION) && 0 != strcmp(pkg->version, version)) {
         _debug("forcing version number: %s (%s)", version, pkg->version);
         free(pkg->version);
         pkg->version = version;
       } else {
         free(version);
+        version = NULL;
       }
-    }
   } else {
     pkg->version = version;
   }
 
-  // force package author (don't know how this could fail)
-  if (author && pkg->author) {
-    if (0 != strcmp(author, pkg->author)) {
-      free(pkg->author);
-      pkg->author = author;
-    } else {
-      free(author);
-    }
-  } else {
+  if (!pkg->author) {
     pkg->author = strdup(author);
   }
+  if (!pkg->repo_name) {
+    pkg->repo_name = strdup(name);
+  }
+  free(name);
+  name = NULL;
 
-  if (!(repo = clib_package_get_id(pkg->author, pkg->name))) {
+  if (!(pkg->repo = clib_package_get_id(pkg->author, pkg->repo_name))) {
     goto error;
   }
 
@@ -614,7 +584,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, const char* url, 
   pthread_mutex_lock(&lock.mutex);
 #endif
   // cache json
-  if (pkg && pkg->author && pkg->name && pkg->version) {
+  if (pkg->author && pkg->name && pkg->version) {
     if (-1 ==
         clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
       _debug("failed to cache JSON for: %s/%s@%s", pkg->author, pkg->name,
@@ -640,16 +610,17 @@ clib_package_new_from_slug_with_package_name(const char *slug, const char* url, 
 
 error:
   if (0 == retries) {
-    if (verbose && author && name && file) {
-      logger_warn("warning", "unable to fetch %s/%s:%s", author, name, file);
+    if (verbose && author && name && manifest_file) {
+      logger_warn("warning", "unable to fetch %s/%s:%s", author, name, manifest_file);
     }
   }
 
   free(author);
   free(name);
-  free(version);
+  if (version != NULL) {
+    free(version);
+  }
   free(json_url);
-  free(repo);
   if (!res && json)
     free(json);
   if (res)
@@ -664,14 +635,13 @@ error:
  */
 clib_package_t *clib_package_new_from_slug_and_url(const char *slug, const char* url, int verbose) {
   clib_package_t *package = NULL;
-  const char *name = NULL;
   unsigned int i = 0;
 
   do {
-    name = manifest_names[i];
-    package = clib_package_new_from_slug_with_package_name(slug, url, verbose, name);
+    const char *manifest_name = manifest_names[i];
+    package = clib_package_new_from_slug_with_package_name(slug, url, verbose, manifest_name);
     if (NULL != package) {
-      package->filename = (char *)name;
+      package->filename = (char *) manifest_name;
     }
   } while (NULL != manifest_names[++i] && NULL == package);
 

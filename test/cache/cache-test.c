@@ -30,24 +30,23 @@ int main() {
 
   rimraf(clib_cache_dir());
 
-  describe("clib-cache opearions") {
+  describe("clib-cache operations") {
 
     char *author = "author";
     char *name = "pkg";
     char *version = "1.2.0";
     char pkg_dir[BUFSIZ];
 
-    int expiraton = 1;
+    int expiration = 2;
 
     it("should initialize succesfully") {
-      assert_equal(0, clib_cache_init(expiraton));
+      assert_equal(0, clib_cache_init(expiration));
     }
 
     sprintf(pkg_dir, "%s/author_pkg_1.2.0", clib_cache_dir());
 
     it("should manage the package cache") {
-      assert_equal(
-          0, clib_cache_save_package(author, name, version, "../../deps/copy"));
+      assert_equal(0, clib_cache_save_package(author, name, version, "./deps/copy"));
       assert_equal(1, clib_cache_has_package(author, name, version));
       assert_equal(0, clib_cache_is_expired_package(author, name, version));
 
@@ -97,7 +96,7 @@ int main() {
       assert_equal(13, clib_cache_save_search("<html></html>"));
       assert_equal(1, clib_cache_has_search());
 
-      sleep(expiraton + 1);
+      sleep(expiration + 1);
 
       assert_equal(0, clib_cache_has_search());
     }

@@ -24,7 +24,7 @@ void repository_init(clib_secrets_t secrets);
  *
  * @return a handle on success and NULL on failure.
  */
-http_get_response_t* repository_fetch_package_manifest(const char*package_url, const char* slug, const char* version);
+http_get_response_t* repository_fetch_package_manifest(const char*package_url, const char* slug, const char* version, const char* manifest_file);
 
 /**
  * Start download of a file for the package with url.

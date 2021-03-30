@@ -21,6 +21,7 @@
 #include <string.h>
 #include <tempdir/tempdir.h>
 #include <limits.h>
+#include <strdup/strdup.h>
 
 CURLSH *clib_package_curl_share;
 //TODO, cleanup somewhere curl_share_cleanup(clib_package_curl_share);
@@ -90,7 +91,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
 
     registry_package_ptr_t package_info = registry_manager_find_package(registries, package_id);
     if (!package_info) {
-      debug(&_debugger, "Package %s not found in any registry.", slug);
+      logger_error("package-installer", "Package %s not found in any registry.", package_id);
       return -1;
     }
 
@@ -183,14 +184,11 @@ int clib_package_install_executable(clib_package_t *pkg, const char *dir, int ve
     return -1;
   }
 
-  E_FORMAT(&url, "https://github.com/%s/archive/%s.tar.gz", pkg->repo,
-           pkg->version);
-
+  E_FORMAT(&url, "https://github.com/%s/archive/%s.tar.gz", pkg->repo, pkg->version);
   E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
-
   E_FORMAT(&tarball, "%s/%s", tmp, file);
 
-  rc = http_get_file_shared(url, tarball, clib_package_curl_share, NULL, 0);
+  rc = http_get_file(url, tarball, NULL, 0);
 
   if (0 != rc) {
     if (verbose) {
@@ -426,7 +424,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   // fetch makefile
   if (!package_opts.global && pkg->makefile) {
     _debug("fetch: %s/%s", pkg->repo, pkg->makefile);
-    repository_file_handle_t handle = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->name), pkg->version, pkg->makefile, pkg_dir);
+    repository_file_handle_t handle = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->repo_name), pkg->version, pkg->makefile, pkg_dir);
     if (handle == NULL) {
       goto cleanup;
     }
@@ -532,7 +530,9 @@ download:
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&lock.mutex);
 #endif
-  clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+  if (!package_opts.skip_cache) {
+    clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+  }
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&lock.mutex);
 #endif
@@ -548,9 +548,10 @@ install:
       goto cleanup;
   }
 
-  if (0 == rc && pkg->install) {
-    rc = clib_package_install_executable(pkg, dir, verbose);
-  }
+  // TODO, check if we want to enable this.
+  //if (pkg->install) {
+  //  rc = clib_package_install_executable(pkg, dir, verbose);
+  //}
 
   if (0 == rc) {
     rc = clib_package_install_dependencies(pkg, dir, verbose);

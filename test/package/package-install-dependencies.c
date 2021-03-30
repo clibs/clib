@@ -3,6 +3,8 @@
 #include "describe/describe.h"
 #include "fs/fs.h"
 #include "rimraf/rimraf.h"
+#include "registry-manager.h"
+#include "repository.h"
 
 int main() {
   curl_global_init(CURL_GLOBAL_ALL);
@@ -12,6 +14,10 @@ int main() {
       .force = 1,
   });
 
+  registries_t registries = registry_manager_init_registries(NULL, NULL);
+  registry_manager_fetch_registries(registries);
+  clib_package_installer_init(registries, NULL);
+
   describe("clib_package_install_dependencies") {
     it("should return -1 when given a bad package") {
       assert(-1 == clib_package_install_dependencies(NULL, "./deps", 0));
@@ -19,7 +25,7 @@ int main() {
 
     it("should install the dep in its own directory") {
       clib_package_t *dep =
-          clib_package_new_from_slug("stephenmathieson/mkdirp.c", 0);
+          clib_package_new_from_slug_and_url("stephenmathieson/mkdirp.c", "https://github.com/stephanmathieson/mkdirp.c", 0);
       assert(dep);
       assert(0 ==
              clib_package_install_dependencies(dep, "./test/fixtures/", 0));
@@ -31,7 +37,7 @@ int main() {
 
     it("should install the dependency's package.json") {
       clib_package_t *pkg =
-          clib_package_new_from_slug("stephenmathieson/mkdirp.c", 0);
+          clib_package_new_from_slug_and_url("stephenmathieson/mkdirp.c", "https://github.com/stephanmathieson/mkdirp.c", 0);
       assert(pkg);
       assert(0 ==
              clib_package_install_dependencies(pkg, "./test/fixtures/", 0));
@@ -42,7 +48,7 @@ int main() {
 
     it("should install the dependency's sources") {
       clib_package_t *pkg =
-          clib_package_new_from_slug("stephenmathieson/mkdirp.c", 0);
+          clib_package_new_from_slug_and_url("stephenmathieson/mkdirp.c", "https://github.com/stephanmathieson/mkdirp.c", 0);
       assert(pkg);
       assert(0 ==
              clib_package_install_dependencies(pkg, "./test/fixtures/", 0));
@@ -54,7 +60,7 @@ int main() {
 
     it("should install the dependency's dependencies") {
       clib_package_t *pkg =
-          clib_package_new_from_slug("stephenmathieson/rimraf.c", 0);
+          clib_package_new_from_slug_and_url("stephenmathieson/rimraf.c", "https://github.com/stephanmathieson/rimraf.c", 0);
       assert(pkg);
       assert(0 ==
              clib_package_install_dependencies(pkg, "./test/fixtures/", 0));

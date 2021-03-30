@@ -133,7 +133,7 @@ int http_get_file_shared(const char *url, const char *file, CURLSH *share, const
   return (200 == status && CURLE_ABORTED_BY_CALLBACK != res) ? 0 : -1;
 }
 
-int http_get_file(const char *url, const char *file) {
+int http_get_file(const char *url, const char *file, const char** headers, int header_count) {
   return http_get_file_shared(url, file, NULL, NULL, 0);
 }
 

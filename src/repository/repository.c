@@ -65,6 +65,7 @@ static void init_curl_share() {
 }
 
 void repository_init(clib_secrets_t _secrets) {
+  init_curl_share();
   secrets = _secrets;
 }
 
@@ -78,15 +79,12 @@ static char *repository_create_url_for_file(const char *package_url, const char 
   }
 }
 
-http_get_response_t *repository_fetch_package_manifest(const char *package_url, const char *package_id, const char *version) {
-  init_curl_share();
-
+http_get_response_t *repository_fetch_package_manifest(const char *package_url, const char *package_id, const char *version, const char* manifest_file) {
   // Check if there is a secret for the requested repository.
   url_data_t *parsed = url_parse(package_url);
   char *secret = clib_secret_find_for_hostname(secrets, parsed->hostname);
   url_free(parsed);
-  char *manifest_name = "package.json";
-  char *manifest_url = repository_create_url_for_file(package_url, package_id, version, manifest_name, secret);
+  char *manifest_url = repository_create_url_for_file(package_url, package_id, version, manifest_file, secret);
 
   http_get_response_t *res;
   if (strstr(package_url, "gitlab") != NULL) {
@@ -95,17 +93,15 @@ http_get_response_t *repository_fetch_package_manifest(const char *package_url, 
     char *authentication_header = malloc(size);
     snprintf(authentication_header, size, "%s:%s", key, secret);
 
-    res = http_get(manifest_url, &authentication_header, 1);
+    res = http_get_shared(manifest_url, clib_package_curl_share, &authentication_header, 1);
   } else {
-    res = http_get(manifest_url, NULL, 0);
+    res = http_get_shared(manifest_url, clib_package_curl_share, NULL, 0);
   }
 
   return res;
 }
 
 repository_file_handle_t repository_download_package_file(const char *package_url, const char *package_id, const char *version, const char *file_path, const char *destination_path) {
-  init_curl_share();
-
   // Check if there is a secret for the requested repository.
   url_data_t *parsed = url_parse(package_url);
   char *secret = clib_secret_find_for_hostname(secrets, parsed->hostname);
@@ -149,7 +145,7 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
 #endif
 
   if (package_opts.force || -1 == fs_exists(path)) {
-    logger_info("fetch", "%s:%s", url, file);
+    _debug("repository", "fetching %s", url);
     fflush(stdout);
 
 #ifdef HAVE_PTHREADS
@@ -177,7 +173,7 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
 #ifdef HAVE_PTHREADS
       pthread_mutex_lock(&mutex);
 #endif
-      logger_error("error", "unable to fetch %s:%s", url, file);
+      logger_error("error", "unable to fetch %s", url);
       fflush(stderr);
       rc = 1;
 #ifdef HAVE_PTHREADS
@@ -190,7 +186,7 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
 #ifdef HAVE_PTHREADS
       pthread_mutex_lock(&mutex);
 #endif
-      logger_info("save", path);
+      _debug("repository", "saved %s", path);
       fflush(stdout);
 #ifdef HAVE_PTHREADS
       pthread_mutex_unlock(&mutex);

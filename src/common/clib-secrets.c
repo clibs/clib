@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strdup/strdup.h>
 
 struct clib_secret {
   char *hostname;
@@ -18,7 +19,7 @@ struct clib_secret_handle {
 
 clib_secrets_t clib_secrets_load_from_file(const char *file) {
   if (-1 == fs_exists(file)) {
-    logger_warn("warning", "Secrets file %s does not exist.", file);
+    //logger_warn("warning", "Secrets file %s does not exist.", file);
     return NULL;
   }
 
@@ -32,7 +33,7 @@ clib_secrets_t clib_secrets_load_from_file(const char *file) {
 
   JSON_Value *root = json_parse_string(json);
   if (root == NULL) {
-    logger_error("error", "unable to parse JSON");
+    logger_error("error", "unable to parse secrets JSON");
     return NULL;
   }
 
