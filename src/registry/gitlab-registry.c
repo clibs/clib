@@ -5,11 +5,11 @@
 // MIT licensed
 //
 #include "gitlab-registry.h"
-#include "gumbo-get-element-by-id/get-element-by-id.h"
 #include "http-get/http-get.h"
 #include "registry-internal.h"
 #include <curl/curl.h>
 #include <string.h>
+#include <strdup/strdup.h>
 
 /**
  * Parse a list of packages from the given `html`
@@ -19,9 +19,9 @@ static list_t *gitlab_registry_parse(const char *hostname, const char *html) {
 
   // Try to parse the markdown file.
   char *input = strdup(html);
-  char *line;
+  char *line = input;
   char *category = NULL;
-  while ((line = strsep(&input, "\n"))) {
+  while ((line = strtok(line, "\n"))) {
     char *dash_position = strstr(line, "-");
     // The line starts with a dash, so we expect a package.
     if (dash_position != NULL && dash_position - line < 4) {

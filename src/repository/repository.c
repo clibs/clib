@@ -206,6 +206,7 @@ static void *fetch_package_file_thread(void *arg) {
   int rc = fetch_package_file_work(data->url, data->dir, data->file, data->secret);
   *status = rc;
   pthread_exit((void *) status);
+  return status;
 }
 #endif
 

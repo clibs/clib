@@ -23,6 +23,12 @@
 #include <limits.h>
 #include <strdup/strdup.h>
 
+#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
+    defined(__MINGW64__) || defined(__CYGWIN__)
+#define setenv(k, v, _) _putenv_s(k, v)
+#define realpath(a, b) _fullpath(a, b, strlen(a))
+#endif
+
 CURLSH *clib_package_curl_share;
 //TODO, cleanup somewhere curl_share_cleanup(clib_package_curl_share);
 
@@ -375,6 +381,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
     _debug("mkdir -p %s", pkg_dir);
     // create directory for pkg
     if (-1 == mkdirp(pkg_dir, 0777)) {
+      logger_error("error", "Could not create directory %s", pkg_dir);
       rc = -1;
       goto cleanup;
     }

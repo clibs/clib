@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
   clib_secrets_t secrets = clib_secrets_load_from_file("clib_secrets.json");
 
   clib_package_t *package = clib_package_load_local_manifest(0);
-  registries_t registries = registry_manager_init_registries(package->registries, secrets);
+  registries_t registries = registry_manager_init_registries(package ? package->registries : NULL, secrets);
   registry_manager_fetch_registries(registries);
 
   // TODO, implement caching for the new registries.
