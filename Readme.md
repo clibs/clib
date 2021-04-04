@@ -7,58 +7,28 @@
 
   ![c package manager screenshot](https://i.cloudup.com/GwqOU2hh9Y.png)
 
-## Installation
-
-  Expects [libcurl](http://curl.haxx.se/libcurl/) to be installed and linkable.
-
-  With [homebrew](https://github.com/Homebrew/homebrew):
-
-```sh
-$ brew install clib
-```
-
-  Or [MacPorts](https://www.macports.org):
-
-```sh
-$ sudo port selfupdate
-$ sudo port install clib
-```
-
-  With git:
-
-```sh
-$ git clone https://github.com/clibs/clib.git /tmp/clib
-$ cd /tmp/clib
-$ make install
-```
-
-  Ubuntu:
-
-```sh
-# install libcurl
-$ sudo apt-get install libcurl4-gnutls-dev -qq
-# clone
-$ git clone https://github.com/clibs/clib.git /tmp/clib && cd /tmp/clib
-# build
-$ make
-# put on path
-$ sudo make install
-```
-
 ## About
 
-  Basically the lazy-man's copy/paste promoting smaller C utilities, also
-  serving as a nice way to discover these sort of libraries. From my experience
-  C libraries are scattered all over the web and discovery is relatively poor. The footprint of these libraries is usually quite large and unfocused. The goal of `clibs` is to provide
-  stand-alone "micro" C libraries for developers to quickly install without coupling
-  to large frameworks.
+Basically the lazy-man's copy/paste promoting smaller C utilities, also
+serving as a nice way to discover these sort of libraries. From my experience
+C libraries are scattered all over the web and discovery is relatively poor. The footprint of these libraries is usually quite large and unfocused. The goal of `clibs` is to provide
+stand-alone "micro" C libraries for developers to quickly install without coupling
+to large frameworks.
 
-  You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed. This allows `clib(1)` to fit into any new or existing C workflow without friction.
+You should use `clib(1)` to fetch these files for you and check them into your repository, the end-user and contributors should not require having `clib(1)` installed. This allows `clib(1)` to fit into any new or existing C workflow without friction.
 
-  The wiki [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry" and populates the `clib-search(1)` results.
+The [listing of packages](https://github.com/clibs/clib/wiki/Packages) acts as the "registry". The registry is used by `clib(1)` when searching for packages.
+
+## Installation and building
+Binaries for `clib(1)` releases can be found at [releases](https://github.com/clibs/clib/releases/).
+For OSx and linux [libcurl](http://curl.haxx.se/libcurl/) should be installed and linkable.
+The windows binaries do not require any libraries to be installed.
+
+See [Building](Building.md) for instructions on how to build clib.
+
 
 ## Usage
-
+More detailed information on how to use `clib` can be found in [Usage](Usage.md).
 ```
   clib <command> [options]
 
@@ -78,13 +48,9 @@ $ sudo make install
     search [query]       Search for packages
     help <cmd>           Display help for cmd
 ```
+More information about the Command Line Interface can be found [here](https://github.com/clibs/clib/wiki/Command-Line-Interface).
 
-More about the Command Line Interface [here](https://github.com/clibs/clib/wiki/Command-Line-Interface).
-
-## Examples
-
- More examples and best practices at [BEST_PRACTICE.md](https://github.com/clibs/clib/blob/master/BEST_PRACTICE.md).
-
+### Example usage
  Install a few dependencies to `./deps`:
 
 ```sh
@@ -109,10 +75,26 @@ $ clib install ms file hash
 $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 ```
 
-## clib.json
+## Clib.json
+Information about a clib project or a package is stored in `clib.json`.
+In a project that uses `clib` to install dependencies a typical `clib.json` will only contain the required dependencies.
+It may look something like:
+```json
+{
+  "name": "Copy and Paste-Inator",
+  "version": "0.4.2",
+  "description": "Creates copies of yourself to do all of his waiting in lines for you.",
+  "dependencies": {
+    "clibs/buffer": "0.0.1",
+    "clibs/term": "0.0.1",
+    "jwerle/throw.h": "0.0.0"
+  }
+}
+```
 
- Example of a clib.json explicitly listing the source:
-
+Packages that can be installed by `clib` should also provide a `clib.json`.
+It contains the files that should be installed by `clib` in `"src"`
+An example of a clib.json for a package may look like:
 ```json
 {
   "name": "term",
@@ -125,7 +107,7 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 }
 ```
 
- Example of a clib.json for an executable:
+Example of a clib.json for an executable:
 
 ```json
 {
