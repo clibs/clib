@@ -8,8 +8,17 @@
 #include "http-get/http-get.h"
 #include "registry-internal.h"
 #include <curl/curl.h>
-#include <string.h>
 #include <strdup/strdup.h>
+#include <string.h>
+
+static char *string_split(char *in, char sep) {
+  char *next_sep = strchr(in, sep);
+  if (next_sep == NULL) {
+    return next_sep;
+  }
+  *next_sep = '\0';
+  return next_sep + sizeof(char);
+}
 
 /**
  * Parse a list of packages from the given `html`
@@ -21,7 +30,7 @@ static list_t *gitlab_registry_parse(const char *hostname, const char *html) {
   char *input = strdup(html);
   char *line = input;
   char *category = NULL;
-  while ((line = strtok(line, "\n"))) {
+  while ((line = string_split(line, '\n'))) {
     char *dash_position = strstr(line, "-");
     // The line starts with a dash, so we expect a package.
     if (dash_position != NULL && dash_position - line < 4) {
@@ -58,14 +67,14 @@ static list_t *gitlab_registry_parse(const char *hostname, const char *html) {
 list_t *gitlab_registry_fetch(const char *url, const char *hostname, const char *secret) {
   http_get_response_t *res;
   if (secret == NULL) {
-    return NULL;
+    res = http_get(url, NULL, 0);
+  } else {
+    char *key = "PRIVATE-TOKEN";
+    unsigned int size = strlen(key) + strlen(secret) + 2;
+    char *authentication_header = malloc(size);
+    snprintf(authentication_header, size, "%s:%s", key, secret);
+    res = http_get(url, &authentication_header, 1);
   }
-
-  char *key = "PRIVATE-TOKEN";
-  unsigned int size = strlen(key) + strlen(secret) + 2;
-  char *authentication_header = malloc(size);
-  snprintf(authentication_header, size, "%s:%s", key, secret);
-  res = http_get(url, &authentication_header, 1);
   if (!res->ok) {
     return NULL;
   }

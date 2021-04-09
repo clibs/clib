@@ -98,7 +98,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
     registry_package_ptr_t package_info = registry_manager_find_package(registries, package_id);
     if (!package_info) {
       logger_error("package-installer", "Package %s not found in any registry.", package_id);
-      return -1;
+      goto loop_cleanup;
     }
 
     pkg = clib_package_new_from_slug_and_url(slug, registry_package_get_href(package_info), verbose);
@@ -112,6 +112,7 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
     error = 0;
 
   loop_cleanup:
+    free(package_id);
     if (slug)
       free(slug);
     if (error) {
@@ -300,7 +301,6 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   char *package_json = NULL;
   char *pkg_dir = NULL;
   char *command = NULL;
-  int pending = 0;
   int rc = 0;
   int i = 0;
 
@@ -485,10 +485,11 @@ download:
 
   iterator = list_iterator_new(pkg->src, LIST_HEAD);
   list_node_t *source;
-  repository_file_handle_t *handles = malloc(pkg->src->len * sizeof(repository_file_handle_t));
+  repository_file_handle_t *handles = malloc(max * sizeof(repository_file_handle_t));
+  char* package_id = clib_package_get_id(pkg->author, pkg->repo_name);
+  // TODO, refactor this.
   while ((source = list_iterator_next(iterator))) {
-    handles[i] = repository_download_package_file(pkg->url, clib_package_get_id(pkg->author, pkg->repo_name), pkg->version, source->val, pkg_dir);
-
+    handles[i] = repository_download_package_file(pkg->url, package_id, pkg->version, source->val, pkg_dir);
     if (handles[i] == NULL) {
       list_iterator_destroy(iterator);
       iterator = NULL;
@@ -496,30 +497,13 @@ download:
       goto cleanup;
     }
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    struct timespec ts = {0, 1000 * 1000 * 10};
-    nanosleep(&ts, NULL);
-#endif
-
 #ifdef HAVE_PTHREADS
-    if (i < 0) {
-      i = 0;
-    }
-
-    (void) pending++;
-
     if (i < max) {
-      (void) i++;
+      i++;
     } else {
       while (--i >= 0) {
         repository_file_finish_download(handles[i]);
         repository_file_free(handles[i]);
-        (void) pending--;
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-        struct timespec ts = {0, 1000 * 1000 * 10};
-        nanosleep(&ts, NULL);
-#endif
       }
     }
 #endif
@@ -528,8 +512,6 @@ download:
 #ifdef HAVE_PTHREADS
   while (--i >= 0) {
     repository_file_finish_download(handles[i]);
-
-    (void) pending--;
     repository_file_free(handles[i]);
   }
 #endif

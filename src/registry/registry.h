@@ -37,9 +37,16 @@ bool registry_fetch(registry_ptr_t registry);
 /**
  * Get the url for the registry
  * @param registry
- * @return
+ * @return the url
  */
 const char* registry_get_url(registry_ptr_t registry);
+
+/**
+ * Get the secret for this registry
+ * @param registry
+ * @return the secret or NULL if there is no secret.
+ */
+const char* registry_get_secret(registry_ptr_t registry);
 
 /**
  * An iterator through the packages in the registry.

@@ -42,7 +42,7 @@ void registry_manager_fetch_registries(registries_t registries) {
   registry_ptr_t reg;
   while ((reg = registry_iterator_next(it))) {
       if (!registry_fetch(reg)) {
-      printf("REGISTRY: could not list packages from. %s\n", registry_get_url(reg));
+      printf("REGISTRY: could not list packages from. %s secret is: %s\n", registry_get_url(reg), registry_get_secret(reg));
     }
   }
   registry_iterator_destroy(it);

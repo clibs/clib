@@ -96,6 +96,10 @@ const char *registry_get_url(registry_ptr_t registry) {
   return registry->url;
 }
 
+const char* registry_get_secret(registry_ptr_t registry) {
+  return registry->secret;
+}
+
 bool registry_fetch(registry_ptr_t registry) {
   switch (registry->type) {
   case REGISTRY_TYPE_GITLAB:

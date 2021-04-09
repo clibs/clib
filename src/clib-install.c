@@ -371,9 +371,7 @@ int main(int argc, char *argv[]) {
     memset(prefix, 0, path_max);
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
-    opts.prefix = malloc(size);
-    memset((void *) opts.prefix, 0, size);
-    memcpy((void *) opts.prefix, prefix, size);
+    opts.prefix = strndup(prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
@@ -407,6 +405,7 @@ int main(int argc, char *argv[]) {
 
   curl_global_cleanup();
   clib_package_cleanup();
+  clib_package_free(root_package);
 
   command_free(&program);
   return code;
