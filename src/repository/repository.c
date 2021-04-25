@@ -118,10 +118,7 @@ repository_file_handle_t repository_download_package_file(const char *package_ur
 
 void repository_file_finish_download(repository_file_handle_t file) {
   void *rc;
-  int success = pthread_join(file->thread, &rc);
-  if (success != 0) {
-    printf("Failed to join thread.\n");
-  }
+  pthread_join(file->thread, &rc);
   free(rc);
 }
 
