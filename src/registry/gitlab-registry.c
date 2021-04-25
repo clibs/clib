@@ -73,7 +73,7 @@ list_t *gitlab_registry_fetch(const char *url, const char *hostname, const char 
     unsigned int size = strlen(key) + strlen(secret) + 2;
     char *authentication_header = malloc(size);
     snprintf(authentication_header, size, "%s:%s", key, secret);
-    res = http_get(url, &authentication_header, 1);
+    res = http_get(url, (const char **) &authentication_header, 1);
   }
   if (!res->ok) {
     return NULL;

@@ -53,8 +53,8 @@ clib_secrets_t clib_secrets_load_from_file(const char *file) {
   }
 
   for (unsigned int i = 0; i < json_object_get_count(json_object); i++) {
-    char *domain = json_object_get_name(json_object, i);
-    char *secret = json_object_get_string(json_object, domain);
+    const char *domain = json_object_get_name(json_object, i);
+    const char *secret = json_object_get_string(json_object, domain);
 
     struct clib_secret *secret_struct = malloc(sizeof(struct clib_secret));
     secret_struct->hostname = strdup(domain);

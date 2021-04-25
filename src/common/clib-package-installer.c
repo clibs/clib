@@ -302,7 +302,7 @@ int clib_package_install(clib_package_t *pkg, const char *dir, int verbose) {
   char *pkg_dir = NULL;
   char *command = NULL;
   int rc = 0;
-  int i = 0;
+  int thread_index = 0;
 
 #ifdef PATH_MAX
   long path_max = PATH_MAX;
@@ -489,8 +489,8 @@ download:
   char* package_id = clib_package_get_id(pkg->author, pkg->repo_name);
   // TODO, refactor this.
   while ((source = list_iterator_next(iterator))) {
-    handles[i] = repository_download_package_file(pkg->url, package_id, pkg->version, source->val, pkg_dir);
-    if (handles[i] == NULL) {
+    handles[thread_index] = repository_download_package_file(pkg->url, package_id, pkg->version, source->val, pkg_dir);
+    if (handles[thread_index] == NULL) {
       list_iterator_destroy(iterator);
       iterator = NULL;
       rc = -1;
@@ -498,21 +498,23 @@ download:
     }
 
 #ifdef HAVE_PTHREADS
-    if (i < max) {
-      i++;
+    if (thread_index < (max-1)) {
+      thread_index++;
     } else {
-      while (--i >= 0) {
-        repository_file_finish_download(handles[i]);
-        repository_file_free(handles[i]);
+      for (int j = 0; j <= thread_index; j++) {
+        repository_file_finish_download(handles[j]);
+        repository_file_free(handles[j]);
       }
+      thread_index = 0;
     }
 #endif
   }
 
 #ifdef HAVE_PTHREADS
-  while (--i >= 0) {
-    repository_file_finish_download(handles[i]);
-    repository_file_free(handles[i]);
+    // Here thread_index is one higher than the actual thread index.
+   for (int j = 0; j < thread_index; j++) {
+    repository_file_finish_download(handles[j]);
+    repository_file_free(handles[j]);
   }
 #endif
 

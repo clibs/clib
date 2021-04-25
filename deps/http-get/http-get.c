@@ -40,7 +40,7 @@ static size_t http_get_cb(void *contents, size_t size, size_t nmemb, void *userp
   return realsize;
 }
 
-http_get_response_t *http_get_shared(const char *url, CURLSH *share, const char** headers, int header_count) {
+http_get_response_t *http_get_shared(const char *url, CURLSH *share, const char** const headers, int header_count) {
   CURL *req = curl_easy_init();
 
   http_get_response_t *res = malloc(sizeof(http_get_response_t));
@@ -79,7 +79,7 @@ http_get_response_t *http_get_shared(const char *url, CURLSH *share, const char*
  * Perform an HTTP(S) GET on `url`
  */
 
-http_get_response_t *http_get(const char *url, const char** headers, int header_count) {
+http_get_response_t *http_get(const char *url, const char** const headers, int header_count) {
   return http_get_shared(url, NULL, headers, header_count);
 }
 
@@ -97,7 +97,7 @@ static size_t http_get_file_cb(void *ptr, size_t size, size_t nmemb, void *strea
  * Request `url` and save to `file`
  */
 
-int http_get_file_shared(const char *url, const char *file, CURLSH *share, const char** headers, int header_count) {
+int http_get_file_shared(const char *url, const char *file, CURLSH *share, const char** const headers, int header_count) {
   CURL *req = curl_easy_init();
   if (!req) return -1;
 
@@ -133,7 +133,7 @@ int http_get_file_shared(const char *url, const char *file, CURLSH *share, const
   return (200 == status && CURLE_ABORTED_BY_CALLBACK != res) ? 0 : -1;
 }
 
-int http_get_file(const char *url, const char *file, const char** headers, int header_count) {
+int http_get_file(const char *url, const char *file, const char** const headers, int header_count) {
   return http_get_file_shared(url, file, NULL, NULL, 0);
 }
 

@@ -85,11 +85,11 @@ get_part (char *url, const char *format, int l) {
 }
 
 url_data_t *
-url_parse (char *url) {
+url_parse (const char *url) {
   url_data_t *data = (url_data_t *) malloc(sizeof(url_data_t));
   if (!data) return NULL;
 
-  data->href = url;
+  data->href = strdup(url);
   char *tmp_url = strdup(url);
   bool is_ssh = false;
 
@@ -108,7 +108,7 @@ url_parse (char *url) {
   int auth_len = 0;
   if (strstr(tmp_url, "@")) {
     auth = get_part(tmp_url, "%[^@]", protocol_len);
-    auth_len = strlen(auth);
+    auth_len = (int)strlen(auth);
     if (auth) auth_len++;
   }
 
@@ -267,7 +267,7 @@ url_get_hostname (char *url) {
   char *auth = url_get_auth(url);
 
   if (!protocol) return NULL;
-  if (auth) l += strlen(auth) + 1; // add one @ symbol
+  if (auth) l += (int)strlen(auth) + 1; // add one @ symbol
   if (auth) free(auth);
 
   l += (int) strlen(protocol);
@@ -442,6 +442,7 @@ url_data_inspect (url_data_t *data) {
 void
 url_free (url_data_t *data) {
   if (!data) return;
+  if (data->href) free(data->href);
   if (data->auth) free(data->auth);
   if (data->protocol) free(data->protocol);
   if (data->hostname) free(data->hostname);

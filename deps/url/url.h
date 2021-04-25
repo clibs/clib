@@ -72,7 +72,7 @@ typedef struct url_data {
  */
 
 url_data_t *
-url_parse (char *url);
+url_parse (const char *url);
 
 char *
 url_get_protocol (char *url);

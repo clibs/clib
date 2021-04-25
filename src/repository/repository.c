@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strdup/strdup.h>
 #include <url/url.h>
 
 static debug_t _debugger;
@@ -93,7 +94,7 @@ http_get_response_t *repository_fetch_package_manifest(const char *package_url, 
     char *authentication_header = malloc(size);
     snprintf(authentication_header, size, "%s:%s", key, secret);
 
-    res = http_get_shared(manifest_url, clib_package_curl_share, &authentication_header, 1);
+    res = http_get_shared(manifest_url, clib_package_curl_share, (const char **) &authentication_header, 1);
   } else {
     res = http_get_shared(manifest_url, clib_package_curl_share, NULL, 0);
   }
@@ -136,7 +137,8 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
     return 1;
   }
 
-  if (!(path = path_join(dir, basename(file)))) {
+  char* file_copy = strdup(file);
+  if (!(path = path_join(dir, basename(file_copy)))) {
     rc = 1;
     goto cleanup;
   }
@@ -159,7 +161,7 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
       char *authentication_header = malloc(size);
       snprintf(authentication_header, size, "%s:%s", key, secret);
 
-      rc = http_get_file_shared(url, path, clib_package_curl_share, &authentication_header, 1);
+      rc = http_get_file_shared(url, path, clib_package_curl_share, (const char **) &authentication_header, 1);
     } else {
       rc = http_get_file_shared(url, path, clib_package_curl_share, NULL, 0);
     }
@@ -195,8 +197,9 @@ static int fetch_package_file_work(const char *url, const char *dir, const char 
   }
 
 cleanup:
-
   free(path);
+  free(file_copy);
+
   return rc;
 }
 
@@ -226,7 +229,7 @@ static int fetch_package_file(const char *url, const char *dir, const char *file
 
   memset(fetch, 0, sizeof(*fetch));
 
-  fetch->url = url;
+  fetch->url = strdup(url);
   fetch->dir = dir;
   fetch->file = file;
   fetch->secret = secret;
