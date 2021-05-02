@@ -175,7 +175,7 @@ url_parse (const char *url) {
   int pathname_len = (int)strlen(pathname);
   data->pathname = pathname;
 
-  char *search = (char *) malloc(sizeof(search));
+  char *search = (char *) malloc(strlen(tmp_path)+1);
   if (!search) {
     free(tmp_url);
     url_free(data);
@@ -190,7 +190,7 @@ url_parse (const char *url) {
   int search_len = (int)strlen(search);
   free(tmp_path);
 
-  char *query = (char *) malloc(sizeof(char));
+  char *query = (char *) malloc(search_len+1);
   if (!query) {
     free(tmp_url);
     url_free(data);
@@ -199,7 +199,7 @@ url_parse (const char *url) {
   sscanf(search, "?%s", query);
   data->query = query;
 
-  char *hash = (char *) malloc(sizeof(char));
+  char *hash = (char *) malloc(strlen(path)+1);
   if (!hash) {
     free(tmp_url);
     url_free(data);

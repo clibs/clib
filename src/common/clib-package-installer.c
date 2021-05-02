@@ -195,6 +195,7 @@ int clib_package_install_executable(clib_package_t *pkg, const char *dir, int ve
   E_FORMAT(&file, "%s-%s.tar.gz", reponame, pkg->version);
   E_FORMAT(&tarball, "%s/%s", tmp, file);
 
+  // TODO, move to repository
   rc = http_get_file(url, tarball, NULL, 0);
 
   if (0 != rc) {
@@ -517,6 +518,7 @@ download:
     repository_file_free(handles[j]);
   }
 #endif
+  free(handles);
 
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&lock.mutex);
@@ -539,10 +541,9 @@ install:
       goto cleanup;
   }
 
-  // TODO, check if we want to enable this.
-  //if (pkg->install) {
-  //  rc = clib_package_install_executable(pkg, dir, verbose);
-  //}
+  if (pkg->install) {
+    rc = clib_package_install_executable(pkg, dir, verbose);
+  }
 
   if (0 == rc) {
     rc = clib_package_install_dependencies(pkg, dir, verbose);

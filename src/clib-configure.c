@@ -186,7 +186,7 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 #endif
   } else {
 #ifdef DEBUG
-    package = clib_package_new_from_slug(dir, 1);
+    package = clib_package_new_from_slug_and_url(dir, "FIXME", 1);
 #else
     package = clib_package_new_from_slug_and_url(dir, "FIXME", 0);
 #endif
