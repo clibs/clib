@@ -60,14 +60,7 @@ jobs:
 
       - name: System Setup
         shell: bash
-        run: |
-          wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
-          tar xzf curl-*
-          cd curl-*
-          ./configure --with-darwinssl
-          make
-          sudo make install
-
+        run: brew install curl
       - name: Build Release
         run: |
           make
