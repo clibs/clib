@@ -139,7 +139,7 @@ $ clib install visionmedia/mon visionmedia/every visionmedia/watch
 }
 ```
 
- See [explanation of clib.json](https://github.com/clibs/clib/wiki/Explanation-of-package.json) for more details.
+ See [explanation of clib.json](https://github.com/clibs/clib/wiki/Explanation-of-clib.json) for more details.
 
 ## Contributing
 
