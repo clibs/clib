@@ -1475,7 +1475,6 @@ download:
   while ((source = list_iterator_next(iterator))) {
     void *fetch = NULL;
     rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
-    printf("Starting thread %d\n", i);
 
     if (0 != rc) {
       list_iterator_destroy(iterator);
@@ -1496,12 +1495,10 @@ download:
     if (i < (max - 1)) {
       (void)i++;
     } else {
-      printf("All threads in use, cleaning up.\n");
       for (int j = 0; j <= i; j++) {
         fetch_package_file_thread_data_t *data = fetchs[j];
         int *status;
         pthread_join(data->thread, (void **)&status);
-        printf("Joining thread %d\n", j);
         free(data);
         fetchs[j] = NULL;
 
@@ -1530,7 +1527,6 @@ download:
     int *status;
 
     pthread_join(data->thread, (void **)&status);
-    printf("Joining thread %d\n", j);
 
     (void)pending--;
     free(data);
