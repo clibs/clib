@@ -1483,10 +1483,6 @@ download:
       goto cleanup;
     }
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    usleep(1024 * 10);
-#endif
-
 #ifdef HAVE_PTHREADS
     if (i < 0) {
       i = 0;
@@ -1496,15 +1492,15 @@ download:
 
     (void)pending++;
 
-    if (i < max) {
+    if (i < (max - 1)) {
       (void)i++;
     } else {
-      while (--i >= 0) {
-        fetch_package_file_thread_data_t *data = fetchs[i];
+      for (int j = 0; j <= i; j++) {
+        fetch_package_file_thread_data_t *data = fetchs[j];
         int *status;
         pthread_join(data->thread, (void **)&status);
         free(data);
-        fetchs[i] = NULL;
+        fetchs[j] = NULL;
 
         (void)pending--;
 
@@ -1518,25 +1514,23 @@ download:
           rc = -1;
           goto cleanup;
         }
-
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-        usleep(1024 * 10);
-#endif
       }
+      i = 0;
     }
 #endif
   }
 
 #ifdef HAVE_PTHREADS
-  while (--i >= 0) {
-    fetch_package_file_thread_data_t *data = fetchs[i];
+  // Here there are i-1 threads running.
+  for (int j = 0; j < i; j++) {
+      fetch_package_file_thread_data_t *data = fetchs[j];
     int *status;
 
     pthread_join(data->thread, (void **)&status);
 
     (void)pending--;
     free(data);
-    fetchs[i] = NULL;
+    fetchs[j] = NULL;
 
     if (NULL != status) {
       rc = *status;
