@@ -19,3 +19,4 @@ test/package/package-*
 test/cache/*
 !test/cache/*.c
 !test/cache/Makefile
+.idea
