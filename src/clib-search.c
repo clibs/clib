@@ -10,6 +10,7 @@
 #include "commander/commander.h"
 #include "common/clib-cache.h"
 #include "common/clib-package.h"
+#include "common/clib-settings.h"
 #include "console-colors/console-colors.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
@@ -26,7 +27,6 @@
 #include <time.h>
 
 #define CLIB_WIKI_URL "https://github.com/clibs/clib/wiki/Packages"
-#define CLIB_SEARCH_CACHE_TIME 1 * 24 * 60 * 60
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
     defined(__MINGW64__)

@@ -9,6 +9,7 @@
 
 #include "asprintf/asprintf.h"
 #include "commander/commander.h"
+#include "common/clib-settings.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
 #include "http-get/http-get.h"
@@ -25,8 +26,6 @@
     defined(__MINGW64__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #endif
-
-const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
 debug_t debugger;
 
