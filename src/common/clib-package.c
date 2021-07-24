@@ -12,6 +12,7 @@
 #include "asprintf/asprintf.h"
 #include "clib-cache.h"
 #include "clib-package.h"
+#include "clib-settings.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
 #include "hash/hash.h"
@@ -86,8 +87,6 @@ debug_t _debugger;
     debug(&_debugger, __VA_ARGS__);                                            \
   })
 
-static const char *manifest_names[] = {"clib.json", "package.json", NULL};
-
 #define E_FORMAT(...)                                                          \
   ({                                                                           \
     rc = asprintf(__VA_ARGS__);                                                \
@@ -97,7 +96,7 @@ static const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
 static clib_package_opts_t opts = {
 #ifdef HAVE_PTHREADS
-    .concurrency = 4,
+    .concurrency = MAX_THREADS,
 #endif
     .skip_cache = 1,
     .prefix = 0,

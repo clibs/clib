@@ -4,9 +4,9 @@ This page will cover:
 
  - [How to use libraries](#how-to-use-installed-libraries-for-your-project).
  - [Example Makefile](#example-makefile).
- - [Example `package.json` for executables](#example-packagejson-for-executable-project).
+ - [Example `clib.json` for executables](#example-clibjson-for-executable-project).
  - [Making your own library package](#making-your-own-libraries).
- - [Example `package.json` for libraries](#example-packagejson-for-libraries).
+ - [Example `clib.json` for libraries](#example-clibjson-for-libraries).
  - [How to install/uninstall executables](#install-and-uninstall-executables-packages).
 
 For instructions on installation, check out the [README](https://github.com/clibs/clib#installation).
@@ -22,17 +22,17 @@ your-project/
 │   ├── trim.c/
 │   │   ├── trim.h
 │   │   ├── trim.c
-│   │   └── package.json
+│   │   └── clib.json
 │   │
 │   ├── commander/
 │   │   ├─ commander.h
 │   │   ├─ commander.c
-│   │   └─ package.json
+│   │   └─ clib.json
 │   │
 │   └── logger/
 │       ├── logger.h
 │       ├── logger.c
-│       └── package.json
+│       └── clib.json
 │
 ├── LICENSE
 │
@@ -40,7 +40,7 @@ your-project/
 │
 ├── README.md
 │
-├── package.json
+├── clib.json
 │
 └── src/
     ├── main.c
@@ -102,11 +102,11 @@ This is a basic Makefile, and should work for most of your projects.
 You *could* have your Makefile install the libraries upon running it, but you
 would only need to do that to get the latest version of the library(s), in this
 case you probably don't want that. You typically want yo get the latest stable version
-for that library. By having a `package.json` file in your project repo, you can
+for that library. By having a `clib.json` file in your project repo, you can
 specify what packages you need, and what version of that package. Now have a look
-at a example `package.json` file for your project: (executable package)
+at a example `clib.json` file for your project: (executable package)
 
-### Example package.json for executable project
+### Example clib.json for executable project
 
 ```json
 {
@@ -125,7 +125,7 @@ at a example `package.json` file for your project: (executable package)
 
 Starting from the top, `"name"` is your package name. `"version"` is your package version. `"repo"` is the location of your project, (not including the `https://github.com/`). `"dependencies"` is all the dependencies your project requires, along with there version. `"install"` is the command to install your program (ran as root), (tip: if your project requires more then one command to install it, like need to run `./configure`, before `make`, then do this: `"install": "./configure && make && make install"`). `"uninstall"` is the command to uninstall your project, [more on that later](#install-and-uninstall-executables).
  
-_**NOTE:** Make sure you have a release as the same version in your `package.json` file, otherwise the download will fail. If you always want your package at the latest version, then put `master` as your version._
+_**NOTE:** Make sure you have a release as the same version in your `clib.json` file, otherwise the download will fail. If you always want your package at the latest version, then put `master` as your version._
 
 ## Making your own libraries
 
@@ -140,12 +140,12 @@ your-library-c/
 │   ├── path-join.c/
 │   │   ├── path-join.h
 │   │   ├── path-join.c
-│   │   └── package.json
+│   │   └── clib.json
 │   │
 │   └── strdup/
 │       ├─ strdup.h
 │       ├─ strdup.c
-│       └─ package.json
+│       └─ clib.json
 │
 ├── LICENSE
 │
@@ -153,7 +153,7 @@ your-library-c/
 │
 ├── README.md
 │
-├── package.json
+├── clib.json
 │
 ├── src/
 │   ├── library.c
@@ -165,11 +165,11 @@ your-library-c/
 
 Also like before, your have a `deps` directory (depending on your library, you may not need any
 dependencies). Your `Makefile` in this case it is only for the `test.sh`, not needed for installing.
-`package.json` contains your library name, dependencies (if you need them), keywords, etc... In
+`clib.json` contains your library name, dependencies (if you need them), keywords, etc... In
 `src/` contains your make code (usally the same name as your library). And you have your `test.sh`
 used for testing.
 
-### Example package.json for libraries
+### Example clib.json for libraries
 
 ```
 {
@@ -194,14 +194,14 @@ used for testing.
 }
 ```
 
-The main differences (between this, and the executable `package.json`), is now there is `"src"`,
+The main differences (between this, and the executable `clib.json`), is now there is `"src"`,
 this is where your make library source code is, your can change it, but src is petty standard.
 
 **TIP:** In the `"dependencies"` section, if you define `"*"` as the version, clib will install
 the latest version of that library.
 
 _**NOTE:** Just like your executable package, you will want to tag a release with the same name
-as your version specified in your `package.json`._
+as your version specified in your `clib.json`._
 
 ## Install and uninstall executables packages
 

@@ -8,6 +8,7 @@
 #include "commander/commander.h"
 #include "common/clib-cache.h"
 #include "common/clib-package.h"
+#include "common/clib-settings.h"
 #include "common/clib-validate.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
@@ -23,14 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CLIB_PACKAGE_CACHE_TIME 30 * 24 * 60 * 60
-
 #define SX(s) #s
 #define S(s) SX(s)
-
-#ifdef HAVE_PTHREADS
-#define MAX_THREADS 12
-#endif
 
 #if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__) ||               \
     defined(__MINGW64__)
@@ -59,8 +54,6 @@ struct options {
 };
 
 static struct options opts = {0};
-
-static const char *manifest_names[] = {"clib.json", "package.json", NULL};
 
 static clib_package_opts_t package_opts = {0};
 static clib_package_t *root_package = NULL;
