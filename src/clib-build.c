@@ -469,7 +469,6 @@ cleanup:
 }
 
 int build_package(const char *dir) {
-  static const char *manifest_names[] = {"clib.json", "package.json", 0};
   const char *name = NULL;
   unsigned int i = 0;
   int rc = 0;

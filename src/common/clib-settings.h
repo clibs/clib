@@ -9,6 +9,6 @@
 #define MAX_THREADS 12
 #endif
 
-const char *manifest_names[] = {"clib.json", "package.json", 0};
+extern const char *manifest_names[];
 
 #endif // CLIB_SRC_COMMON_CLIB_SETTINGS_H
