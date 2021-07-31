@@ -75,6 +75,8 @@ struct clib_package_lock {
 
 static clib_package_lock_t lock = {PTHREAD_MUTEX_INITIALIZER};
 
+static pthread_mutex_t curl_share_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 #endif
 
 CURLSH *clib_package_curl_share;
@@ -409,17 +411,17 @@ cleanup:
 #ifdef HAVE_PTHREADS
 static void curl_lock_callback(CURL *handle, curl_lock_data data,
                                curl_lock_access access, void *userptr) {
-  pthread_mutex_lock(&lock.mutex);
+  pthread_mutex_lock(&curl_share_mutex);
 }
 
 static void curl_unlock_callback(CURL *handle, curl_lock_data data,
                                  curl_lock_access access, void *userptr) {
-  pthread_mutex_unlock(&lock.mutex);
+  pthread_mutex_unlock(&curl_share_mutex);
 }
 
 static void init_curl_share() {
   if (0 == clib_package_curl_share) {
-    pthread_mutex_lock(&lock.mutex);
+    pthread_mutex_lock(&curl_share_mutex);
     clib_package_curl_share = curl_share_init();
     curl_share_setopt(clib_package_curl_share, CURLSHOPT_SHARE,
                       CURL_LOCK_DATA_CONNECT);
@@ -427,9 +429,7 @@ static void init_curl_share() {
                       curl_lock_callback);
     curl_share_setopt(clib_package_curl_share, CURLSHOPT_UNLOCKFUNC,
                       curl_unlock_callback);
-    curl_share_setopt(clib_package_curl_share, CURLOPT_NETRC,
-                      CURL_NETRC_OPTIONAL);
-    pthread_mutex_unlock(&lock.mutex);
+    pthread_mutex_unlock(&curl_share_mutex);
   }
 }
 #endif

@@ -263,6 +263,7 @@ static int install_package(const char *slug) {
 
     if (json) {
       root_package = clib_package_new(json, opts.verbose);
+      free(json);
     }
   }
 
