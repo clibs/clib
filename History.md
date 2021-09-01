@@ -1,3 +1,13 @@
+2.8.0 / 2021-09-01
+==================
+  * [add] Run tests workflow in pull requests (8bc6089)
+  * [add] Move common settings to a settings header
+  * [change] on osx, install curl using brew (#253)
+  * [fix] fix clib-settings.h compilation error (#259)
+  * [fix] Fix a memory issue when downloading files. (#256)
+  * [fix] Fix compile error on cygwin (#251)
+  * [fix] README.md:fix link to explanation of clib.json (#252)
+
 2.7.0 / 2021-01-26
 ==================
   * [feature] Integrating clib-uninstall as `clib uninstall` command (#245)
