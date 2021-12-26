@@ -2,6 +2,7 @@
 clib
 clib-install
 clib-search
+*.exe
 *.o
 *.d
 tmp/

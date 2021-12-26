@@ -4,5 +4,5 @@
   echo '#include <pthread.h>' &&
   echo 'void *f(void *a) { return 0; }' &&
   echo 'int main(void) { pthread_t t; return pthread_create(&t, 0, f, 0); }';
-} | ${CC:-cc} -o /dev/null -xc -pthread - 2>/dev/null
+} | ${CC:-cc} -o pthread_test -xc -pthread - 2>/dev/null && rm pthread_test
 exit $?
