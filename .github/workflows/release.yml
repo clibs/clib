@@ -97,17 +97,17 @@ jobs:
           sudo docker run --rm dockcross/windows-x64 > dockcross-windows-x64
           cat dockcross-windows-x64
           chmod +x dockcross-windows-x64
-          wget https://curl.haxx.se/download/curl-7.69.1.tar.gz
+          wget https://curl.haxx.se/download/curl-7.80.0.tar.gz
           tar xzf curl-*
           CURL_SRC=curl-*
-          ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --with-winssl --disable-dependency-tracking --disable-pthreads --disable-pthreads --enable-threaded-resolver'
+          ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && ./configure --prefix="/work/deps/curl" --host=x86_64-w64-mingw32.static --disable-shared --with-schannel --disable-dependency-tracking --enable-threaded-resolver --disable-imap --disable-pop3 --disable-smtp --disable-ldap --disable-mqtt --disable-smb'
           ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make'
           ./dockcross-windows-x64 bash -c 'cd '"$CURL_SRC"' && make install'
 
       - name: Build Release
         run: |
           mkdir -p build/bin
-          ./dockcross-windows-x64 make install NO_PTHREADS=1 STATIC=true EXE=true PREFIX=build
+          ./dockcross-windows-x64 make install STATIC=true EXE=true PREFIX=build
 
       - uses: actions/upload-artifact@v1
         with:
