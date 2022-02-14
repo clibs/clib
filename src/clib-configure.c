@@ -102,14 +102,19 @@ int configure_package(const char *dir);
 #ifdef HAVE_PTHREADS
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 typedef struct clib_package_thread clib_package_thread_t;
-struct clib_package_thread {
-  const char *dir;
+struct clib_package_thread { 
+  const char* slug; 
+  const char* dir; 
+  int verbose; 
 };
 
 void *configure_package_with_manifest_name_thread(void *arg) {
   clib_package_thread_t *wrap = arg;
-  const char *dir = wrap->dir;
-  configure_package(dir);
+  // const char *dir = wrap->dir;
+  // configure_package(dir);
+  clib_package_t *dependency = clib_package_new_from_slug(wrap->slug, 0);
+  clib_package_install(dependency, wrap->dir, wrap->verbose); 
+  clib_package_free(dependency);
   return 0;
 }
 #endif
@@ -289,23 +294,26 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
       char *slug = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
-      char *dep_dir = path_join(opts.dir, dependency->name);
+      // clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      // // char *dep_dir = path_join(opts.dir, dependency->name);
 
-      free(slug);
-      clib_package_free(dependency);
+      // free(slug);
+      // clib_package_free(dependency);
 
 #ifdef HAVE_PTHREADS
       clib_package_thread_t *wrap = &wraps[i];
       pthread_t *thread = &threads[i];
-      wrap->dir = dep_dir;
+      wrap->slug = slug;
+      wrap->dir = opts.dir; 
+      wrap->verbose = opts.verbose; 
       rc = pthread_create(thread, 0,
                           configure_package_with_manifest_name_thread, wrap);
 
       if (++i >= opts.concurrency) {
         for (int j = 0; j < i; ++j) {
           pthread_join(threads[j], 0);
-          free((void *)wraps[j].dir);
+          // free((void *)wraps[j].dir);
+          free((void *)wraps[j].slug);
         }
 
         i = 0;
@@ -316,14 +324,18 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
       }
 #endif
 #else
-      if (0 == dep_dir) {
-        rc = -ENOMEM;
-        goto cleanup;
-      }
+      // if (0 == dep_dir) {
+      //   rc = -ENOMEM;
+      //   goto cleanup;
+      // }
+      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
 
-      rc = configure_package(dep_dir);
+      clib_package_install(dependency, opts.dir, opts.verbose); 
+      clib_package_free(dependency);
+      free(slug);
+      // rc = configure_package(dep_dir);
 
-      free((void *)dep_dir);
+      // free((void *)dep_dir);
 
       if (0 != rc) {
         goto cleanup;
@@ -334,7 +346,8 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
     for (int j = 0; j < i; ++j) {
       pthread_join(threads[j], 0);
-      free((void *)wraps[j].dir);
+      // free((void *)wraps[j].dir);
+      free((void *)wraps[j].slug);
     }
 #endif
 
@@ -360,23 +373,20 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
       char *slug = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
-      char *dep_dir = path_join(opts.dir, dependency->name);
-
-      free(slug);
-      clib_package_free(dependency);
-
 #ifdef HAVE_PTHREADS
       clib_package_thread_t *wrap = &wraps[i];
       pthread_t *thread = &threads[i];
-      wrap->dir = dep_dir;
+      wrap->slug = slug;
+      wrap->dir = opts.dir; 
+      wrap->verbose = opts.verbose; 
       rc = pthread_create(thread, 0,
                           configure_package_with_manifest_name_thread, wrap);
 
       if (++i >= opts.concurrency) {
         for (int j = 0; j < i; ++j) {
           pthread_join(threads[j], 0);
-          free((void *)wraps[j].dir);
+          // free((void *)wraps[j].dir);
+          free((void *)wraps[j].slug);
         }
 
         i = 0;
@@ -405,7 +415,8 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
     for (int j = 0; j < i; ++j) {
       pthread_join(threads[j], 0);
-      free((void *)wraps[j].dir);
+      // free((void *)wraps[j].dir);
+      free((void *)wraps[j].slug);
     }
 #endif
 
