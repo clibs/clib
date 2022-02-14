@@ -176,6 +176,7 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 
   // Free the json if it was allocated before attempting to modify it
   free(json);
+  json = NULL; 
 
   if (0 == fs_exists(path)) {
     debug(&debugger, "read %s", path);
