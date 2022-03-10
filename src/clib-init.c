@@ -22,6 +22,9 @@
     defined(__MINGW64__)
 #define setenv(k, v, _) _putenv_s(k, v)
 #define realpath(a, b) _fullpath(a, b, strlen(a))
+#define PATH_SEPARATOR   '\\'
+#else
+#define PATH_SEPARATOR   '/'
 #endif
 
 debug_t debugger;
@@ -55,7 +58,9 @@ static char *find_basepath() {
   char cwd[4096] = {0};
   getcwd(cwd, 4096);
 
-  return strdup(strrchr(cwd, '/') + 1);
+  char* last_part = strrchr(cwd, PATH_SEPARATOR);
+  char* base_path = (last_part != NULL) ? last_part + 1 : cwd;
+  return strdup( base_path);
 }
 
 static void getinput(char *buffer, size_t s) {
