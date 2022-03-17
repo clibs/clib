@@ -44,8 +44,8 @@ int main() {
       assert(NULL == pkg->install);
 
       assert(2 == pkg->src->len);
-      assert_str_equal("foo.h", list_at(pkg->src, 0)->val);
-      assert_str_equal("foo.c", list_at(pkg->src, 1)->val);
+      assert_str_equal("foo.h", (char *) list_at(pkg->src, 0)->val);
+      assert_str_equal("foo.c", (char *) list_at(pkg->src, 1)->val);
 
       assert(3 == pkg->dependencies->len);
 
