@@ -427,8 +427,6 @@ static void init_curl_share() {
                       curl_lock_callback);
     curl_share_setopt(clib_package_curl_share, CURLSHOPT_UNLOCKFUNC,
                       curl_unlock_callback);
-    curl_share_setopt(clib_package_curl_share, CURLOPT_NETRC,
-                      CURL_NETRC_OPTIONAL);
     pthread_mutex_unlock(&lock.mutex);
   }
 }
