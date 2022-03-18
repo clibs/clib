@@ -40,7 +40,7 @@ endif
 
 ifdef DEBUG
 endif
-CFLAGS += -g -D CLIB_DEBUG=1 -D DEBUG="$(DEBUG)"
+CFLAGS += -g -D CLIB_DEBUG=1 -D DEBUG="1"
 
 default: all
 
