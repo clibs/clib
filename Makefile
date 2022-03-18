@@ -1,4 +1,4 @@
-CC     = clang-13
+CC     ?= cc
 PREFIX ?= /usr/local
 
 BINS = clib clib-install clib-search clib-init clib-configure clib-build clib-update clib-upgrade clib-uninstall
@@ -22,7 +22,7 @@ MAKEFILES = $(wildcard deps/*/Makefile)
 
 export CC
 
-CFLAGS += -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__ -g
+CFLAGS += -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__
 
 ifdef STATIC
 	CFLAGS  += -DCURL_STATICLIB  $(shell deps/curl/bin/curl-config --cflags)
@@ -34,7 +34,7 @@ endif
 
 ifneq (0,$(PTHREADS))
 ifndef NO_PTHREADS
-	# CFLAGS += $(shell ./scripts/feature-test-pthreads && echo "-DHAVE_PTHREADS=1 -pthread" || echo "-DHAVE_PTHREADS=0")
+	CFLAGS += $(shell ./scripts/feature-test-pthreads && echo "-DHAVE_PTHREADS=1 -pthread" || echo "-DHAVE_PTHREADS=0")
 endif
 endif
 
