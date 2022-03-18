@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: System Setup
       shell: bash
-      run: brew remove nghttp2 && brew install curl
+      run: brew install curl && brew install nghttp2
     - name: Run Tests
       run: |
         make
