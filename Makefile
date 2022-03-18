@@ -1,4 +1,4 @@
-CC     ?= cc
+CC     = clang-13
 PREFIX ?= /usr/local
 
 BINS = clib clib-install clib-search clib-init clib-configure clib-build clib-update clib-upgrade clib-uninstall
@@ -39,8 +39,8 @@ endif
 endif
 
 ifdef DEBUG
-	CFLAGS += -g -D CLIB_DEBUG=1 -D DEBUG="$(DEBUG)"
 endif
+CFLAGS += -g -D CLIB_DEBUG=1 -D DEBUG="$(DEBUG)"
 
 default: all
 
