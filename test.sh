@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export DEBUG=*
+
+
 mkdir -p tmp/bin
 TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
