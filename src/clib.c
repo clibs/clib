@@ -82,7 +82,11 @@ static bool should_check_release(const char *path) {
 }
 
 static void compare_versions(const char *marker_file_path) {
+  if (!marker_file_path) return;
+
   const char *latest_version = clib_release_get_latest_tag();
+
+  if (!latest_version) return;
 
   if (0 != strcmp(CLIB_VERSION, latest_version)) {
     logger_info("info",
@@ -90,6 +94,7 @@ static void compare_versions(const char *marker_file_path) {
                 "upgrade with the following command: clib upgrade --tag %s",
                 CLIB_VERSION, latest_version);
   }
+
   free((void *)latest_version);
 }
 
