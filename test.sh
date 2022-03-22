@@ -1,7 +1,8 @@
 #!/bin/sh
 
-export DEBUG=*
+mkdir -p tmp/bin
 
+export DEBUG=*
 EXIT_CODE=0
 
 printf "\nRunning clib package tests\n\n"
@@ -22,8 +23,8 @@ fi
 
 cd ../../
 
+make clean && make
 
-mkdir -p tmp/bin
 TESTS=$(find test/* -type f -perm -111)
 export PATH="$PWD:$PATH"
 
