@@ -22,14 +22,14 @@ jobs:
     name: macOS
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: System Setup
-      shell: bash
-      run: brew install curl && brew install nghttp2
-    - name: Run Tests
-      run: |
-        make
-        sudo make test
+      - uses: actions/checkout@v2
+      # - name: System Setup
+      #   shell: bash
+      #   run: brew install curl && brew install nghttp2
+      - name: Run Tests
+        run: |
+          make
+          sudo make test
 
   windows:
     name: Windows

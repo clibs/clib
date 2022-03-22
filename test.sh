@@ -30,13 +30,13 @@ fi
 
 cd ../../
 
-# printf "\nRunning clib cache tests\n\n"
-# cd test/cache 
+printf "\nRunning clib cache tests\n\n"
+cd test/cache && make clean
 
-# if ! make test; then
-#     EXIT_CODE=1
-# fi
+if ! make test; then
+    EXIT_CODE=1
+fi
 
-# cd ../../
+cd ../../
 
 exit $EXIT_CODE
