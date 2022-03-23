@@ -724,7 +724,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
   pthread_mutex_lock(&lock.mutex);
 #endif
   // cache json
-  if (pkg && pkg->author && pkg->name && pkg->version) {
+  if (pkg && pkg->author && pkg->name && pkg->version && !opts.skip_cache) {
     if (-1 ==
         clib_cache_save_json(pkg->author, pkg->name, pkg->version, json)) {
       _debug("failed to cache JSON for: %s/%s@%s", pkg->author, pkg->name,
