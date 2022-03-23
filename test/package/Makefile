@@ -1,5 +1,5 @@
 
-CC = gcc-11
+CC ?= cc
 VALGRIND ?= valgrind
 TEST_RUNNER ?=
 

@@ -21,13 +21,11 @@ jobs:
   macos:
     name: macOS
     runs-on: macos-latest
-    env:
-      CC: gcc-11
     steps:
       - uses: actions/checkout@v2
       - name: System Setup
         shell: bash
-        run: brew install curl
+        run: brew install curl && brew uninstall nghttp2 && brew install nghttp2
       - name: Run Tests
         run: |
           make
