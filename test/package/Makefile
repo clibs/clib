@@ -1,7 +1,7 @@
 
 CC ?= cc
 VALGRIND ?= valgrind
-TEST_RUNNER ?= gdb -ex run 
+TEST_RUNNER ?= gdb -batch -ex "run" -ex "bt" 
 
 SRC = ../../src/common/clib-package.c ../../src/common/clib-cache.c ../../src/common/clib-release-info.c ../../src/common/clib-settings.c
 DEPS += $(wildcard ../../deps/*/*.c)
