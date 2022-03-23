@@ -1,5 +1,6 @@
 
 #include "clib-package.h"
+#include "clib-cache.h"
 #include "describe/describe.h"
 #include "fs/fs.h"
 #include "rimraf/rimraf.h"
@@ -11,6 +12,9 @@ int main() {
       .prefix = 0,
       .force = 1,
   });
+
+  clib_cache_init(100);
+  rimraf(clib_cache_dir());
 
   describe("clib_package_install_dependencies") {
     it("should return -1 when given a bad package") {
