@@ -1,6 +1,7 @@
 
 #include "clib-cache.h"
 #include "clib-package.h"
+#include "rimraf/rimraf.h"
 #include "describe/describe.h"
 
 int main() {

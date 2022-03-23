@@ -1,6 +1,7 @@
 #include "clib-cache.h"
 #include "clib-package.h"
 #include "describe/describe.h"
+#include "rimraf/rimraf.h"
 
 int main() {
   curl_global_init(CURL_GLOBAL_ALL);

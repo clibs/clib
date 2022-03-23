@@ -2,6 +2,7 @@
 #include "clib-package.h"
 #include "describe/describe.h"
 #include <string.h>
+#include "rimraf/rimraf.h"
 
 int main() {
   clib_cache_init(100);
