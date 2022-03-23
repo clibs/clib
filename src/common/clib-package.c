@@ -204,15 +204,10 @@ static inline char *clib_package_file_url(const char *url, const char *file) {
   if (!url || !file)
     return NULL;
 
-  int size = strlen(url) + 1    // /
-             + strlen(file) + 1 // \0
-      ;
+  char *res;
 
-  char *res = malloc(size);
-  if (res) {
-    memset(res, 0, size);
-    sprintf(res, "%s/%s", url, file);
-  }
+  asprintf(&res, "%s/%s", url, file);
+
   return res;
 }
 
@@ -222,16 +217,10 @@ static inline char *clib_package_file_url(const char *url, const char *file) {
 
 static inline char *clib_package_slug(const char *author, const char *name,
                                       const char *version) {
-  int size = strlen(author) + 1    // /
-             + strlen(name) + 1    // @
-             + strlen(version) + 1 // \0
-      ;
+  char *slug;
+  asprintf(&slug, "%s/%s@%s", author, name, version);
 
-  char *slug = malloc(size);
-  if (slug) {
-    memset(slug, '\0', size);
-    sprintf(slug, "%s/%s@%s", author, name, version);
-  }
+  puts(slug);
   return slug;
 }
 
@@ -284,15 +273,10 @@ clib_package_t *clib_package_load_local_manifest(int verbose) {
  */
 
 static inline char *clib_package_repo(const char *author, const char *name) {
-  int size = strlen(author) + 1 // /
-             + strlen(name) + 1 // \0
-      ;
+  char *repo;
 
-  char *repo = malloc(size);
-  if (repo) {
-    memset(repo, '\0', size);
-    sprintf(repo, "%s/%s", author, name);
-  }
+  asprintf(&repo, "%s/%s", author, name);
+
   return repo;
 }
 
