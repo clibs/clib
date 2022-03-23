@@ -15,21 +15,23 @@ jobs:
         sudo apt install -qq libcurl4-gnutls-dev
     - name: Run Tests
       run: |
-        # make
+        make
         sudo make test
 
   macos:
     name: macOS
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      # - name: System Setup
-      #   shell: bash
-      #   run: brew install curl && brew install nghttp2
+      - name: System Setup
+        shell: bash
+        run: brew install curl
       - name: Run Tests
         run: |
-          # make
+          make
           sudo make test
+        env:
+          CC: gcc-11
 
   windows:
     name: Windows

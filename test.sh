@@ -3,10 +3,7 @@
 mkdir -p tmp/bin
 TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
-# export PATH="$PWD:$PATH"
-
-make clean
-make install
+export PATH="$PWD:$PATH"
 
 printf "\nRunning clib(1) tests\n\n"
 
