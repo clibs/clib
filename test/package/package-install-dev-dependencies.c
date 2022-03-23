@@ -12,6 +12,8 @@ int main() {
       .force = 1,
   });
 
+  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+
   describe("clib_package_install_development") {
     it("should return -1 when given a bad package") {
       assert(-1 == clib_package_install_development(NULL, "./deps", 0));
