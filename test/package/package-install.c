@@ -1,4 +1,5 @@
 
+#include "clib-package.h"
 #include "clib-cache.h"
 #include "describe/describe.h"
 #include "fs/fs.h"
