@@ -5,6 +5,8 @@ TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
 export PATH="$PWD:$PATH"
 
+echo "exit code: ${EXIT_CODE}"
+
 printf "\nRunning clib(1) tests\n\n"
 
 for t in $TESTS; do
@@ -15,8 +17,8 @@ for t in $TESTS; do
     echo "  (✓) $t"
   fi
 done
-echo
 
+echo "exit code: ${EXIT_CODE}"
 
 printf "\nRunning clib package tests\n\n"
 cd test/package && make clean
@@ -25,15 +27,21 @@ if ! make test; then
     EXIT_CODE=1
 fi
 
+echo "exit code: ${EXIT_CODE}"
+
 cd ../../
 
 printf "\nRunning clib cache tests\n\n"
 cd test/cache 
+
+echo "exit code: ${EXIT_CODE}"
 
 if ! make test; then
     EXIT_CODE=1
 fi
 
 cd ../../
+
+echo "exit code: ${EXIT_CODE}"
 
 exit $EXIT_CODE
