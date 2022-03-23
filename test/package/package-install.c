@@ -14,7 +14,7 @@ int main() {
       .force = 1,
   });
 
-  clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+  clib_cache_init(100);
   rimraf(clib_cache_dir());
 
   describe("clib_package_install") {
