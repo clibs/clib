@@ -21,6 +21,8 @@ jobs:
   macos:
     name: macOS
     runs-on: macos-latest
+    env:
+      CC: gcc-11
     steps:
       - uses: actions/checkout@v2
       - name: System Setup
@@ -30,8 +32,6 @@ jobs:
         run: |
           make
           sudo make test
-        env:
-          CC: gcc-11
 
   windows:
     name: Windows
