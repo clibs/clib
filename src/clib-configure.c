@@ -12,10 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-#include <unistd.h>
-#endif
-
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
 #endif
@@ -41,7 +37,7 @@
 #include <path-join/path-join.h>
 #include <str-flatten/str-flatten.h>
 #include <trim/trim.h>
-
+#include "clib-settings.h"
 #include "version.h"
 
 #define PROGRAM_NAME "clib-configure"
@@ -70,7 +66,7 @@ struct options {
 #endif
 };
 
-clib_package_opts_t package_opts = {0};
+clib_package_opts_t configure_package_opts = {0};
 clib_package_t *root_package = 0;
 
 hash_t *configured = 0;
@@ -191,9 +187,9 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
 #endif
   } else {
 #ifdef DEBUG
-    package = clib_package_new_from_slug(dir, 1);
+    package = clib_package_new_from_slug_and_url(dir, "FIXME", 1);
 #else
-    package = clib_package_new_from_slug(dir, 0);
+    package = clib_package_new_from_slug_and_url(dir, "FIXME", 0);
 #endif
   }
 
@@ -289,7 +285,7 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
       char *slug = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      clib_package_t *dependency = clib_package_new_from_slug_and_url(slug, "FIXME", 0);
       char *dep_dir = path_join(opts.dir, dependency->name);
 
       free(slug);
@@ -360,7 +356,7 @@ int configure_package_with_manifest_name(const char *dir, const char *file) {
       char *slug = 0;
       asprintf(&slug, "%s/%s@%s", dep->author, dep->name, dep->version);
 
-      clib_package_t *dependency = clib_package_new_from_slug(slug, 0);
+      clib_package_t *dependency = clib_package_new_from_slug_and_url(slug, "FIXME", 0);
       char *dep_dir = path_join(opts.dir, dependency->name);
 
       free(slug);
@@ -604,12 +600,12 @@ int main(int argc, char **argv) {
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
-  package_opts.force = opts.force;
+  configure_package_opts.skip_cache = package_opts.skip_cache;
+  configure_package_opts.prefix = package_opts.prefix;
+  configure_package_opts.global = package_opts.global;
+  configure_package_opts.force = package_opts.force;
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(configure_package_opts);
 
   if (0 == program.argc || (argc == rest_offset + rest_argc)) {
     rc = configure_package(CWD);

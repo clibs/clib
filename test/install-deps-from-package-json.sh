@@ -10,7 +10,8 @@ mkdir -p tmp
 cd tmp || exit
 
 # see https://github.com/clibs/clib/issues/45
-cat > package.json << EOF
+# emtter.c does not exist, we test that clib gives an error for it.
+cat > clib.json << EOF
 {
   "dependencies": {
     "linenoise": "*",

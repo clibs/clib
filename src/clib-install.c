@@ -12,17 +12,19 @@
 #include "common/clib-validate.h"
 #include "debug/debug.h"
 #include "fs/fs.h"
-#include "http-get/http-get.h"
 #include "logger/logger.h"
 #include "parson/parson.h"
-#include "str-replace/str-replace.h"
 #include "version.h"
+#include <clib-secrets.h>
 #include <curl/curl.h>
-#include <libgen.h>
 #include <limits.h>
+#include <registry-manager.h>
+#include <repository.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "clib-package-installer.h"
+#include "strdup/strdup.h"
 
 #define SX(s) #s
 #define S(s) SX(s)
@@ -55,8 +57,8 @@ struct options {
 
 static struct options opts = {0};
 
-static clib_package_opts_t package_opts = {0};
-static clib_package_t *root_package = NULL;
+static clib_secrets_t secrets = NULL;
+static registries_t registries = NULL;
 
 /**
  * Option setters.
@@ -121,59 +123,25 @@ static void setopt_skip_cache(command_t *self) {
   debug(&debugger, "set skip cache flag");
 }
 
-static int install_local_packages_with_package_name(const char *file) {
-  if (0 != clib_validate(file)) {
-    return 1;
-  }
-
-  debug(&debugger, "reading local clib.json or package.json");
-  char *json = fs_read(file);
-  if (NULL == json)
-    return 1;
-
-  clib_package_t *pkg = clib_package_new(json, opts.verbose);
-  if (NULL == pkg)
-    goto e1;
-
-  if (pkg->prefix) {
-    setenv("PREFIX", pkg->prefix, 1);
-  }
-
-  int rc = clib_package_install_dependencies(pkg, opts.dir, opts.verbose);
-  if (-1 == rc)
-    goto e2;
-
-  if (opts.dev) {
-    rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
-    if (-1 == rc)
-      goto e2;
-  }
-
-  free(json);
-  clib_package_free(pkg);
-  return 0;
-
-e2:
-  clib_package_free(pkg);
-e1:
-  free(json);
-  return 1;
-}
-
 /**
  * Install dependency packages at `pwd`.
  */
-static int install_local_packages() {
-  const char *name = NULL;
-  unsigned int i = 0;
-  int rc = 0;
+static int install_local_packages(clib_package_t* root_package) {
+  if (root_package && root_package->prefix) {
+    setenv("PREFIX", root_package->prefix, 1);
+  }
 
-  do {
-    name = manifest_names[i];
-    rc = install_local_packages_with_package_name(name);
-  } while (NULL != manifest_names[++i] && 0 != rc);
+  int rc = clib_package_install_dependencies(root_package, opts.dir, opts.verbose);
+  if (-1 == rc)
+    return 1;
 
-  return rc;
+  if (opts.dev) {
+    rc = clib_package_install_development(root_package, opts.dir, opts.verbose);
+    if (-1 == rc)
+      return 1;
+  }
+
+  return 0;
 }
 
 static int write_dependency_with_package_name(clib_package_t *pkg, char *prefix,
@@ -238,8 +206,7 @@ static int save_dev_dependency(clib_package_t *pkg) {
 /**
  * Create and install a package from `slug`.
  */
-
-static int install_package(const char *slug) {
+static int install_package(clib_package_t* root_package, const char *slug) {
   clib_package_t *pkg = NULL;
   int rc;
 
@@ -251,27 +218,12 @@ static int install_package(const char *slug) {
   long path_max = 4096;
 #endif
 
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
-
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
-
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-    }
-  }
-
   if ('.' == slug[0]) {
     if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
       char dir[path_max];
       realpath(slug, dir);
       slug = dir;
-      return install_local_packages();
+      return install_local_packages(root_package);
     }
   }
 
@@ -283,7 +235,7 @@ static int install_package(const char *slug) {
 #endif
                               )) {
       free(stats);
-      return install_local_packages_with_package_name(slug);
+      return install_local_packages(root_package);
     }
 
     if (stats) {
@@ -291,16 +243,21 @@ static int install_package(const char *slug) {
     }
   }
 
-  if (!pkg) {
-    pkg = clib_package_new_from_slug(slug, opts.verbose);
+  char* author = clib_package_parse_author(slug);
+  char* name = clib_package_parse_name(slug);
+  char* package_id = clib_package_get_id(author, name);
+  registry_package_ptr_t package_info = registry_manager_find_package(registries, package_id);
+  if (!package_info) {
+    debug(&debugger, "Package %s not found in any registry.", slug);
+    return -1;
   }
 
+  pkg = clib_package_new_from_slug_and_url(slug, registry_package_get_href(package_info), opts.verbose);
   if (NULL == pkg)
     return -1;
 
   if (root_package && root_package->prefix) {
     package_opts.prefix = root_package->prefix;
-    clib_package_set_opts(package_opts);
   }
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
@@ -313,10 +270,6 @@ static int install_package(const char *slug) {
     if (0 != rc) {
       goto cleanup;
     }
-  }
-
-  if (0 == pkg->repo || 0 != strcmp(slug, pkg->repo)) {
-    pkg->repo = strdup(slug);
   }
 
   if (opts.save)
@@ -333,10 +286,10 @@ cleanup:
  * Install the given `pkgs`.
  */
 
-static int install_packages(int n, char *pkgs[]) {
+static int install_packages(clib_package_t* root_package, int n, char *pkgs[]) {
   for (int i = 0; i < n; i++) {
     debug(&debugger, "install %s (%d)", pkgs[i], i);
-    if (-1 == install_package(pkgs[i])) {
+    if (-1 == install_package(root_package, pkgs[i])) {
       logger_error("error", "Unable to install package %s", pkgs[i]);
       return 1;
     }
@@ -418,30 +371,41 @@ int main(int argc, char *argv[]) {
     memset(prefix, 0, path_max);
     realpath(opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
-    opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+    opts.prefix = strndup(prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
 
-  package_opts.skip_cache = opts.skip_cache;
-  package_opts.prefix = opts.prefix;
-  package_opts.global = opts.global;
-  package_opts.force = opts.force;
-  package_opts.token = opts.token;
+  clib_package_opts_t install_package_opts = {0};
+  install_package_opts.skip_cache = opts.skip_cache;
+  install_package_opts.prefix = opts.prefix;
+  install_package_opts.global = opts.global;
+  install_package_opts.force = opts.force;
+  install_package_opts.token = opts.token;
 
 #ifdef HAVE_PTHREADS
-  package_opts.concurrency = opts.concurrency;
+  install_package_opts.concurrency = opts.concurrency;
 #endif
 
-  clib_package_set_opts(package_opts);
+  clib_package_set_opts(install_package_opts);
 
-  int code = 0 == program.argc ? install_local_packages()
-                               : install_packages(program.argc, program.argv);
+  // Read local config files.
+  secrets = clib_secrets_load_from_file("clib_secrets.json");
+  clib_package_t* root_package = clib_package_load_local_manifest(0);
+
+  repository_init(secrets); // The repository requires the secrets for authentication.
+  registries = registry_manager_init_registries(root_package ? root_package->registries : NULL, secrets);
+  registry_manager_fetch_registries(registries);
+
+  clib_package_installer_init(registries, secrets);
+
+  // TODO, move argument parsing here.
+  int code = 0 == program.argc ? install_local_packages(root_package)
+                               : install_packages(root_package, program.argc, program.argv);
 
   curl_global_cleanup();
   clib_package_cleanup();
+  clib_package_free(root_package);
 
   command_free(&program);
   return code;

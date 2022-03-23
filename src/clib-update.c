@@ -16,10 +16,13 @@
 #include "logger/logger.h"
 #include "parson/parson.h"
 #include "str-replace/str-replace.h"
+#include "strdup/strdup.h"
 #include "version.h"
+#include <clib-package-installer.h>
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
+#include <repository.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,8 +53,9 @@ struct options {
 
 static struct options opts = {0};
 
-static clib_package_opts_t package_opts = {0};
 static clib_package_t *root_package = NULL;
+static clib_secrets_t secrets = NULL;
+static registries_t registries = NULL;
 
 /**
  * Option setters.
@@ -230,7 +234,7 @@ static int install_package(const char *slug) {
   }
 
   if (!pkg) {
-    pkg = clib_package_new_from_slug(slug, opts.verbose);
+    pkg = clib_package_new_from_slug_and_url(slug, "FIXME", opts.verbose);
   }
 
   if (NULL == pkg)
@@ -331,14 +335,12 @@ int main(int argc, char *argv[]) {
     logger_error("error", "Failed to initialize cURL");
   }
 
-  if (opts.prefix) {
+  if (package_opts.prefix) {
     char prefix[path_max];
     memset(prefix, 0, path_max);
-    realpath(opts.prefix, prefix);
+    realpath(package_opts.prefix, prefix);
     unsigned long int size = strlen(prefix) + 1;
-    opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+    package_opts.prefix = strndup(prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
@@ -354,6 +356,16 @@ int main(int argc, char *argv[]) {
 #endif
 
   clib_package_set_opts(package_opts);
+
+  // Read local config files.
+  secrets = clib_secrets_load_from_file("clib_secrets.json");
+  root_package = clib_package_load_local_manifest(0);
+
+  repository_init(secrets); // The repository requires the secrets for authentication.
+  registries = registry_manager_init_registries(root_package->registries, secrets);
+  registry_manager_fetch_registries(registries);
+
+  clib_package_installer_init(registries, secrets);
 
   int code = 0 == program.argc ? install_local_packages()
                                : install_packages(program.argc, program.argv);

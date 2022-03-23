@@ -12,17 +12,16 @@ RM      = rm -f
 MKDIR   = mkdir -p
 
 SRC  = $(wildcard src/*.c)
-COMMON_SRC = $(wildcard src/common/*.c)
-ALL_SRC = $(wildcard src/*.c src/*.h src/common/*.c src/common/*.h test/package/*.c test/cache/*.c)
+COMMON_SRC = $(wildcard src/common/*.c src/registry/*.c src/repository/*.c)
+ALL_SRC = $(wildcard src/*.c src/*.h src/common/*.c src/common/*.h src/registry/*.c src/registry/*.h src/repository/*.h src/repository/*.c test/package/*.c test/cache/*.c)
 SDEPS = $(wildcard deps/*/*.c)
 ODEPS = $(SDEPS:.c=.o)
 DEPS = $(filter-out $(ODEPS), $(SDEPS))
 OBJS = $(DEPS:.c=.o)
-MAKEFILES = $(wildcard deps/*/Makefile)
 
 export CC
 
-CFLAGS += -std=c99 -Ideps -Wall -Wno-unused-function -U__STRICT_ANSI__
+CFLAGS += -std=c99 -Ideps -Isrc/common -Isrc/repository -Isrc/registry -Wall -Werror=return-type -Werror=implicit-function-declaration -Wno-unused-function -U__STRICT_ANSI__
 
 ifdef STATIC
 	CFLAGS  += -DCURL_STATICLIB  $(shell deps/curl/bin/curl-config --cflags)
@@ -48,7 +47,7 @@ all: $(BINS)
 
 build: $(BINS)
 
-$(BINS): $(SRC) $(MAKEFILES) $(OBJS)
+$(BINS): $(SRC) $(COMMON_SRC) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(COMMON_SRC) src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
 $(MAKEFILES):

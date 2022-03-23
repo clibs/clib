@@ -21,11 +21,11 @@ typedef struct {
   int ok;
 } http_get_response_t;
 
-http_get_response_t *http_get(const char *);
-http_get_response_t *http_get_shared(const char *, void *);
+http_get_response_t *http_get(const char *url, const char** headers, int header_count);
+http_get_response_t *http_get_shared(const char *url, void *, const char** headers, int header_count);
 
-int http_get_file(const char *, const char *);
-int http_get_file_shared(const char *, const char *, void *);
+int http_get_file(const char *, const char *, const char** headers, int header_count);
+int http_get_file_shared(const char *, const char *, void *, const char** headers, int header_count);
 
 void http_get_free(http_get_response_t *);
 

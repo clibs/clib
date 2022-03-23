@@ -17,10 +17,10 @@
  * Returns a pointer to the newly allocated
  * copy of `str`, or `NULL` on failure.
  */
-
+#include <stddef.h>
 #ifndef strdup
-char *
-strdup(const char *str);
+char * strdup(const char *str);
+char * strndup(const char *str, size_t len);
 #endif
 
 #endif /* HAVE_STRDUP */

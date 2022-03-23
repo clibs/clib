@@ -37,6 +37,7 @@ typedef struct {
   list_t *dependencies;
   list_t *development;
   list_t *src;
+  list_t *registries;
   void *data; // user data
   unsigned int refs;
 } clib_package_t;
@@ -51,20 +52,18 @@ typedef struct {
 } clib_package_opts_t;
 
 extern CURLSH *clib_package_curl_share;
+// TODO, move to a separate file.
+extern clib_package_opts_t package_opts;
 
 void clib_package_set_opts(clib_package_opts_t opts);
 
 clib_package_t *clib_package_new(const char *, int);
 
-clib_package_t *clib_package_new_from_slug(const char *, int);
+clib_package_t *clib_package_new_from_slug_and_url(const char* slug, const char* url, int);
 
 clib_package_t *clib_package_load_from_manifest(const char *, int);
 
 clib_package_t *clib_package_load_local_manifest(int);
-
-char *clib_package_url(const char *, const char *, const char *);
-
-char *clib_package_url_from_repo(const char *repo, const char *version);
 
 char *clib_package_parse_version(const char *);
 
@@ -75,14 +74,11 @@ char *clib_package_parse_name(const char *);
 clib_package_dependency_t *clib_package_dependency_new(const char *,
                                                        const char *);
 
-int clib_package_install_executable(clib_package_t *pkg, const char *dir,
-                                    int verbose);
+char *clib_package_get_id(const char *, const char *);
 
-int clib_package_install(clib_package_t *, const char *, int);
+char *clib_package_slug(const char *author, const char *name, const char* version);
 
-int clib_package_install_dependencies(clib_package_t *, const char *, int);
-
-int clib_package_install_development(clib_package_t *, const char *, int);
+void clib_package_set_prefix(clib_package_t *pkg, long path_max);
 
 void clib_package_free(clib_package_t *);
 
