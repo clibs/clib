@@ -1,8 +1,11 @@
-
+#include "clib-cache.h"
 #include "clib-package.h"
 #include "describe/describe.h"
 
 int main() {
+  clib_cache_init(100);
+  rimraf(clib_cache_dir());
+
   describe("clib_package_new") {
     char json[] = "{"
                   "  \"name\": \"foo\","

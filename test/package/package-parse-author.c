@@ -1,9 +1,12 @@
-
+#include "clib-cache.h"
 #include "clib-package.h"
 #include "describe/describe.h"
 #include <string.h>
 
 int main() {
+  clib_cache_init(100);
+  rimraf(clib_cache_dir());
+
   describe("clib_package_parse_author") {
     char *author = NULL;
 

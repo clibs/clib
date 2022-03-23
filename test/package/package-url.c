@@ -1,8 +1,12 @@
 
+#include "clib-cache.h"
 #include "clib-package.h"
 #include "describe/describe.h"
 
 int main() {
+  clib_cache_init(100);
+  rimraf(clib_cache_dir());
+
   describe("clib_package_url") {
     it("should return NULL when given a bad author") {
       assert(NULL == clib_package_url(NULL, "name", "version"));

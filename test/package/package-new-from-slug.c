@@ -1,9 +1,12 @@
-
+#include "clib-cache.h"
 #include "clib-package.h"
 #include "describe/describe.h"
 
 int main() {
   curl_global_init(CURL_GLOBAL_ALL);
+
+  clib_cache_init(100);
+  rimraf(clib_cache_dir());
 
   describe("clib_package_new_from_slug") {
     it("should return NULL when given a bad slug") {
