@@ -34,7 +34,7 @@ endif
 
 ifneq (0,$(PTHREADS))
 ifndef NO_PTHREADS
-	CFLAGS += $(shell ./scripts/feature-test-pthreads && echo "-DHAVE_PTHREADS=1 -pthread" || echo "-DHAVE_PTHREADS=0")
+	# CFLAGS += $(shell ./scripts/feature-test-pthreads && echo "-DHAVE_PTHREADS=1 -pthread" || echo "-DHAVE_PTHREADS=0")
 endif
 endif
 
