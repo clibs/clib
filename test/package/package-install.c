@@ -14,6 +14,7 @@ int main() {
   });
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
+  rimraf(clib_cache_dir());
 
   describe("clib_package_install") {
     it("should return -1 when given a bad package") {
