@@ -17,7 +17,7 @@ VALGRIND_OPTS ?= --leak-check=full --error-exitcode=3
 .DEFAULT_GOAL := test
 
 test: $(TEST_BIN)
-	$(foreach t, $^, $(TEST_RUNNER) ./$(t) || exit 1;)
+	$(foreach t, $^, $(TEST_RUNNER) ./$(t))
 
 valgrind: TEST_RUNNER=$(VALGRIND) $(VALGRIND_OPTS)
 valgrind: test
