@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export DEBUG=*
+# export DEBUG=*
 
 mkdir -p tmp/bin
 TESTS=$(find test/* -type f -perm -111)
