@@ -20,14 +20,14 @@ done
 echo
 
 
-# printf "\nRunning clib package tests\n\n"
-# cd test/package && make clean
+printf "\nRunning clib package tests\n\n"
+cd test/package && make clean
 
-# if ! make test; then
-#     EXIT_CODE=1
-# fi
+if ! make test; then
+    EXIT_CODE=1
+fi
 
-# cd ../../
+cd ../../
 
 printf "\nRunning clib cache tests\n\n"
 cd test/cache 
