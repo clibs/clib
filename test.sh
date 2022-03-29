@@ -9,6 +9,8 @@ export PATH="$PWD:$PATH"
 
 printf "\nRunning clib(1) tests\n\n"
 
+cat ./deps/str-replace/str-replace.h
+
 for t in $TESTS; do
   if ! ./"$t"; then
     echo >&2 "  (✖) $t"
