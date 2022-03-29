@@ -7,7 +7,7 @@ SRC = ../../src/common/clib-package.c ../../src/common/clib-cache.c ../../src/co
 DEPS += $(wildcard ../../deps/*/*.c)
 OBJS = $(SRC:.c=.o) $(DEPS:.c=.o)
 # TEST_SRC = $(wildcard *.c)
-TEST_SRC = package-install.c
+TEST_SRC = package-install.c package-parse-author.c package-new-from-slug.c 
 TEST_OBJ = $(TEST_SRC:.c=.o)
 TEST_BIN = $(TEST_SRC:.c=)
 
