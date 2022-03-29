@@ -7,8 +7,6 @@ TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
 export PATH="$PWD:$PATH"
 
-make clean
-
 printf "\nRunning clib(1) tests\n\n"
 
 for t in $TESTS; do
