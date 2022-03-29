@@ -6,7 +6,8 @@ TEST_RUNNER ?=
 SRC = ../../src/common/clib-package.c ../../src/common/clib-cache.c ../../src/common/clib-release-info.c ../../src/common/clib-settings.c
 DEPS += $(wildcard ../../deps/*/*.c)
 OBJS = $(SRC:.c=.o) $(DEPS:.c=.o)
-TEST_SRC = $(wildcard *.c)
+# TEST_SRC = $(wildcard *.c)
+TEST_SRC = package-parse-author.c package-new-from-slug.c package-parse-name.c package-load-from-manifest.c package-url.c package-install-dev-dependencies.c package-load-manifest-file.c package-install-dependencies.c package-dependency-new.c package-new.c package-parse-version.c package-install.c package-parse-author.c package-new-from-slug.c package-parse-name.c package-load-from-manifest.c package-url.c package-install-dev-dependencies.c package-load-manifest-file.c package-install-dependencies.c package-dependency-new.c package-new.c package-parse-version.c
 TEST_OBJ = $(TEST_SRC:.c=.o)
 TEST_BIN = $(TEST_SRC:.c=)
 
