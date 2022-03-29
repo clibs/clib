@@ -7,9 +7,9 @@ TESTS=$(find test/* -type f -perm -111)
 EXIT_CODE=0
 export PATH="$PWD:$PATH"
 
-printf "\nRunning clib(1) tests\n\n"
+make clean
 
-cat ./deps/str-replace/str-replace.h
+printf "\nRunning clib(1) tests\n\n"
 
 for t in $TESTS; do
   if ! ./"$t"; then
