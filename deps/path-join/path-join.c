@@ -13,6 +13,8 @@
 #include "str-starts-with/str-starts-with.h"
 #include "path-join.h"
 
+#include <stdio.h>
+
 #ifdef _WIN32
 #define PATH_JOIN_SEPERATOR   "\\"
 #else
@@ -27,6 +29,9 @@ char *
 path_join(const char *dir, const char *file) {
   int size = strlen(dir) + strlen(file) + 2;
   char *buf = malloc(size * sizeof(char));
+
+  printf("size: %u dir: %s, file: %s", size, dir, file);
+
   if (NULL == buf) return NULL;
 
   strcpy(buf, dir);
