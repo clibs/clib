@@ -19,8 +19,8 @@ cat > package.json << EOF
   }
 }
 EOF
-
-clib install > /dev/null 2>&1
+clib install
+# clib install > /dev/null 2>&1
 
 [ $? -eq 1 ] || throw "expecting exit code of 1";
 

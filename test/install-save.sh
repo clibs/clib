@@ -3,10 +3,10 @@ mkdir -p tmp/test-save
 cp test/data/test-save-package.json tmp/test-save/package.json
 
 cd tmp/test-save || exit
-../../clib-install -c --save stephenmathieson/tabs-to-spaces@1.0.0 >/dev/null
-../../clib-install -c -S darthtrevino/str-concat@0.0.2 >/dev/null
-../../clib-install -c --save-dev jwerle/fs.c@0.1.1 >/dev/null
-../../clib-install -c -D clibs/parson@1.0.2 >/dev/null
+../../clib-install -c --save stephenmathieson/tabs-to-spaces@1.0.0 
+../../clib-install -c -S darthtrevino/str-concat@0.0.2 
+../../clib-install -c --save-dev jwerle/fs.c@0.1.1 
+../../clib-install -c -D clibs/parson@1.0.2 
 cd - || exit
 
 if ! grep --quiet "stephenmathieson/tabs-to-spaces" tmp/test-save/package.json; then

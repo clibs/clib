@@ -1,10 +1,10 @@
 #!/bin/sh
-
-clib help 2> /dev/null
-[ $? -eq 1 ] || {
-  echo >&2 "Expected \`clib help\` to fail"
-  exit 1
-}
+clib help
+# clib help 2> /dev/null
+# [ $? -eq 1 ] || {
+#   echo >&2 "Expected \`clib help\` to fail"
+#   exit 1
+# }
 
 ACTUAL=$(clib help install)
 EXPECTED=$(clib install --help)
