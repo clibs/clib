@@ -30,7 +30,7 @@ path_join(const char *dir, const char *file) {
   int size = strlen(dir) + strlen(file) + 2;
   char *buf = malloc(size * sizeof(char));
 
-  printf("1: size: %u dir: %s, file: %s\n", size, dir, file);
+  printf("1: size: %u dir: %s, file: %s buf-addr %p\n", size, dir, file, buf);
 
   if (NULL == buf) return NULL;
 
