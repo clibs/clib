@@ -919,7 +919,11 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
 
   _debug("file URL: %s", url);
 
-  if (!(path = path_join(dir, basename(file)))) {
+
+  char *base = basename(file);
+  printf("FILE: %s BASE: %s\n", file, base);
+
+  if (!(path = path_join(dir, base))) {
     rc = 1;
     goto cleanup;
   }
