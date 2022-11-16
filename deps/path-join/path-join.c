@@ -30,7 +30,7 @@ path_join(const char *dir, const char *file) {
   int size = strlen(dir) + strlen(file) + 2;
   char *buf = malloc(size * sizeof(char));
 
-  printf("size: %u dir: %s, file: %s", size, dir, file);
+  printf("1: size: %u dir: %s, file: %s\n", size, dir, file);
 
   if (NULL == buf) return NULL;
 
@@ -51,6 +51,7 @@ path_join(const char *dir, const char *file) {
     strcat(buf, ++filecopy);
     free(--filecopy);
   } else {
+    printf("2: size: %lu buff: %s\n", strlen(buf), buf);
     strcat(buf, file);
   }
 
