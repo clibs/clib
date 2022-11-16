@@ -9,7 +9,7 @@ TEST_SRC = $(wildcard *.c)
 TEST_OBJ = $(TEST_SRC:.c=.o)
 TEST_BIN = $(TEST_SRC:.c=)
 
-CFLAGS += -std=c99 -Wall -I../../src/common -I../../deps  -g
+CFLAGS += -std=c99 -Wall -I../../src/common -I../../deps  -g -fsanitize=address
 LDFLAGS = -lcurl
 VALGRIND_OPTS ?= --leak-check=full --error-exitcode=3
 
