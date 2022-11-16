@@ -51,7 +51,7 @@ path_join(const char *dir, const char *file) {
     strcat(buf, ++filecopy);
     free(--filecopy);
   } else {
-    printf("2: size: %lu buff: %s\n", strlen(buf), buf);
+    printf("2: buff-size: %lu buff: %s file-size: %lu file: %s\n", strlen(buf), buf, strlen(file), file);
     strcat(buf, file);
   }
 
