@@ -921,7 +921,7 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
 
 
   char *base = basename(file);
-  printf("FILE: %s FILE-strlen: %lu BASE: %s BASE-strlen: %lu\n", file, strlen(file), base, strlen(base));
+  printf("FILE: %s FILE-strlen: %lu F-p: %p, BASE: %s BASE-strlen: %lu\n", file, strlen(file), file, base, strlen(base));
 
   if (!(path = path_join(dir, base))) {
     rc = 1;
@@ -1461,6 +1461,8 @@ download:
 
   while ((source = list_iterator_next(iterator))) {
     void *fetch = NULL;
+    printf("source->val: %s len: %lu\n %p", source->val, strlen(source->val), source->val);
+
     rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
 
     if (0 != rc) {
