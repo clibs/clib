@@ -942,7 +942,7 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
     goto cleanup;
   }
 
-  path = path_join(dir, basename(file));
+  path = path_join(dir, base_path);
 
   free(base_path);
 
