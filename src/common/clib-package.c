@@ -919,14 +919,24 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
 
   _debug("file URL: %s", url);
 
+  char *base_path = strdup(basename(file));
 
-  char *base = basename(file);
-  printf("FILE: %s FILE-strlen: %lu F-p: %p, BASE: %s BASE-strlen: %lu thread: %lu\n", file, strlen(file), file, base, strlen(base), pthread_self());
+  printf("FILE: %s FILE-strlen: %lu F-p: %p, BASE: %s BASE-strlen: %lu thread: %lu\n", file, strlen(file), file, base_path, strlen(base_path), pthread_self());
 
-  if (!(path = path_join(dir, base))) {
+  if (!base_path) {
     rc = 1;
     goto cleanup;
   }
+
+  path = path_join(dir, base_path);
+
+  free(base_path);
+
+  if (!path) {
+    rc = 1;
+    goto cleanup;
+  }
+
 
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&lock.mutex);
