@@ -1461,7 +1461,7 @@ download:
 
   while ((source = list_iterator_next(iterator))) {
     void *fetch = NULL;
-    printf("source->val: %s len: %lu %p \n", (char *)source->val, strlen(source->val), source->val);
+    printf("source->val: %s len: %lu %p \n", source->val, strlen(source->val), source->val);
 
     rc = fetch_package_file(pkg, pkg_dir, source->val, verbose, &fetch);
 
