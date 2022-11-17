@@ -921,7 +921,7 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
 
 
   char *base = basename(file);
-  printf("FILE: %s BASE: %s BASE-strlen: %lu\n", file, base, strlen(base));
+  printf("FILE: %s FILE-strlen: %lu BASE: %s BASE-strlen: %lu\n", file, strlen(file), base, strlen(base));
 
   if (!(path = path_join(dir, base))) {
     rc = 1;
