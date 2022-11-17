@@ -1555,13 +1555,6 @@ download:
   }
 #endif
 
-#ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock.mutex);
-#endif
-  clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
-#ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock.mutex);
-#endif
 
 install:
   if (pkg->configure) {
@@ -1581,6 +1574,16 @@ install:
   if (0 == rc) {
     rc = clib_package_install_dependencies(pkg, dir, verbose);
   }
+
+if (0 == rc) {
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
+  clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
+}
 
 cleanup:
   if (pkg_dir)
