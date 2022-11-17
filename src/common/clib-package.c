@@ -935,7 +935,18 @@ static int fetch_package_file_work(clib_package_t *pkg, const char *dir,
 
   _debug("file URL: %s", url);
 
-  if (!(path = path_join(dir, basename(file)))) {
+  char *base_path = strdup(basename(file));
+
+  if (!base_path) {
+    rc = 1;
+    goto cleanup;
+  }
+
+  path = path_join(dir, base_path);
+
+  free(base_path);
+
+  if (!path) {
     rc = 1;
     goto cleanup;
   }
