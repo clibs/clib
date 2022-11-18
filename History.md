@@ -1,3 +1,9 @@
+2.8.1 / 2022-03-21
+==================
+  * [add] Implement building multithreaded for windows. (#264)
+  * [fix] fix the "clib configure" command error: "free(): double free detected" (#266)
+  * [fix] fix(src/clib.c): fix null pointer reference (#df1bf57)
+
 2.8.0 / 2021-09-01
 ==================
   * [add] Run tests workflow in pull requests (8bc6089)
