@@ -1576,6 +1576,18 @@ install:
     rc = clib_package_install_dependencies(pkg, dir, verbose);
   }
 
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
+  if (0 == rc) {
+    clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+    _debug("cached package: %s/%s@%s", pkg->author, pkg->name, pkg->version);
+  }
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
+
+
 cleanup:
   if (pkg_dir) {
     if (0 != rc) {
@@ -1605,14 +1617,9 @@ cleanup:
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&lock.mutex);
 #endif
-  if (0 == rc) {
-    clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
-    _debug("cached package: %s/%s@%s", pkg->author, pkg->name, pkg->version);
-  } else {
-    if (pkg) {
-      clib_cache_delete_json(pkg->author, pkg->name, pkg->version);
-      _debug("deleted json cache: %s/%s@%s", pkg->author, pkg->name, pkg->version);
-    }
+  if (0 != rc && pkg) {
+    clib_cache_delete_json(pkg->author, pkg->name, pkg->version);
+    _debug("deleted json cache: %s/%s@%s", pkg->author, pkg->name, pkg->version);
   }
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&lock.mutex);
