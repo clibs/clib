@@ -1578,8 +1578,10 @@ install:
 
 cleanup:
   if (pkg_dir) {
-    rimraf(pkg_dir);
-    _debug("deleted inconsistent package dir: %s", pkg_dir);
+    if (0 != rc) {
+      rimraf(pkg_dir);
+      _debug("deleted inconsistent package dir: %s", pkg_dir);
+    }
 
     free(pkg_dir);
   }
