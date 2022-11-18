@@ -25,6 +25,7 @@
 #include "strdup/strdup.h"
 #include "substr/substr.h"
 #include "tempdir/tempdir.h"
+#include "rimraf/rimraf.h"
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
@@ -746,7 +747,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
       _debug("failed to cache JSON for: %s/%s@%s", pkg->author, pkg->name,
              pkg->version);
     } else {
-      _debug("cached: %s/%s@%s", pkg->author, pkg->name, pkg->version);
+      _debug("cached json: %s/%s@%s", pkg->author, pkg->name, pkg->version);
     }
   }
 #ifdef HAVE_PTHREADS
@@ -1575,19 +1576,13 @@ install:
     rc = clib_package_install_dependencies(pkg, dir, verbose);
   }
 
-if (0 == rc) {
-#ifdef HAVE_PTHREADS
-  pthread_mutex_lock(&lock.mutex);
-#endif
-  clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
-#ifdef HAVE_PTHREADS
-  pthread_mutex_unlock(&lock.mutex);
-#endif
-}
-
 cleanup:
-  if (pkg_dir)
+  if (pkg_dir) {
+    rimraf(pkg_dir);
+    _debug("deleted inconsistent package dir: %s", pkg_dir);
+
     free(pkg_dir);
+  }
   if (package_json)
     free(package_json);
   if (iterator)
@@ -1604,6 +1599,21 @@ cleanup:
   }
   fetchs = NULL;
 #endif
+
+#ifdef HAVE_PTHREADS
+  pthread_mutex_lock(&lock.mutex);
+#endif
+  if (0 == rc) {
+    clib_cache_save_package(pkg->author, pkg->name, pkg->version, pkg_dir);
+    _debug("cached package: %s/%s@%s", pkg->author, pkg->name, pkg->version);
+  } else {
+    clib_cache_delete_json(pkg->author, pkg->name, pkg->version);
+    _debug("deleted json cache: %s/%s@%s", pkg->author, pkg->name, pkg->version);
+  }
+#ifdef HAVE_PTHREADS
+  pthread_mutex_unlock(&lock.mutex);
+#endif
+
   return rc;
 }
 
