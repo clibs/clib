@@ -95,7 +95,7 @@ static void compare_versions(const char *marker_file_path) {
 
   if (0 != semver_parse(CLIB_VERSION, &current_version)) {
     debug(&debugger, "Unable to parse the current version as a semver_t: %s",
-          current_version);
+          CLIB_VERSION);
     return;
   }
 
