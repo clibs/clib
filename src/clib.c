@@ -14,6 +14,7 @@
 #include "logger/logger.h"
 #include "parson/parson.h"
 #include "path-join/path-join.h"
+#include "semver/semver.h"
 #include "str-flatten/str-flatten.h"
 #include "strdup/strdup.h"
 #include "trim/trim.h"
@@ -82,20 +83,45 @@ static bool should_check_release(const char *path) {
 }
 
 static void compare_versions(const char *marker_file_path) {
-  if (!marker_file_path) return;
+  if (!marker_file_path)
+    return;
 
-  const char *latest_version = clib_release_get_latest_tag();
+  const char *latest_tag = clib_release_get_latest_tag();
 
-  if (!latest_version) return;
+  if (!latest_tag)
+    return;
 
-  if (0 != strcmp(CLIB_VERSION, latest_version)) {
+  semver_t current_version;
+
+  if (0 != semver_parse(CLIB_VERSION, &current_version)) {
+    debug(&debugger, "Unable to parse the current version as a semver_t: %s",
+          current_version);
+    return;
+  }
+
+  semver_t latest_version;
+
+  if (0 != semver_parse(latest_tag, &latest_version)) {
+    debug(&debugger, "Unable to parse the latest tag as a semver_t: %s",
+          latest_tag);
+    semver_free(&current_version);
+    return;
+  }
+
+  if (semver_satisfies(current_version, latest_version, "<")) {
     logger_info("info",
                 "You are using clib %s, a new version is avalable. You can "
                 "upgrade with the following command: clib upgrade --tag %s",
-                CLIB_VERSION, latest_version);
+                CLIB_VERSION, latest_tag);
+  } else {
+    debug(&debugger, "No newer version found. Current: %s Latest: %s",
+          CLIB_VERSION, latest_tag);
   }
 
-  free((void *)latest_version);
+  semver_free(&current_version);
+  semver_free(&latest_version);
+
+  free((void *)latest_tag);
 }
 
 static void notify_new_release(void) {
@@ -121,8 +147,9 @@ cleanup:
 }
 
 static void warn_deprecated_sub_command(const char *cmd) {
-  const char *allowed[] = {"build",  "configure", "init",    "install",
-                           "search", "update",    "upgrade", "uninstall", NULL};
+  const char *allowed[] = {"build",   "configure", "init",
+                           "install", "search",    "update",
+                           "upgrade", "uninstall", NULL};
 
   int i = 0;
 
