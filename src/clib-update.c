@@ -328,9 +328,12 @@ int main(int argc, char *argv[]) {
 
     if (json) {
       root_package = clib_package_new(json, opts.verbose);
+
       if (root_package && root_package->prefix && !opts.prefix) {
         opts.prefix = root_package->prefix;
       }
+
+      free(json);
     }
   }
 
