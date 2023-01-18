@@ -1,18 +1,9 @@
 {
   "name": "clib",
-  "version": "2.8.1",
+  "version": "2.8.3",
   "repo": "clibs/clib",
   "install": "make clean uninstall build install",
   "makefile": "Makefile",
-  "src": [
-    "src/clib-configure.c",
-    "src/clib-init.c",
-    "src/clib-install.c",
-    "src/clib-search.c",
-    "src/clib.c",
-    "src/version.h",
-    "Makefile"
-  ],
   "dependencies": {
     "stephenmathieson/trim.c": "0.0.2",
     "which": "0.1.3",
