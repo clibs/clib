@@ -10,6 +10,7 @@ endif
 CP      = cp -f
 RM      = rm -f
 MKDIR   = mkdir -p
+INSTALL = install
 
 SRC  = $(wildcard src/*.c)
 COMMON_SRC = $(wildcard src/common/*.c)
@@ -66,7 +67,7 @@ clean:
 
 install: $(BINS)
 	$(MKDIR) $(PREFIX)/bin
-	$(foreach c, $(BINS), $(CP) $(c) $(PREFIX)/bin/$(c);)
+	$(foreach c, $(BINS), $(INSTALL) $(c) $(PREFIX)/bin/$(c);)
 
 uninstall:
 	$(foreach c, $(BINS), $(RM) $(PREFIX)/bin/$(c);)
