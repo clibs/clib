@@ -11,6 +11,7 @@ clib uninstall stephenmathieson/tabs-to-spaces -P tmp
 
 # ensure the un-installation worked
 command -v tmp/bin/t2s >/dev/null 2>&1 && {
+  rm -rf deps/tabs-to-spaces
   exit 0
 }
 

@@ -10,7 +10,7 @@ mkdir -p tmp
 cd tmp || exit
 
 # see https://github.com/clibs/clib/issues/45
-cat > package.json << EOF
+cat > clib.json << EOF
 {
   "dependencies": {
     "linenoise": "*",

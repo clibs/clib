@@ -23,7 +23,7 @@ static void assert_cached_file(char *pkg_dir, char *file) {
 static void assert_cached_files(char *pkg_dir) {
   assert_cached_file(pkg_dir, "copy.c");
   assert_cached_file(pkg_dir, "copy.h");
-  assert_cached_file(pkg_dir, "package.json");
+  assert_cached_file(pkg_dir, "clib.json");
 }
 
 int main() {
