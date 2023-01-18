@@ -1096,8 +1096,11 @@ static void set_prefix(clib_package_t *pkg, long path_max) {
   }
 }
 
-int clib_package_install_executable(clib_package_t *pkg, const char *dir,
-                                    int verbose) {
+int clib_package_install_executable(
+  clib_package_t *pkg,
+  const char *dir,
+  int verbose
+) {
 #ifdef PATH_MAX
   long path_max = PATH_MAX;
 #elif defined(_PC_PATH_MAX)
@@ -1207,9 +1210,30 @@ int clib_package_install_executable(clib_package_t *pkg, const char *dir,
       goto cleanup;
   }
 
-  if (!opts.global && pkg->makefile) {
-    E_FORMAT(&command, "cp -fr %s/%s/%s %s", dir_path, pkg->name,
-             basename(pkg->makefile), unpack_dir);
+  if (!opts.global) {
+    if (pkg->makefile) {
+      E_FORMAT(&command,
+        "cp -fr %s/%s/%s %s",
+        dir_path,
+        pkg->name,
+        basename(pkg->makefile),
+        unpack_dir
+      );
+
+      rc = system(command);
+      if (0 != rc) {
+        goto cleanup;
+      }
+
+      free(command);
+    }
+
+    E_FORMAT(&command,
+      "cp -rf %s/* %s/%s",
+      unpack_dir,
+      dir_path,
+      pkg->name
+    );
 
     rc = system(command);
     if (0 != rc) {
