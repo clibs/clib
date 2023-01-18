@@ -14,6 +14,7 @@
 #include "fs/fs.h"
 #include "http-get/http-get.h"
 #include "logger/logger.h"
+#include "mkdirp/mkdirp.h"
 #include "parson/parson.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
@@ -105,7 +106,11 @@ static int install_local_packages_with_package_name(const char *file) {
   if (NULL == pkg)
     goto e1;
 
-  if (pkg->prefix) {
+  if (opts.prefix) {
+    setenv("PREFIX", opts.prefix, 1);
+  } else if (root_package && root_package->prefix) {
+    setenv("PREFIX", root_package->prefix, 1);
+  } else if (pkg->prefix) {
     setenv("PREFIX", pkg->prefix, 1);
   }
 
@@ -189,21 +194,6 @@ static int install_package(const char *slug) {
   long path_max = 4096;
 #endif
 
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
-
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
-
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-    }
-  }
-
   if ('.' == slug[0]) {
     if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
       char dir[path_max];
@@ -235,11 +225,6 @@ static int install_package(const char *slug) {
 
   if (NULL == pkg)
     return -1;
-
-  if (root_package && root_package->prefix) {
-    package_opts.prefix = root_package->prefix;
-    clib_package_set_opts(package_opts);
-  }
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
   if (0 != rc) {
@@ -331,14 +316,37 @@ int main(int argc, char *argv[]) {
     logger_error("error", "Failed to initialize cURL");
   }
 
+  if (!root_package) {
+    char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (NULL != manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+      if (root_package && root_package->prefix && !opts.prefix) {
+        opts.prefix = root_package->prefix;
+      }
+    }
+  }
+
   if (opts.prefix) {
     char prefix[path_max];
+
+    mkdirp(opts.prefix, 0777);
+
     memset(prefix, 0, path_max);
     realpath(opts.prefix, prefix);
+
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);

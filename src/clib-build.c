@@ -38,6 +38,7 @@
 #include <hash/hash.h>
 #include <list/list.h>
 #include <logger/logger.h>
+#include "mkdirp/mkdirp.h"
 #include <path-join/path-join.h>
 #include <str-flatten/str-flatten.h>
 #include <trim/trim.h>
@@ -146,32 +147,6 @@ int build_package_with_manifest_name(const char *dir, const char *file) {
 #ifdef HAVE_PTHREADS
   pthread_mutex_lock(&mutex);
 #endif
-
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
-
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
-
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-    }
-
-    if (root_package && root_package->prefix) {
-      char prefix[path_max];
-      memset(prefix, 0, path_max);
-      realpath(root_package->prefix, prefix);
-      unsigned long int size = strlen(prefix) + 1;
-      free(root_package->prefix);
-      root_package->prefix = malloc(size);
-      memset((void *)root_package->prefix, 0, size);
-      memcpy((void *)root_package->prefix, prefix, size);
-    }
-  }
 
   if (hash_has(built, path)) {
 #ifdef HAVE_PTHREADS
@@ -627,14 +602,37 @@ int main(int argc, char **argv) {
     memcpy((void *)opts.dir, dir, size);
   }
 
+  if (!root_package) {
+    const char *name = NULL;
+    char *json = NULL;
+    unsigned int i = 0;
+
+    do {
+      name = manifest_names[i];
+      json = fs_read(name);
+    } while (manifest_names[++i] && !json);
+
+    if (json) {
+      root_package = clib_package_new(json, opts.verbose);
+      if (root_package && root_package->prefix && !opts.prefix) {
+        opts.prefix = root_package->prefix;
+      }
+    }
+  }
+
   if (opts.prefix) {
     char prefix[path_max];
+
+    mkdirp(opts.prefix, 0777);
+
     memset(prefix, 0, path_max);
     realpath(opts.prefix, prefix);
+
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
-    memset((void *)opts.prefix, 0, size);
-    memcpy((void *)opts.prefix, prefix, size);
+
+    memset((void *) opts.prefix, 0, size);
+    memcpy((void *) opts.prefix, prefix, size);
   }
 
   rest_offset = program.argc;
