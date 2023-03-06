@@ -3,7 +3,6 @@
 //
 // Copyright (c) 2014 Stephen Mathieson
 // Copyright (c) 2021 clib authors
-//
 // MIT licensed
 //
 
