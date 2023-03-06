@@ -1,4 +1,3 @@
-
 //
 // clib-validate: `clib-validate.c`
 //

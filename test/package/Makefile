@@ -1,4 +1,3 @@
-
 CC ?= cc
 VALGRIND ?= valgrind
 TEST_RUNNER ?=
