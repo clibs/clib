@@ -1,4 +1,3 @@
-
 #include "clib-package.h"
 #include "clib-cache.h"
 #include "describe/describe.h"

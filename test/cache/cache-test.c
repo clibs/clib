@@ -30,7 +30,7 @@ int main() {
 
   rimraf(clib_cache_dir());
 
-  describe("clib-cache opearions") {
+  describe("clib-cache operations") {
 
     char *author = "author";
     char *name = "pkg";
