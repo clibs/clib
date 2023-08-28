@@ -108,18 +108,16 @@ set_cache:
 
   debug(&debugger, "setting cache from %s", CLIB_WIKI_URL);
   http_get_response_t *res = http_get(CLIB_WIKI_URL);
-  if (!res->ok)
-    return NULL;
 
-  char *html = strdup(res->data);
-  if (NULL == html)
-    return NULL;
+  char *html = NULL;
+
+  if (res->ok && (html = strdup(res->data)) != NULL) {
+    clib_cache_save_search(html);
+    debug(&debugger, "wrote cach");
+  }
+
   http_get_free(res);
 
-  if (NULL == html)
-    return html;
-  clib_cache_save_search(html);
-  debug(&debugger, "wrote cach");
   return html;
 }
 
