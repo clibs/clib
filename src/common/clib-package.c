@@ -323,7 +323,16 @@ static inline list_t *parse_package_deps(JSON_Object *obj) {
       goto loop_cleanup;
     if (!(dep = clib_package_dependency_new(name, version)))
       goto loop_cleanup;
-    if (!(list_rpush(list, list_node_new(dep))))
+
+    list_node_t* dep_node = list_node_new(dep);
+    // note: if we fail to allocate the node itself,
+    // `dep` will never be pushed on the list
+    if (!dep_node) {
+      clib_package_dependency_free(dep);
+      goto loop_cleanup;
+    }
+
+    if (!(list_rpush(list, dep_node)))
       goto loop_cleanup;
 
     error = 0;
