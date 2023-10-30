@@ -3,9 +3,9 @@ mkdir -p tmp/test-save
 cp test/data/test-save-package.json tmp/test-save/package.json
 
 cd tmp/test-save || exit
-../../clib-install -c --save stephenmathieson/tabs-to-spaces@1.0.0 >/dev/null
-../../clib-install -c -S darthtrevino/str-concat@0.0.2 >/dev/null
-../../clib-install -c --save-dev jwerle/fs.c@0.1.1 >/dev/null
+../../clib-install -c stephenmathieson/tabs-to-spaces@1.0.0 >/dev/null
+../../clib-install -c darthtrevino/str-concat@0.0.2 >/dev/null
+../../clib-install -c --dev jwerle/fs.c@0.1.1 >/dev/null
 ../../clib-install -c -D clibs/parson@1.0.2 >/dev/null
 cd - || exit
 
