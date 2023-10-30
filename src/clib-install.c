@@ -44,8 +44,8 @@ struct options {
   char *token;
   int verbose;
   int dev;
-  int save;
   int savedev;
+  int nosave;
   int force;
   int global;
   int skip_cache;
@@ -89,13 +89,18 @@ static void setopt_dev(command_t *self) {
 }
 
 static void setopt_save(command_t *self) {
-  opts.save = 1;
-  debug(&debugger, "set save flag");
+  logger_warn("deprecated", "--save option is deprecated "
+                            "(dependencies are now saved by default)");
 }
 
 static void setopt_savedev(command_t *self) {
   opts.savedev = 1;
   debug(&debugger, "set savedev flag");
+}
+
+static void setopt_nosave(command_t *self) {
+  opts.nosave = 1;
+  debug(&debugger, "set nosave flag");
 }
 
 static void setopt_force(command_t *self) {
@@ -304,10 +309,9 @@ static int install_package(const char *slug) {
     pkg->repo = strdup(slug);
   }
 
-  if (opts.save)
-    save_dependency(pkg);
-  if (opts.savedev)
-    save_dev_dependency(pkg);
+  if (!opts.nosave) {
+    opts.savedev ? save_dev_dependency(pkg) : save_dependency(pkg);
+  }
 
 cleanup:
   clib_package_free(pkg);
@@ -371,10 +375,14 @@ int main(int argc, char *argv[]) {
   command_option(&program, "-d", "--dev", "install development dependencies",
                  setopt_dev);
   command_option(&program, "-S", "--save",
-                 "save dependency in clib.json or package.json", setopt_save);
+                 "[DEPRECATED] save dependency in clib.json or package.json",
+                 setopt_save);
   command_option(&program, "-D", "--save-dev",
                  "save development dependency in clib.json or package.json",
                  setopt_savedev);
+  command_option(&program, "-N", "--no-save",
+                 "don't save dependency in clib.json or package.json",
+                 setopt_nosave);
   command_option(&program, "-f", "--force",
                  "force the action of something, like overwriting a file",
                  setopt_force);
@@ -430,8 +438,8 @@ int main(int argc, char *argv[]) {
     unsigned long int size = strlen(prefix) + 1;
     opts.prefix = malloc(size);
 
-    memset((void *) opts.prefix, 0, size);
-    memcpy((void *) opts.prefix, prefix, size);
+    memset((void *)opts.prefix, 0, size);
+    memcpy((void *)opts.prefix, prefix, size);
   }
 
   clib_cache_init(CLIB_PACKAGE_CACHE_TIME);
