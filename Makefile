@@ -72,7 +72,7 @@ install: $(BINS)
 uninstall:
 	$(foreach c, $(BINS), $(RM) $(PREFIX)/bin/$(c);)
 
-test:
+test: $(BINS)
 	@./test.sh
 
 # create a list of auto dependencies
