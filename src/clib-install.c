@@ -399,7 +399,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (!root_package) {
-    char *name = NULL;
+    const char *name = NULL;
     char *json = NULL;
     unsigned int i = 0;
 
