@@ -1,7 +1,13 @@
 #!/bin/sh
 
-mkdir -p tmp/bin
-TESTS=$(find test/* -type f -perm -111)
+ctrl_c () {
+  echo "Ctrl+c detected. Exiting..."
+  exit 1
+}
+
+trap ctrl_c INT
+
+TESTS=$(find test/*.sh -type f -perm -111)
 EXIT_CODE=0
 export PATH="$PWD:$PATH"
 
@@ -17,21 +23,20 @@ for t in $TESTS; do
 done
 echo
 
-
 printf "\nRunning clib package tests\n\n"
 cd test/package && make clean
 
 if ! make test; then
-    EXIT_CODE=1
+  EXIT_CODE=1
 fi
 
 cd ../../
 
 printf "\nRunning clib cache tests\n\n"
-cd test/cache 
+cd test/cache && make clean
 
 if ! make test; then
-    EXIT_CODE=1
+  EXIT_CODE=1
 fi
 
 cd ../../
