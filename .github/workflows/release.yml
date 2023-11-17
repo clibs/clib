@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get Tag Name
         uses: little-core-labs/get-git-tag@v3.0.1
@@ -42,7 +42,7 @@ jobs:
           mkdir -p build/bin
           PREFIX=build make install
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.linux_artifact }}
           path: build/bin
@@ -52,7 +52,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get Tag Name
         uses: little-core-labs/get-git-tag@v3.0.1
@@ -74,7 +74,7 @@ jobs:
           mkdir -p build/bin
           PREFIX=build make install
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.macos_artifact }}
           path: build/bin
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get Tag Name
         uses: little-core-labs/get-git-tag@v3.0.1
@@ -109,7 +109,7 @@ jobs:
           mkdir -p build/bin
           ./dockcross-windows-x64 make install STATIC=true EXE=true PREFIX=build
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.windows_artifact }}
           path: build/bin
