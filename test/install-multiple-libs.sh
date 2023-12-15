@@ -5,6 +5,8 @@ throw() {
   exit 1
 }
 
+trap 'rm -rf tmp' EXIT
+
 clib install -c -N -o tmp \
   stephenmathieson/case.c stephenmathieson/trim.c > /dev/null ||
   throw "expecting successful exit code"
@@ -14,5 +16,3 @@ clib install -c -N -o tmp \
 
 [ -d ./tmp/trim ] && [ -f ./tmp/trim/package.json ] ||
   throw "failed to install trim.c"
-
-rm -rf ./tmp
