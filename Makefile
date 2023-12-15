@@ -49,7 +49,7 @@ all: $(BINS)
 
 build: $(BINS)
 
-$(BINS): $(SRC) $(MAKEFILES) $(OBJS)
+$(BINS): $(SRC) $(COMMON_SRC) $(MAKEFILES) $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(COMMON_SRC) src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
 $(MAKEFILES):
