@@ -23,10 +23,10 @@
 #include "parse-repo/parse-repo.h"
 #include "parson/parson.h"
 #include "path-join/path-join.h"
+#include "rimraf/rimraf.h"
 #include "strdup/strdup.h"
 #include "substr/substr.h"
 #include "tempdir/tempdir.h"
-#include "rimraf/rimraf.h"
 #include <curl/curl.h>
 #include <libgen.h>
 #include <limits.h>
@@ -324,7 +324,7 @@ static inline list_t *parse_package_deps(JSON_Object *obj) {
     if (!(dep = clib_package_dependency_new(name, version)))
       goto loop_cleanup;
 
-    list_node_t* dep_node = list_node_new(dep);
+    list_node_t *dep_node = list_node_new(dep);
     // note: if we fail to allocate the node itself,
     // `dep` will never be pushed on the list
     if (!dep_node) {
@@ -711,6 +711,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
         pkg->version = version;
       } else {
         free(version);
+        version = NULL;
       }
     }
   } else {
@@ -724,6 +725,7 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
       pkg->author = author;
     } else {
       free(author);
+      author = NULL;
     }
   } else {
     pkg->author = strdup(author);
@@ -1544,7 +1546,7 @@ download:
 #ifdef HAVE_PTHREADS
   // Here there are i-1 threads running.
   for (int j = 0; j < i; j++) {
-      fetch_package_file_thread_data_t *data = fetchs[j];
+    fetch_package_file_thread_data_t *data = fetchs[j];
     int *status;
 
     pthread_join(data->thread, (void **)&status);
@@ -1565,7 +1567,6 @@ download:
     }
   }
 #endif
-
 
 install:
   if (pkg->configure) {
@@ -1596,7 +1597,6 @@ install:
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&lock.mutex);
 #endif
-
 
 cleanup:
   if (pkg_dir) {
@@ -1629,7 +1629,8 @@ cleanup:
 #endif
   if (0 != rc && pkg) {
     clib_cache_delete_json(pkg->author, pkg->name, pkg->version);
-    _debug("deleted json cache: %s/%s@%s", pkg->author, pkg->name, pkg->version);
+    _debug("deleted json cache: %s/%s@%s", pkg->author, pkg->name,
+           pkg->version);
   }
 #ifdef HAVE_PTHREADS
   pthread_mutex_unlock(&lock.mutex);
