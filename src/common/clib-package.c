@@ -704,22 +704,20 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
 
   // force version number
   if (pkg->version) {
-    if (version) {
-      if (0 != strcmp(version, DEFAULT_REPO_VERSION)) {
-        _debug("forcing version number: %s (%s)", version, pkg->version);
-        free(pkg->version);
-        pkg->version = version;
-      } else {
-        free(version);
-        version = NULL;
-      }
+    if (0 != strcmp(version, DEFAULT_REPO_VERSION)) {
+      _debug("forcing version number: %s (%s)", version, pkg->version);
+      free(pkg->version);
+      pkg->version = version;
+    } else {
+      free(version);
+      version = NULL;
     }
   } else {
     pkg->version = version;
   }
 
   // force package author (don't know how this could fail)
-  if (author && pkg->author) {
+  if (pkg->author) {
     if (0 != strcmp(author, pkg->author)) {
       free(pkg->author);
       pkg->author = author;
