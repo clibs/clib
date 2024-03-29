@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 #include "../../src/common/clib-package.h"
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
