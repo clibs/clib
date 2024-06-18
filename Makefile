@@ -20,6 +20,7 @@ ODEPS = $(SDEPS:.c=.o)
 DEPS = $(filter-out $(ODEPS), $(SDEPS))
 OBJS = $(DEPS:.c=.o)
 MAKEFILES = $(wildcard deps/*/Makefile)
+HEADERS_BINS = src/common/*.h src/version.h deps/logger/logger.h
 
 export CC
 
@@ -49,7 +50,7 @@ all: $(BINS)
 
 build: $(BINS)
 
-$(BINS): $(SRC) $(COMMON_SRC) $(MAKEFILES) $(OBJS)
+$(BINS): $(SRC) $(COMMON_SRC) $(MAKEFILES) $(OBJS) $(HEADERS_BINS)
 	$(CC) $(CFLAGS) -o $@ $(COMMON_SRC) src/$(@:.exe=).c $(OBJS) $(LDFLAGS)
 
 $(MAKEFILES):
