@@ -5,6 +5,8 @@ throw() {
   exit 1
 }
 
+trap 'rm -rf tmp' EXIT
+
 clib install -c -N -o tmp ms file hash > /dev/null ||
   throw "expecting successful exit code"
 
@@ -16,5 +18,3 @@ clib install -c -N -o tmp ms file hash > /dev/null ||
 
 [ -d ./tmp/hash ] && [ -f ./tmp/hash/package.json ] ||
   throw "failed to install hash"
-
-rm -rf ./tmp
