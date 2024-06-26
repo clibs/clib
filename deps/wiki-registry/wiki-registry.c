@@ -1,4 +1,3 @@
-
 //
 // wiki-registry.c
 //
@@ -96,30 +95,36 @@ wiki_registry_parse(const char *html) {
 
   GumboNode *body = gumbo_get_element_by_id("wiki-body", output->root);
   if (body) {
-    // grab all category `<h2 />`s
-    list_t *h2s = gumbo_get_elements_by_tag_name("h2", body);
-    list_node_t *heading_node;
-    list_iterator_t *heading_iterator = list_iterator_new(h2s, LIST_HEAD);
-    while ((heading_node = list_iterator_next(heading_iterator))) {
-      GumboNode *heading = (GumboNode *) heading_node->val;
-      char *category = gumbo_text_content(heading);
-      // die if we failed to parse a category, as it's
-      // almost certinaly a malloc error
-      if (!category) break;
-      trim(case_lower(category));
-      GumboVector *siblings = &heading->parent->v.element.children;
-      size_t pos = heading->index_within_parent;
+    GumboNode* markdown_body = ((GumboNode*)((GumboVector)body->v.element.children).data[1]);
+    GumboVector children = (GumboVector)markdown_body->v.element.children;
 
-      // skip elements until the UL
-      // TODO: don't hardcode position here
-      // 2:
-      //   1 - whitespace
-      //   2 - actual node
-      GumboNode *ul = siblings->data[pos + 2];
-      if (GUMBO_TAG_UL != ul->v.element.tag) {
-        free(category);
+    size_t count = children.length - 1;
+
+    for (size_t index = 0; index < count; index++) {
+      GumboNode *heading = (GumboNode *)children.data[index];
+      GumboNode *ul = NULL;
+
+      if (heading->v.element.tag != GUMBO_TAG_DIV) {
         continue;
       }
+
+      GumboAttribute *node_id = gumbo_get_attribute(&heading->v.element.attributes, "class");
+      if (node_id == NULL || strncmp(node_id->value, "markdown-heading", 16) != 0) {
+        continue;
+      }
+
+      for (; index < count; index++) {
+        ul = (GumboNode *)children.data[index];
+
+        if (ul->v.element.tag == GUMBO_TAG_UL) {
+          break;
+        }
+      }
+
+      list_t *h2 = gumbo_get_elements_by_tag_name("h2", heading);
+      char *category = gumbo_text_content(h2->head->val);
+      if (!category) break;
+      trim(case_lower(category));
 
       list_t *lis = gumbo_get_elements_by_tag_name("li", ul);
       list_iterator_t *li_iterator = list_iterator_new(lis, LIST_HEAD);
@@ -138,8 +143,6 @@ wiki_registry_parse(const char *html) {
       list_destroy(lis);
       free(category);
     }
-    list_iterator_destroy(heading_iterator);
-    list_destroy(h2s);
   }
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
