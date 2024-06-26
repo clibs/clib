@@ -9,7 +9,7 @@
     "which": "0.1.3",
     "stephenmathieson/str-flatten.c": "0.0.4",
     "commander": "1.3.2",
-    "stephenmathieson/wiki-registry.c": "0.0.4",
+    "clibs/wiki-registry.c": "0.1.2",
     "stephenmathieson/case.c": "0.1.3",
     "jwerle/fs.c": "0.2.0",
     "stephenmathieson/str-replace.c": "0.0.6",

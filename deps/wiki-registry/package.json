@@ -1,7 +1,7 @@
 {
   "name": "wiki-registry",
-  "version": "0.0.4",
-  "repo": "stephenmathieson/wiki-registry.c",
+  "version": "0.1.2",
+  "repo": "clibs/wiki-registry.c",
   "description": "Turn a GitHub Wiki page into a package registry",
   "keywords": [ "registry", "github", "wiki" ],
   "license": "MIT",
