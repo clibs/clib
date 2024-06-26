@@ -45,6 +45,20 @@ $ make
 $ sudo make install
 ```
 
+  Fedora:
+
+```sh
+# install libcurl
+$ sudo dnf install libcurl-devel
+# clone
+$ git clone https://github.com/clibs/clib.git /tmp/clib && cd /tmp/clib
+# build
+$ make
+# put on path
+$ sudo make install
+```
+
+
 ## About
 
   Basically the lazy-man's copy/paste promoting smaller C utilities, also
