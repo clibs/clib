@@ -513,6 +513,8 @@ clib_package_t *clib_package_new(const char *json, int verbose) {
       for (unsigned int i = 0; i < json_array_get_count(flags); i++) {
         char *flag = json_array_get_string_safe(flags, i);
         if (flag) {
+          char *old_flags = pkg->flags;
+
           if (!pkg->flags) {
             pkg->flags = "";
           }
@@ -521,6 +523,7 @@ clib_package_t *clib_package_new(const char *json, int verbose) {
             goto cleanup;
           }
 
+          free(old_flags);
           free(flag);
         }
       }
