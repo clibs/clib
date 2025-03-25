@@ -1,3 +1,38 @@
+2.8.7 / 2024-06-27
+==================
+  * [fix] update wiki registry. (#317)
+  * [fix] Create missing tmp dirs for test artifacts and cleanup before/after (#301)
+  * [fix] Add missing dependencies from src/common/*h (#311)
+  * [fix] Double free
+  * [fix] Update fuzz_manifest.c: Add missing include unistd.h (#310)
+  * [fix] Do not define HAVE_PTHREADS if pthread is not available
+  * [fix] Also check for pthread_cancel
+  * [fix] Add missing dependencies from `src/common/*` (#303)
+
+2.8.5 / 2023-11-08
+==================
+  * [feature] save deps by default and support --no-save opt
+  * [fix] Do not discard `const` type qualifier
+  * [fix] free dependency by hand if list node is not allocated. (#297)
+
+2.8.4 / 2023-08-29
+==================
+  * [fix] free http get response after done with it. (#295)
+
+2.8.3 / 2023-01-18
+==================
+  * [fix] free 'json'
+  * [fix] fix PREFIX
+  * [fix] set 'root_package' in 'main'
+  * [fix] use 'install' instead of 'cp'
+
+2.8.3 / 2022-11-21
+==================
+  * [fix] free 'json'
+  * [fix] fix PREFIX
+  * [fix] set 'root_package' in 'main'
+  * [fix] use 'install' instead of 'cp'
+
 2.8.2 / 2022-11-21
 ==================
   * [fix] Fixing the failing tests on MacOS (#271)
