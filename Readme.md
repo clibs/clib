@@ -58,6 +58,14 @@ $ make
 $ sudo make install
 ```
 
+  Nix:
+
+```sh
+$ nix-env -i clib
+```
+
+  Or add to your `nativeBuildInputs`.
+
 
 ## About
 
