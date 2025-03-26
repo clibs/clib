@@ -135,17 +135,17 @@ jobs:
           prerelease: false
 
       - name: Download Linux Artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.linux_artifact }}
 
       - name: Download macOS Artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.macos_artifact }}
 
       - name: Download Windows Artifact
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.windows_artifact }}
 
