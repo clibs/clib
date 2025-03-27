@@ -406,25 +406,10 @@ int main(int argc, char *argv[]) {
     logger_error("error", "Failed to initialize cURL");
   }
 
-  if (!root_package) {
-    const char *name = NULL;
-    char *json = NULL;
-    unsigned int i = 0;
+  root_package = clib_package_load_local_manifest(opts.verbose);
 
-    do {
-      name = manifest_names[i];
-      json = fs_read(name);
-    } while (NULL != manifest_names[++i] && !json);
-
-    if (json) {
-      root_package = clib_package_new(json, opts.verbose);
-
-      if (root_package && root_package->prefix && !opts.prefix) {
-        opts.prefix = root_package->prefix;
-      }
-
-      free(json);
-    }
+  if (root_package && root_package->prefix && !opts.prefix) {
+    opts.prefix = root_package->prefix;
   }
 
   if (opts.prefix) {
