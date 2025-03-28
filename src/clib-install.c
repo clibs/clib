@@ -306,7 +306,15 @@ static int install_package(const char *slug) {
   }
 
   if (0 == pkg->repo || 0 != strcmp(slug, pkg->repo)) {
-    pkg->repo = strdup(slug);
+    char* version_char = NULL;
+    // NOTE: check if version was specified
+    if ((version_char = strchr(slug, '@')) != NULL) {
+      size_t length = version_char - slug;
+      pkg->repo = malloc(sizeof(char) * length);
+      memcpy(pkg->repo, slug, length);
+    } else {
+      pkg->repo = strdup(slug);
+    }
   }
 
   if (!opts.nosave) {
