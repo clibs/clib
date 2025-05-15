@@ -390,6 +390,8 @@ static inline int install_packages(list_t *list, const char *dir, int verbose) {
   loop_cleanup:
     if (slug)
       free(slug);
+    if (error && pkg)
+      clib_package_free(pkg);
     if (error) {
       list_iterator_destroy(iterator);
       iterator = NULL;
@@ -682,6 +684,10 @@ clib_package_new_from_slug_with_package_name(const char *slug, int verbose,
       json = res->data;
       _debug("status: %d", res->status);
       if (!res || !res->ok) {
+        if (res) {
+          http_get_free(res);
+          res = NULL;
+        }
         goto download;
       }
       log = "fetch";
