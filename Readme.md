@@ -94,7 +94,8 @@ $ nix-env -i clib
     init                 Start a new project
     i, install [name...] Install one or more packages
     up, update [name...] Update one or more packages
-    upgrade [version]    Upgrade clib to a specified or latest version\
+    uninstall [name...]  Uninstall executables
+    upgrade [version]    Upgrade clib to a specified or latest version
     configure [name...]  Configure one or more packages
     build [name...]      Build one or more packages
     search [query]       Search for packages
