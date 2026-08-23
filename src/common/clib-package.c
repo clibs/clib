@@ -920,6 +920,11 @@ clib_package_dependency_t *clib_package_dependency_new(const char *repo,
   dep->name = clib_package_parse_name(repo);
   dep->author = clib_package_parse_author(repo);
 
+  if (!dep->name || !dep->author) {
+    clib_package_dependency_free(dep);
+    return NULL;
+  }
+
   _debug("dependency: %s/%s@%s", dep->author, dep->name, dep->version);
   return dep;
 }
