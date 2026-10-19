@@ -16,6 +16,7 @@
 #include "logger/logger.h"
 #include "mkdirp/mkdirp.h"
 #include "parson/parson.h"
+#include "path-join/path-join.h"
 #include "str-replace/str-replace.h"
 #include "version.h"
 #include <curl/curl.h>
@@ -127,7 +128,7 @@ static void setopt_skip_cache(command_t *self) {
   debug(&debugger, "set skip cache flag");
 }
 
-static int install_local_packages_with_package_name(const char *file) {
+static int install_local_package_from_manifest(const char *file) {
   if (0 != clib_validate(file)) {
     return 1;
   }
@@ -171,16 +172,23 @@ e1:
 }
 
 /**
- * Install dependency packages at `pwd`.
+ * Install dependency packages from `dir`.
  */
-static int install_local_packages() {
+static int install_local_packages_from_dir(const char *dir) {
   const char *name = NULL;
+  char *file = NULL;
   unsigned int i = 0;
   int rc = 0;
 
   do {
     name = manifest_names[i];
-    rc = install_local_packages_with_package_name(name);
+    file = path_join(dir, name);
+    if (NULL == file) {
+      return 1;
+    }
+
+    rc = install_local_package_from_manifest(file);
+    free(file);
   } while (NULL != manifest_names[++i] && 0 != rc);
 
   return rc;
@@ -230,67 +238,32 @@ static int write_dependency(clib_package_t *pkg, char *prefix) {
 }
 
 /**
- * Save a dependency to clib.json or package.json.
- */
-static int save_dependency(clib_package_t *pkg) {
-  debug(&debugger, "saving dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "dependencies");
-}
-
-/**
- * Save a development dependency to clib.json or package.json.
- */
-static int save_dev_dependency(clib_package_t *pkg) {
-  debug(&debugger, "saving dev dependency %s at %s", pkg->name, pkg->version);
-  return write_dependency(pkg, "development");
-}
-
-/**
  * Create and install a package from `slug`.
  */
 
 static int install_package(const char *slug) {
   clib_package_t *pkg = NULL;
-  int rc;
+  int rc = 0;
 
-#ifdef PATH_MAX
-  long path_max = PATH_MAX;
-#elif defined(_PC_PATH_MAX)
-  long path_max = pathconf(slug, _PC_PATH_MAX);
-#else
-  long path_max = 4096;
-#endif
-
-  if ('.' == slug[0]) {
-    if (1 == strlen(slug) || ('/' == slug[1] && 2 == strlen(slug))) {
-      char dir[path_max];
-      realpath(slug, dir);
-      slug = dir;
-      return install_local_packages();
-    }
-  }
-
-  if (0 == fs_exists(slug)) {
-    fs_stats *stats = fs_stat(slug);
-    if (NULL != stats && (S_IFREG == (stats->st_mode & S_IFMT)
+  fs_stats *stats = fs_stat(slug);
+  if (NULL != stats) {
+    switch (stats->st_mode & S_IFMT) {
+    case S_IFDIR:
+      free(stats);
+      return install_local_packages_from_dir(slug);
+    case S_IFREG:
 #if defined(__unix__) || defined(__linux__) || defined(_POSIX_VERSION)
-                          || S_IFLNK == (stats->st_mode & S_IFMT)
+    case S_IFLNK:
 #endif
-                              )) {
       free(stats);
-      return install_local_packages_with_package_name(slug);
-    }
-
-    if (stats) {
+      return install_local_package_from_manifest(slug);
+    default:
       free(stats);
+      break;
     }
   }
 
-  if (!pkg) {
-    pkg = clib_package_new_from_slug(slug, opts.verbose);
-  }
-
-  if (NULL == pkg)
+  if ((pkg = clib_package_new_from_slug(slug, opts.verbose)) == NULL)
     return -1;
 
   rc = clib_package_install(pkg, opts.dir, opts.verbose);
@@ -298,27 +271,18 @@ static int install_package(const char *slug) {
     goto cleanup;
   }
 
-  if (0 == rc && opts.dev) {
+  if (opts.dev) {
     rc = clib_package_install_development(pkg, opts.dir, opts.verbose);
     if (0 != rc) {
       goto cleanup;
     }
   }
 
-  if (0 == pkg->repo || 0 != strcmp(slug, pkg->repo)) {
-    char* version_char = NULL;
-    // NOTE: check if version was specified
-    if ((version_char = strchr(slug, '@')) != NULL) {
-      size_t length = version_char - slug;
-      pkg->repo = malloc(sizeof(char) * length);
-      memcpy(pkg->repo, slug, length);
-    } else {
-      pkg->repo = strdup(slug);
-    }
-  }
-
   if (!opts.nosave) {
-    opts.savedev ? save_dev_dependency(pkg) : save_dependency(pkg);
+    debug(&debugger, "saving %s %s", opts.savedev ? "dev dependency"
+                                                   : "dependency",
+          pkg->version);
+    rc = write_dependency(pkg, opts.savedev ? "development" : "dependencies");
   }
 
 cleanup:
@@ -333,7 +297,7 @@ cleanup:
 static int install_packages(int n, char *pkgs[]) {
   for (int i = 0; i < n; i++) {
     debug(&debugger, "install %s (%d)", pkgs[i], i);
-    if (-1 == install_package(pkgs[i])) {
+    if (0 != install_package(pkgs[i])) {
       logger_error("error", "Unable to install package %s", pkgs[i]);
       return 1;
     }
@@ -449,7 +413,7 @@ int main(int argc, char *argv[]) {
 
   clib_package_set_opts(package_opts);
 
-  int code = 0 == program.argc ? install_local_packages()
+  int code = 0 == program.argc ? install_local_packages_from_dir(".")
                                : install_packages(program.argc, program.argv);
 
   curl_global_cleanup();
