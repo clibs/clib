@@ -15,6 +15,12 @@ int main() {
       assert(NULL == clib_package_dependency_new(NULL, "foo/bar"));
     }
 
+    it("should return NULL for an unparseable repo") {
+      assert(NULL == clib_package_dependency_new("", "1.0.0"));
+      assert(NULL == clib_package_dependency_new("/foo", "1.0.0"));
+      assert(NULL == clib_package_dependency_new("@scope/foo", "1.0.0"));
+    }
+
     it("should return a clib-dependency when given valid input") {
       clib_package_dependency_t *dep =
           clib_package_dependency_new("foo/bar", "1.2.3");
