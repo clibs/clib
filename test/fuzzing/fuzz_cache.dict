@@ -1,0 +1,28 @@
+# fuzz_cache.dict — tokens for the clib package-cache harness.
+# Input layout: <op byte> author \n name \n version ; strings derive from
+# dependency spec strings in untrusted manifests.
+
+author_owner="clibs"
+author_owner="jane"
+author_owner="stephenmathieson"
+author_owner="arthurscchan"
+name="seed"
+name="clib"
+name="asprintf"
+name="parson"
+name="commander"
+name="fs"
+name="list"
+version="1.0.0"
+version="0.1.0"
+version="2.5.0"
+version="master"
+version="*"
+version="v2.0.1"
+version="0.0.1-dev"
+separator="\x0a"
+dot=".."
+dash="-"
+underscore="_"
+dot_json=".json"
+dot_git=".git"
