@@ -1,0 +1,6 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "keywords": ["a", "b", "c"],
+  "install": "make install"
+}

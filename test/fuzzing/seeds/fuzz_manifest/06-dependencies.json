@@ -1,0 +1,10 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "dependencies": {
+    "clibs/clib": "*",
+    "jane/bar": "1.2.3",
+    "bare-dep": "^2.0.0",
+    "stephenmathieson/asprintf": "0.1.0"
+  }
+}

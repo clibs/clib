@@ -1,0 +1,8 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "dependencies": {
+    "clibs/clib": 123,
+    "jane/bar": true
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "src": ["foo.c", 42, null]
+}

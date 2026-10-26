@@ -1,0 +1,12 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "repo": "clibs/foo",
+  "description": "a full manifest",
+  "license": "MIT",
+  "configure": "./configure",
+  "install": "make install",
+  "makefile": "Makefile",
+  "prefix": "/usr/local",
+  "flags": "-O2 -std=c99"
+}
