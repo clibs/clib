@@ -1,0 +1,9 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "repo": "clibs/foo",
+  "description": "a test package",
+  "license": "MIT",
+  "keywords": ["test", "fuzz"],
+  "src": ["foo.c", "foo.h"]
+}

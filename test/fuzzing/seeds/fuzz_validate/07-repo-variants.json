@@ -1,0 +1,6 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "repo": "https://github.com/clibs/foo",
+  "install": "make install"
+}
